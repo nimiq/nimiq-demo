@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8 />
+    <title>Nimiq Demo</title>
+    <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
+    <script>
+
+function _onConsensusEstablished() {
+    document.getElementById('message').innerText = 'Consensus established.';
+
+    // Get current balance and initiate listener.
+    $.accounts.getBalance($.wallet.address)
+        .then(balance => _onBalanceChanged(balance));
+    $.accounts.on($.wallet.address, account => _onBalanceChanged(account.balance));
+    document.getElementById('address').innerText = $.wallet.address.toHex();
+
+    // If we want to start mining.
+    // $.miner.startWork();
+}
+
+function _onBalanceChanged(newBalance) {
+    console.log(`New balance of ${$.wallet.address} is ${newBalance}.`);
+    document.getElementById('balance').innerText = newBalance.value.toFixed(2);
+}
+
+function _onHeadChanged() {
+    const height = $.blockchain.height;
+    console.log(`Now at height ${height}.`);
+    document.getElementById('height').innerText = height;
+}
+
+function _onPeersChanged() {
+    console.log(`Now connected to ${$.network.peerCount} peers.`);
+    document.getElementById('peers').innerText = $.network.peerCount;
+}
+
+Nimiq.init($ => {
+    document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
+
+    window.$ = $;
+    $.consensus.on('established', () => _onConsensusEstablished());
+    $.consensus.on('lost', () => console.error('Consensus lost'));
+
+    $.blockchain.on('head-changed', _ => _onHeadChanged());
+    $.network.on('peers-changed', () => _onPeersChanged());
+
+    $.network.connect();
+}, function(error) {
+    console.error(error);
+});
+    </script>
+</head>
+<body>
+    <h1>Simple Demo Client</h1>
+    <p><strong><span id="message">Loading Nimiq.</span></strong></p>
+    <p>Account address: <span id="address"><em>loading</em></span>, Balance: <span id="balance"><em>loading</em></span></p>
+    <p>Current block height: <span id="height"><em>loading</em></span></p>
+    <p>Current number of peers: <span id="peers"><em>loading</em></span></p>
+</body>
+</html>
