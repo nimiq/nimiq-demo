@@ -20,8 +20,9 @@ function _onConsensusEstablished() {
 }
 
 function _onBalanceChanged(newBalance) {
-    console.log(`New balance of ${$.wallet.address} is ${newBalance}.`);
-    document.getElementById('balance').innerText = newBalance.value.toFixed(2);
+    const displayedBalance = newBalance.value / 1e8; // One NIM equals 10^8 units
+    console.log(`New balance of ${$.wallet.address} is ${displayedBalance}.`);
+    document.getElementById('balance').innerText = displayedBalance.toFixed(8);
 }
 
 function _onHeadChanged() {
