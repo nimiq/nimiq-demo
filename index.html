@@ -22,7 +22,7 @@ function _onConsensusEstablished() {
 function _onBalanceChanged(newBalance) {
     const displayedBalance = Nimiq.Policy.satoshisToCoins(newBalance.value);
     console.log(`New balance of ${$.wallet.address} is ${displayedBalance}.`);
-    document.getElementById('balance').innerText = displayedBalance.toFixed(8);
+    document.getElementById('balance').innerText = displayedBalance.toFixed(Math.log10(Nimiq.Policy.SATOSHIS_PER_COIN));
 }
 
 function _onHeadChanged() {
