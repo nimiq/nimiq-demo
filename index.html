@@ -20,7 +20,7 @@ function _onConsensusEstablished() {
 }
 
 function _onBalanceChanged(newBalance) {
-    const displayedBalance = newBalance.value / 1e8; // One NIM equals 10^8 units
+    const displayedBalance = Nimiq.Policy.satoshisToCoins(newBalance.value);
     console.log(`New balance of ${$.wallet.address} is ${displayedBalance}.`);
     document.getElementById('balance').innerText = displayedBalance.toFixed(8);
 }
