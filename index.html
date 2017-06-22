@@ -2,81 +2,214 @@
 <html>
 <head>
     <meta charset=utf-8 />
-    <title>Nimiq Demo</title>
-    <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
-    <script>
+    <title>NIMIQ.WATCH</title>
 
-function _onConsensusEstablished() {
-    document.getElementById('message').innerText = 'Consensus established.';
-
-    // Get current balance and initiate listener.
-    $.accounts.getBalance($.wallet.address)
-        .then(balance => _onBalanceChanged(balance));
-    $.accounts.on($.wallet.address, account => _onBalanceChanged(account.balance));
-    document.getElementById('address').innerText = $.wallet.address.toHex();
-
-    // If we want to start mining.
-    // $.miner.startWork();
-}
-
-function _onBalanceChanged(newBalance) {
-    const displayedBalance = Nimiq.Policy.satoshisToCoins(newBalance.value);
-    console.log(`New balance of ${$.wallet.address} is ${displayedBalance}.`);
-    document.getElementById('balance').innerText = displayedBalance.toFixed(Math.log10(Nimiq.Policy.SATOSHIS_PER_COIN));
-}
-
-function _onHeadChanged() {
-    const height = $.blockchain.height;
-    console.log(`Now at height ${height}.`);
-    document.getElementById('height').innerText = height;
-}
-
-function _onPeersChanged() {
-    console.log(`Now connected to ${$.network.peerCount} peers.`);
-    document.getElementById('peers').innerText = $.network.peerCount;
-}
-
-Nimiq.init($ => {
-    document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
-
-    window.$ = $;
-    $.consensus.on('established', () => _onConsensusEstablished());
-    $.consensus.on('lost', () => console.error('Consensus lost'));
-
-    $.blockchain.on('head-changed', _ => _onHeadChanged());
-    $.network.on('peers-changed', () => _onPeersChanged());
-
-    $.network.connect();
-}, function(error) {
-    console.error(error);
-});
-    </script>
-</head>
-<body>
-    <h1>Getting started with the Nimiq API</h1>
-    This html file demonstrates the most simple way to build web applications on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
-    <h2>Most Simple Client</h2>
-    <p><strong><span id="message">Loading Nimiq.</span></strong></p>
-    <p>Account address: <span id="address"><em>loading</em></span>, Balance: <img src="nimiq_white.svg" class="nimiq_currency"> <span id="balance"><em>loading</em></span></p>
-    <p>Current block height: <span id="height"><em>loading</em></span></p>
-    <p>Current number of peers: <span id="peers"><em>loading</em></span></p>
-    <h2>Source Code</h2>
-    <a target="_blank" href="https://github.com/RobinLinus/nimiq-demo/blob/master/index.html">View Source Code on Github.</a>
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:400,700" rel="stylesheet">
     <style>
         body {
-            background:teal;
-            color:white;
-            font-family: sans-serif;
-            padding: 8%;
+            background: white;
+            color: #444;
+            font-family: "Source Sans Pro", sans-serif;
+            font-size: 18px;
+            letter-spacing: 0.02em;
+            padding: 0;
+            margin: 0;
         }
 
         a {
-            color:white;
+            color: #042146;
+        }
+
+        header {
+            background: #042146;
+            color: white;
+            padding: 0.5em 0.8em;
+            overflow: auto;
+        }
+
+        header a {
+            color: inherit;
+            text-decoration: inherit;
+        }
+
+        header h1 {
+            margin: 0.2em 0;
+            float: left;
+            font-size: 1.5em;
+            letter-spacing: 0.05em;
+        }
+
+        header .nimiq-logo {
+            position: relative;
+            top: 0.2em;
+        }
+
+        #monitor {
+            float: right;
+            line-height: 2.5em;
+        }
+
+        .not-connected {
+            color: red;
+        }
+
+        .synchronizing {
+            color: gold;
+        }
+
+        .consensus-established {
+            color: limegreen;
         }
 
         img.nimiq_currency {
             height: 12px;
         }
+
+        #content {
+            max-width: 800px;
+            margin: 2em auto;
+        }
+
+        #content h1 {
+            font-weight: normal;
+            text-align: center;
+        }
+
+        #search-form input {
+            font-size: inherit;
+            font-family: "Source Code Pro", monospace;
+            padding: 1em;
+        }
+
+        #search-input {
+            width: 80%;
+        }
+
+        #search-submit {
+            width: 10%;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        #search-submit:disabled {
+            cursor: auto;
+        }
+
+        #search-form .detection {
+            font-size: 16px;
+        }
+
+        #hash-format {
+            font-weight: bold;
+            margin-left: 0.2em;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 14px;
+            color: #AAA;
+            padding: 1em;
+        }
+        footer a {
+            color: #888;
+        }
     </style>
+
+    <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
+    <script>
+
+        function _onConsensusEstablished() {
+            console.info('Consensus established');
+            document.getElementById('status').innerText = 'consensus established';
+            document.getElementById('status').classList.add('consensus-established');
+            document.getElementById('search-submit').removeAttribute('disabled');
+            document.getElementById('search-submit').removeAttribute('title');
+        }
+
+        function _onConsensusLost() {
+            console.error('Consensus lost');
+            document.getElementById('status').innerText = 'consensus lost';
+            document.getElementById('status').classList.remove('consensus-established', 'synchronizing');
+        }
+
+        function _onHeadChanged() {
+            const height = $.blockchain.height;
+            console.log(`Now at height ${height}.`);
+            document.getElementById('height').innerText = '#' + height;
+        }
+
+        function _onPeersChanged() {
+            console.log(`Now connected to ${$.network.peerCount} peers.`);
+            document.getElementById('monitor').setAttribute('title', 'Connected to ' + $.network.peerCount + ' peers');
+        }
+
+        Nimiq.init($ => {
+            document.getElementById('status').innerText = 'synchronizing';
+            document.getElementById('status').classList.add('synchronizing');
+
+            window.$ = $;
+
+            $.consensus.on('established',   () => _onConsensusEstablished());
+            $.consensus.on('lost',          () => _onConsensusLost());
+
+            $.blockchain.on('head-changed', () => _onHeadChanged()); _onHeadChanged();
+
+            $.network.on('peers-changed',   () => _onPeersChanged());
+
+            $.network.connect();
+        }, function(error) {
+            console.error(error);
+            alert(error);
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <h1>
+            <a href="//nimiq.watch">
+                <span class="nimiq-logo"><svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30">
+                    <path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path>
+                </svg></span>
+                NIMIQ.WATCH
+            </a>
+        </h1>
+        <span id="monitor" title="Connected to 0 peers">
+            <strong>Status:</strong>
+            <span id="status" class="not-connected">not connected</span> @ <span id="height"><em>loading</em></span>
+        </span>
+    </header>
+
+    <div id="content">
+        <h1>Search accounts and blocks by hash:</h1>
+
+        <form action="#search" method="GET" id="search-form">
+            <input type="text" id="search-input">
+            <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
+            <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
+        </form>
+    </div>
+
+    <footer>
+        This web application is built on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
+        <a target="_blank" href="https://github.com/RobinLinus/nimiq-demo/blob/master/index.html">View Source Code on Github.</a>
+    </footer>
+
+    <script>
+        function _detectHashFormat(value) {
+            if(value.length === 40) {
+                return "Account";
+            }
+            else if(value.length === 64 && value[0] === "0" && value[1] === "0") {
+                return "Block";
+            }
+        }
+
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            document.getElementById('hash-format').innerHTML = _detectHashFormat(this.value) || "<em>none</em>";
+        });
+
+        document.getElementById('search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+        });
+    </script>
 </body>
 </html>
