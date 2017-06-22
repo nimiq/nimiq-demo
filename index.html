@@ -197,12 +197,18 @@
     </footer>
 
     <script>
+        var accountHashRegExp = new RegExp('^[A-Fa-f0-9]{40}$'),
+            blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
+
         function _detectHashFormat(value) {
-            if(value.length === 40) {
-                return "Account";
+            if(accountHashRegExp.test(value)) {
+                return "Account Hash";
             }
-            else if(value.length === 64 && value[0] === "0" && value[1] === "0") {
-                return "Block";
+            else if(blockHashRegExp.test(value) && value[0] === "0" && value[1] === "0") {
+                return "Block Hash";
+            }
+            else if(value.match(/^[0-9]*$/) && parseInt(value)) {
+                return "Block Number"
             }
         }
 
