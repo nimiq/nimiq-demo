@@ -68,12 +68,12 @@
             height: 12px;
         }
 
-        #content {
+        #search {
             max-width: 800px;
             margin: 2em auto;
         }
 
-        #content h1 {
+        #search h1 {
             font-weight: normal;
             text-align: center;
         }
@@ -109,6 +109,47 @@
             margin-left: 0.2em;
         }
 
+        hash {
+            font-family: "Source Code Pro", monospace;
+            font-size: 16px;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+        }
+
+        #blocklist {
+            max-width: 1050px;
+            margin: 2em auto;
+            display: table;
+            border-spacing: 0 5px;
+        }
+
+        .blocklist-block {
+            display: table-row;
+            background: #F5F5F5;
+            background: whitesmoke;
+        }
+
+        .blocklist-cell {
+            display: table-cell;
+            padding: 0.5em 1em;
+            white-space: nowrap;
+        }
+        .blocklist-cell:first-child {
+            border-top-left-radius: 3px;
+            border-bottom-left-radius: 3px;
+        }
+        .blocklist-cell:last-child {
+            border-top-right-radius: 3px;
+            border-bottom-right-radius: 3px;
+        }
+
+        .ellipsis {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            width: 100%;
+            max-width: 1px; /* enables the correct overflow behaviour */
+        }
+
         footer {
             text-align: center;
             font-size: 14px;
@@ -128,6 +169,8 @@
             document.getElementById('status').classList.add('consensus-established');
             document.getElementById('search-submit').removeAttribute('disabled');
             document.getElementById('search-submit').removeAttribute('title');
+
+            _buildListOfLatestBlocks();
         }
 
         function _onConsensusLost() {
@@ -139,6 +182,12 @@
         function _onHeadChanged() {
             const height = $.blockchain.height;
             document.getElementById('height').innerText = '#' + height;
+
+            if(blocklistBuilt) {
+                _getBlockInfo($.blockchain.headHash, function(blockInfo) {
+                    _addBlockToListOfLatestBlocks(blockInfo);
+                });
+            }
         }
 
         function _onPeersChanged() {
@@ -171,6 +220,7 @@
             }
         };
     </script>
+    <script src="vendor/tmpl.min.js"></script>
 </head>
 <body>
     <header>
@@ -188,14 +238,17 @@
         </span>
     </header>
 
-    <div id="content">
+    <div id="search">
         <h1>Search accounts and blocks by hash:</h1>
 
         <form action="#search" method="GET" id="search-form">
-            <input type="text" id="search-input">
+            <input type="text" id="search-input" placeholder="hex format">
             <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
             <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
         </form>
+    </div>
+
+    <div id="blocklist">
     </div>
 
     <footer>
@@ -203,9 +256,31 @@
         <a target="_blank" href="https://github.com/sisou/nimiq-watch">View Source Code on Github.</a>
     </footer>
 
+    <script type="text/x-tmpl" id="template-blocklist-block">
+        <div class="blocklist-cell">
+            #{%=o.height%}
+        </div>
+        <div class="blocklist-cell">
+            {% var time = new Date(o.timestamp * 1000); print(time.toLocaleTimeString()); %}
+        </div>
+        <div class="blocklist-cell">
+            {%=o.transactionCount%} {% if(o.transactionCount === 1) print('transaction'); else print('transactions'); %}
+        </div>
+        <div class="blocklist-cell ellipsis">
+            found by <hash>{%=o.minerAddr%}</hash>
+        </div>
+        <div class="blocklist-cell">
+            {%=o.serializedSize%} Bytes
+        </div>
+    </script>
+
     <script>
         var accountHashRegExp = new RegExp('^[A-Fa-f0-9]{40}$'),
             blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
+
+        var tmpl = {
+            blocklistBlock: tmpl('template-blocklist-block')
+        }
 
         function _detectHashFormat(value) {
             if(accountHashRegExp.test(value)) {
@@ -219,7 +294,7 @@
             }
         }
 
-        function _getBlock(hash, callback) {
+        function _getBlockInfo(hash, callback) {
             if(typeof hash === "string") {
                 hash = Nimiq.Hash.fromHex(hash);
             }
@@ -237,7 +312,7 @@
                         timestamp:        block.timestamp,
                         difficulty:       block.difficulty,
                         serializedSize:   block.serializedSize,
-                        miner:            block.minerAddr.toHex(),
+                        minerAddr:        block.minerAddr.toHex(),
                         transactionCount: block.transactionCount,
                         transactions:     block.transactions,
                         transactionValue: Nimiq.Policy.satoshisToCoins(block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0)),
@@ -246,6 +321,50 @@
                     });
                 });
             });
+        }
+
+        var blocklistBuilt = false;
+        var latestBlocks = [];
+
+        function _buildListOfLatestBlocks() {
+            if(blocklistBuilt !== false) return;
+            blocklistBuilt = null;
+
+            var _accumulateBlocks = function(blockInfo) {
+                latestBlocks.push(blockInfo);
+
+                if(latestBlocks.length === 20) {
+                    latestBlocks.sort(function(a, b) {
+                        if(a.height < b.height) return -1;
+                        else return 1;
+                    });
+
+                    for(var i = 0; i < latestBlocks.length; i++ ) {
+                        _addBlockToListOfLatestBlocks(latestBlocks[i]);
+                    }
+
+                    delete latestBlocks;
+                    blocklistBuilt = true;
+                }
+            }
+
+            var hashes = $.blockchain.path.slice(-20);
+
+            // Query all blocks' info
+            for(var i = 0; i < hashes.length; i++) {
+                _getBlockInfo(hashes[i], _accumulateBlocks);
+            }
+        }
+
+        var blocklistNode = document.getElementById('blocklist');
+
+        function _addBlockToListOfLatestBlocks(blockInfo) {
+            var item = document.createElement('div');
+            item.classList.add('blocklist-block');
+
+            item.innerHTML = tmpl.blocklistBlock(blockInfo);
+
+            blocklistNode.insertBefore(item, blocklistNode.firstChild);
         }
 
         document.getElementById('search-input').addEventListener('input', function(e) {
@@ -263,14 +382,17 @@
             switch(format) {
                 case "Account Hash":
                     $.accounts.getBalance(Nimiq.Address.fromHex(value)).then(function(balance) {
-                        console.log(Nimiq.Policy.satoshisToCoins(balance.value));
-                        alert("NIM " + Nimiq.Policy.satoshisToCoins(balance.value));
+                        var accountInfo = {
+                            balance: Nimiq.Policy.satoshisToCoins(balance.value),
+                            nonce: balance.nonce
+                        };
+                        console.log(accountInfo);
                     });
                     break;
                 case "Block Hash":
                     // 0000000FB8DDCB2A2239B31FB268A716DC4D58C616A94319746A3E81539349A0
                     // 00000000A30C2FC0A05822A7C1255FB7657CCAC7861B85742134C48E6968A42B
-                    _getBlock(value, function(blockInfo) {
+                    _getBlockInfo(value, function(blockInfo) {
                         if(!blockInfo) {
                             alert("Cannot find block. It may be before the last checkpoint (#" + Nimiq.Block.CHECKPOINT.height + ")");
                         }
@@ -288,7 +410,7 @@
 
                     var blockHash = $.blockchain.path[pathIndex];
 
-                    _getBlock(blockHash, function(blockInfo) {
+                    _getBlockInfo(blockHash, function(blockInfo) {
                         if(!blockInfo) {
                             alert("Cannot find block. It may be before the last checkpoint (#" + Nimiq.Block.CHECKPOINT.height + ")");
                         }
