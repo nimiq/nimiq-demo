@@ -242,7 +242,7 @@
         <h1>Search accounts and blocks by hash:</h1>
 
         <form action="#search" method="GET" id="search-form">
-            <input type="text" id="search-input" placeholder="hex format">
+            <input type="text" id="search-input" placeholder="hex format" onfocus="this.select();">
             <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
             <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
         </form>
