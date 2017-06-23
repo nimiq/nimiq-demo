@@ -136,12 +136,10 @@
 
         function _onHeadChanged() {
             const height = $.blockchain.height;
-            console.log(`Now at height ${height}.`);
             document.getElementById('height').innerText = '#' + height;
         }
 
         function _onPeersChanged() {
-            console.log(`Now connected to ${$.network.peerCount} peers.`);
             document.getElementById('monitor').setAttribute('title', 'Connected to ' + $.network.peerCount + ' peers');
         }
 
@@ -193,7 +191,7 @@
 
     <footer>
         This web application is built on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
-        <a target="_blank" href="https://github.com/RobinLinus/nimiq-demo/blob/master/index.html">View Source Code on Github.</a>
+        <a target="_blank" href="https://github.com/sisou/nimiq-watch">View Source Code on Github.</a>
     </footer>
 
     <script>
