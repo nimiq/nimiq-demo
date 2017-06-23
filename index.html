@@ -163,6 +163,13 @@
             console.error(error);
             alert(error);
         });
+
+        // Dummy object to prevent JS errors
+        window.$ = {
+            consensus: {
+                established: false
+            }
+        };
     </script>
 </head>
 <body>
@@ -212,12 +219,85 @@
             }
         }
 
+        function _getBlock(hash, callback) {
+            if(typeof hash === "string") {
+                hash = Nimiq.Hash.fromHex(hash);
+            }
+
+            $.blockchain.getBlock(hash).then(function(block) {
+                if(!block) {
+                    callback(null);
+                    return;
+                }
+
+                block.hash().then(function(hash) {
+                    callback({
+                        hash:             hash.toHex(),
+                        height:           block.height,
+                        timestamp:        block.timestamp,
+                        difficulty:       block.difficulty,
+                        serializedSize:   block.serializedSize,
+                        miner:            block.minerAddr.toHex(),
+                        transactionCount: block.transactionCount,
+                        transactions:     block.transactions,
+                        transactionValue: Nimiq.Policy.satoshisToCoins(block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0)),
+                        prevHash:         block.prevHash.toHex(),
+                        nonce:            block.nonce
+                    });
+                });
+            });
+        }
+
         document.getElementById('search-input').addEventListener('input', function(e) {
             document.getElementById('hash-format').innerHTML = _detectHashFormat(this.value) || "<em>none</em>";
         });
 
         document.getElementById('search-form').addEventListener('submit', function(e) {
             e.preventDefault();
+
+            if(!$.consensus.established) return;
+
+            var value = document.getElementById('search-input').value;
+            var format = _detectHashFormat(value);
+
+            switch(format) {
+                case "Account Hash":
+                    $.accounts.getBalance(Nimiq.Address.fromHex(value)).then(function(balance) {
+                        console.log(Nimiq.Policy.satoshisToCoins(balance.value));
+                        alert("NIM " + Nimiq.Policy.satoshisToCoins(balance.value));
+                    });
+                    break;
+                case "Block Hash":
+                    // 0000000FB8DDCB2A2239B31FB268A716DC4D58C616A94319746A3E81539349A0
+                    // 00000000A30C2FC0A05822A7C1255FB7657CCAC7861B85742134C48E6968A42B
+                    _getBlock(value, function(blockInfo) {
+                        if(!blockInfo) {
+                            alert("Cannot find block. It may be before the last checkpoint (#" + Nimiq.Block.CHECKPOINT.height + ")");
+                        }
+                        console.log(blockInfo);
+                    });
+                    break;
+                case "Block Number":
+                    var checkpointHeight = Nimiq.Block.CHECKPOINT.height;
+                    var pathIndex        = value - checkpointHeight;
+
+                    if(pathIndex < 0) {
+                        console.error("Cannot get block before last checkpoint (#" + checkpointHeight + ")");
+                        alert("Cannot get block before last checkpoint (#" + checkpointHeight + ")");
+                    }
+
+                    var blockHash = $.blockchain.path[pathIndex];
+
+                    _getBlock(blockHash, function(blockInfo) {
+                        if(!blockInfo) {
+                            alert("Cannot find block. It may be before the last checkpoint (#" + Nimiq.Block.CHECKPOINT.height + ")");
+                        }
+                        console.log(blockInfo);
+                    });
+                    break;
+                default:
+                    console.warn("Format cannot be detected");
+            }
         });
     </script>
 </body>
