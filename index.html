@@ -116,11 +116,21 @@
             text-transform: uppercase;
         }
 
-        #blocklist {
+        #content {
             max-width: 1050px;
             margin: 2em auto;
+        }
+
+        #content h2 {
+            font-weight: normal;
+            text-transform: uppercase;
+            margin-bottom: 0.2em;
+        }
+
+        #blocklist {
             display: table;
             border-spacing: 0 5px;
+            width: 100%;
         }
 
         .blocklist-block {
@@ -141,6 +151,20 @@
         .blocklist-cell:last-child {
             border-top-right-radius: 3px;
             border-bottom-right-radius: 3px;
+        }
+
+        .blocklist-loader {
+            width: 34px;
+            height: 30px;
+
+            margin: auto;
+            animation: sk-rotateplane 1.2s infinite ease-in-out;
+        }
+
+        @keyframes sk-rotateplane {
+            0%   { transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
+            50%  { transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
+            100% { transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
         }
 
         .ellipsis {
@@ -226,9 +250,9 @@
     <header>
         <h1>
             <a href="//nimiq.watch">
-                <span class="nimiq-logo"><svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30">
-                    <path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path>
-                </svg></span>
+                <span class="nimiq-logo">
+                    <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+                </span>
                 NIMIQ.WATCH
             </a>
         </h1>
@@ -242,13 +266,23 @@
         <h1>Search accounts and blocks by hash:</h1>
 
         <form action="#search" method="GET" id="search-form">
-            <input type="text" id="search-input" placeholder="hex format" onfocus="this.select();">
+            <input type="text" id="search-input" placeholder="hex format" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
             <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
         </form>
     </div>
 
-    <div id="blocklist">
+    <div id="content">
+        <h2>Latest blocks</h2>
+        <div id="blocklist">
+            <div class="blocklist-block">
+                <div class="blocklist-cell">
+                    <div class="blocklist-loader">
+                        <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer>
@@ -338,6 +372,8 @@
                         if(a.height < b.height) return -1;
                         else return 1;
                     });
+
+                    blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 
                     for(var i = 0; i < latestBlocks.length; i++ ) {
                         _addBlockToListOfLatestBlocks(latestBlocks[i]);
