@@ -82,6 +82,8 @@
             font-size: inherit;
             font-family: "Source Code Pro", monospace;
             padding: 1em;
+            border-radius: 3px;
+            border: 1px solid #042146;
         }
 
         #search-input {
@@ -92,6 +94,7 @@
             width: 10%;
             text-transform: uppercase;
             cursor: pointer;
+            font-weight: bold;
         }
         #search-submit:disabled {
             cursor: auto;
@@ -121,7 +124,6 @@
     <script>
 
         function _onConsensusEstablished() {
-            console.info('Consensus established');
             document.getElementById('status').innerText = 'consensus established';
             document.getElementById('status').classList.add('consensus-established');
             document.getElementById('search-submit').removeAttribute('disabled');
