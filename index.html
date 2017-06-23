@@ -118,13 +118,26 @@
             text-transform: uppercase;
         }
 
-        #content {
+        #infobox {
+            width: 1050px;
+            margin: 2em auto;
+            padding: 0 20px;
+        }
+
+        #infobox h2,
+        #infobox h3 {
+            font-weight: normal;
+            text-transform: uppercase;
+            margin-bottom: 0.2em;
+        }
+
+        #blocklist-wrapper {
             max-width: 1050px;
             margin: 2em auto;
             padding: 0 20px;
         }
 
-        #content h2 {
+        #blocklist-wrapper h2 {
             font-weight: normal;
             text-transform: uppercase;
             margin-bottom: 0.2em;
@@ -132,19 +145,18 @@
 
         #blocklist {
             display: table;
-            border-spacing: 0 5px;
+            border-spacing: 0 8px;
             width: 100%;
         }
 
         .blocklist-block {
             display: table-row;
-            background: #F5F5F5;
-            background: whitesmoke;
+            background: #D6D6D6;
         }
 
         .blocklist-cell {
             display: table-cell;
-            padding: 0.5em 1em;
+            padding: 0.6em 1em;
             white-space: nowrap;
         }
         .blocklist-cell:first-child {
@@ -275,7 +287,10 @@
         </form>
     </div>
 
-    <div id="content">
+    <div id="infobox">
+    </div>
+
+    <div id="blocklist-wrapper">
         <h2>Latest blocks</h2>
         <div id="blocklist">
             <div class="blocklist-block">
@@ -292,6 +307,71 @@
         This web application is built on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
         <a target="_blank" href="https://github.com/sisou/nimiq-watch">View Source Code on Github.</a>
     </footer>
+
+    <script type="text/x-tmpl" id="template-block-info">
+        <h2>Block Info</h2>
+        <div class="blockinfo-header">
+            <div class="height">
+                <h3>Height</h3>
+                <span>#{%=o.height%}</span>
+            </div>
+            <div class="blockinfo-hash">
+                <h3>Hash</h3>
+                <span>{%=o.hash%}</span>
+            </div>
+        </div>
+        <div class="blockinfo-body">
+            <div class="blockinfo-body-left">
+                <div class="blockinfo-body-row">
+                    <label>Transactions</label>
+                    <span>{%=o.transactionCount%}</span>
+                </div>
+                <div class="blockinfo-body-row">
+                    <label>Transaction Value</label>
+                    <span><img src="icons/nimiq_blue.svg"> {%=o.transactionValue%}</span>
+                </div>
+                <div class="blockinfo-body-row">
+                    <label>Difficulty</label>
+                    <span>{%=o.difficulty%}</span>
+                </div>
+            </div>
+            <div class="blockinfo-body-right">
+                <div class="blockinfo-body-row">
+                    <label>Timestamp</label>
+                    <span>{%=o.timestamp%}</span>
+                </div>
+                <div class="blockinfo-body-row">
+                    <label>Size</label>
+                    <span>{%=o.serializedSize%} Bytes</span>
+                </div>
+                <div class="blockinfo-body-row">
+                    <label>Nonce</label>
+                    <span>{%=o.nonce%}</span>
+                </div>
+            </div>
+            <div class="blockinfo-miner">
+                <label>Mined by</label>
+                <span>{%=o.minerAddr%}</span>
+            </div>
+        </div>
+        {% if(o.transactionCount) { %}
+            <div class="blockinfo-transactions">
+                <h3>Sender</h3>
+                <h3>Receiver</h3>
+                <h3>Amount</h3>
+                {% for(var i = 0; i < o.transactions.length; i++) { %}
+                    <div class="blockinfo-transaction-row">
+                        <span>{%=o.lol%}</span>
+                        <span>{%=o.lol%}</span>
+                        <span>{%=o.lol%}</span>
+                    </div>
+                {% } %}
+            </div>
+        {% } %}
+    </script>
+
+    <script type="text/x-tmpl" id="template-account-info">
+    </script>
 
     <script type="text/x-tmpl" id="template-blocklist-block">
         <div class="blocklist-cell">
@@ -316,7 +396,9 @@
             blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
 
         var tmpl = {
-            blocklistBlock: tmpl('template-blocklist-block')
+            blocklistBlock: tmpl('template-blocklist-block'),
+            blockInfo: tmpl('template-block-info'),
+            accountInfo: tmpl('template-account-info')
         }
 
         function _detectHashFormat(value) {
@@ -433,27 +515,36 @@
                     // 00000000A30C2FC0A05822A7C1255FB7657CCAC7861B85742134C48E6968A42B
                     _getBlockInfo(value, function(blockInfo) {
                         if(!blockInfo) {
-                            alert("Cannot find block. It may be before the last checkpoint (#" + Nimiq.Block.CHECKPOINT.height + ")");
+                            console.error("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                                    alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
                         }
                         console.log(blockInfo);
+
+                        document.getElementById('infobox').innerHTML = tmpl.blockInfo(blockInfo);
                     });
                     break;
                 case "Block Number":
-                    var checkpointHeight = Nimiq.Block.CHECKPOINT.height;
-                    var pathIndex        = value - checkpointHeight;
+                    var currentHeight = $.blockchain.head.height;
+                    var pathIndex     = value - currentHeight - 1; // Should be a negative number
 
-                    if(pathIndex < 0) {
-                        console.error("Cannot get block before last checkpoint (#" + checkpointHeight + ")");
-                        alert("Cannot get block before last checkpoint (#" + checkpointHeight + ")");
+                    if(pathIndex < -$.blockchain.path.length) {
+                        console.error("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                                alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                    }
+                    if(pathIndex > -1) {
+                        console.error("That block has not been mined yet.");
+                                alert("That block has not been mined yet.");
                     }
 
-                    var blockHash = $.blockchain.path[pathIndex];
+                    var blockHash = $.blockchain.path.slice(pathIndex)[0];
 
                     _getBlockInfo(blockHash, function(blockInfo) {
                         if(!blockInfo) {
-                            alert("Cannot find block. It may be before the last checkpoint (#" + Nimiq.Block.CHECKPOINT.height + ")");
+                            alert("Cannot find block.");
                         }
                         console.log(blockInfo);
+
+                        document.getElementById('infobox').innerHTML = tmpl.blockInfo(blockInfo);
                     });
                     break;
                 default:
