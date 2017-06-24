@@ -7,10 +7,10 @@
     <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
 
-    <link href="https://fonts.googleapis.com/css?family=Fira+Mono|Source+Sans+Pro:400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Mono|Source+Sans+Pro:400,600" rel="stylesheet">
     <style>
         body {
-            background: white;
+            background: snow;
             color: #042146;
             font-family: "Source Sans Pro", sans-serif;
             font-size: 18px;
@@ -33,6 +33,7 @@
             left: 0;
             box-sizing: border-box;
             width: 100%;
+            box-shadow: 0 0 10px 0 black;
         }
 
         header a {
@@ -54,7 +55,7 @@
 
         #monitor {
             float: right;
-            line-height: 2.5em;
+            line-height: 2.7em;
         }
 
         .not-connected {
@@ -137,6 +138,10 @@
             margin-bottom: 0.2em;
         }
 
+        #infobox h2 {
+            margin-bottom: 0.4em;
+        }
+
         #infobox h3 {
             font-weight: bold;
             font-size: 16px;
@@ -149,9 +154,10 @@
 
         .blockinfo-header {
             overflow: auto;
-            border: 1px solid;
+            border: 1px solid #D9DEE4;
             border-top-left-radius: 5px;
             border-top-right-radius: 5px;
+            background: #F0F0F0;
         }
 
         .blockinfo-header .height {
@@ -170,8 +176,9 @@
 
         .blockinfo-body {
             overflow: auto;
-            border-left: 1px solid;
-            border-right: 1px solid;
+            border-left: 1px solid #D9DEE4;
+            border-right: 1px solid #D9DEE4;
+            background: white;
         }
 
         .blockinfo-body-left,
@@ -183,7 +190,7 @@
         }
 
         .blockinfo-body-left {
-            border-right: 1px solid;
+            border-right: 1px solid #D9DEE4;
         }
 
         .blockinfo-body-row {
@@ -204,16 +211,17 @@
 
         .blockinfo-miner {
             clear: both;
-            border-top: 1px solid;
+            border-top: 1px solid #D9DEE4;
             padding: 1em;
             overflow: auto;
         }
 
         .blockinfo-transactions {
-            border: 1px solid;
+            border: 1px solid #D9DEE4;
             border-bottom-left-radius: 5px;
             border-bottom-right-radius: 5px;
             padding: 1em;
+            background: white;
         }
 
         .blockinfo-transaction-header-row {
@@ -275,20 +283,25 @@
         .blocklist-block {
             display: table-row;
             background: #D6D6D6;
+            background: #F0F0F0;
         }
 
         .blocklist-cell {
             display: table-cell;
             padding: 0.6em 1em;
             white-space: nowrap;
+            border-top: 1px solid #D9DEE4;
+            border-bottom: 1px solid #D9DEE4;
         }
         .blocklist-cell:first-child {
             border-top-left-radius: 3px;
             border-bottom-left-radius: 3px;
+            border-left: 1px solid #D9DEE4;
         }
         .blocklist-cell:last-child {
             border-top-right-radius: 3px;
             border-bottom-right-radius: 3px;
+            border-right: 1px solid #D9DEE4;
         }
 
         .blocklist-loader {
@@ -401,10 +414,10 @@
     </header>
 
     <div id="search">
-        <h1>Search accounts and blocks by hash:</h1>
+        <h1>Search accounts and blocks:</h1>
 
         <form action="#search" method="GET" id="search-form">
-            <input type="text" id="search-input" placeholder="hex format" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <input type="text" id="search-input" placeholder="HEX hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
             <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
         </form>
@@ -662,6 +675,7 @@
                     _getBlockInfo(value, function(blockInfo) {
                         if(!blockInfo) {
                             alert("That block cannot be found.\n\nIt my be out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex())
+                            return;
                         }
                         // console.log(blockInfo);
 
@@ -674,9 +688,11 @@
 
                     if(pathIndex < -$.blockchain.path.length) {
                         alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                        return;
                     }
                     if(pathIndex > -1) {
                         alert("That block has not been mined yet.");
+                        return;
                     }
 
                     var blockHash = $.blockchain.path.slice(pathIndex)[0];
@@ -684,6 +700,7 @@
                     _getBlockInfo(blockHash, function(blockInfo) {
                         if(!blockInfo) {
                             alert("Cannot find block.");
+                            return;
                         }
                         // console.log(blockInfo);
 
