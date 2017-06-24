@@ -7,11 +7,11 @@
     <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
 
-    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Mono|Source+Sans+Pro:400,700" rel="stylesheet">
     <style>
         body {
             background: white;
-            color: #444;
+            color: #042146;
             font-family: "Source Sans Pro", sans-serif;
             font-size: 18px;
             letter-spacing: 0.02em;
@@ -81,7 +81,7 @@
 
         #search-form input {
             font-size: inherit;
-            font-family: "Source Code Pro", monospace;
+            font-family: "Fira Mono", monospace;
             padding: 1em;
             border-radius: 3px;
             border: 1px solid #042146;
@@ -112,15 +112,15 @@
         }
 
         hash {
-            font-family: "Source Code Pro", monospace;
+            font-family: "Fira Mono", monospace;
             font-size: 16px;
             letter-spacing: -0.02em;
             text-transform: uppercase;
         }
 
         #infobox {
-            width: 850px;
-            margin: 2em auto;
+            width: 900px;
+            margin: 4em auto 2em auto;
             padding: 0 20px;
         }
 
@@ -134,7 +134,7 @@
         #infobox h3 {
             font-weight: bold;
             font-size: 16px;
-            color: #888;
+            color: #999;
         }
 
         #infobox img {
@@ -173,18 +173,41 @@
             float: left;
             width: 50%;
             box-sizing: border-box;
-            padding: 1em;
+            padding: 0.25em 1em;
+        }
+
+        .blockinfo-body-left {
+            border-right: 1px solid;
+        }
+
+        .blockinfo-body-row {
+            margin: 0.75em 0;
+            overflow: auto;
+        }
+
+        .blockinfo-body-row label,
+        .blockinfo-miner label {
+            float: left;
+            color: #888;
+        }
+
+        .blockinfo-body-row span,
+        .blockinfo-miner hash {
+            float: right;
         }
 
         .blockinfo-miner {
             clear: both;
             border-top: 1px solid;
+            padding: 1em;
+            overflow: auto;
         }
 
         .blockinfo-transactions {
             border: 1px solid;
             border-bottom-left-radius: 5px;
             border-bottom-right-radius: 5px;
+            padding: 1em;
         }
 
         .blockinfo-transaction-header-row {
@@ -195,24 +218,38 @@
             display: table-cell;
         }
 
+        .blockinfo-transaction-header-row h3:last-child {
+            text-align: right;
+        }
+
         .blockinfo-transaction-row {
             display: table-row;
         }
 
         .blockinfo-transaction-row > * {
             display: table-cell;
+            padding: 0.75em 1em 0 0;
+        }
+
+        .blockinfo-transaction-row:nth-child(2) > * {
+            padding-top: 0.5em;
+        }
+
+        .blockinfo-transaction-row > span {
+            padding-right: 0;
+            width: 100%;
+            text-align: right;
         }
 
         .no-transactions {
             text-align: center;
-            padding: 1em;
             text-transform: uppercase;
             color: #AAA;
         }
 
         #blocklist-wrapper {
-            max-width: 1050px;
-            margin: 2em auto;
+            max-width: 950px;
+            margin: 4em auto 2em auto;
             padding: 0 20px;
         }
 
@@ -407,11 +444,11 @@
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Transaction Value</label>
-                    <span><img src="icons/nimiq_blue.svg"> {%=o.transactionValue%}</span>
+                    <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactionValue))%}</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Difficulty</label>
-                    <span>{%=o.difficulty%}</span>
+                    <span>{%=(Math.round(o.difficulty * 100) / 100)%}</span>
                 </div>
             </div>
             <div class="blockinfo-body-right">
@@ -438,13 +475,13 @@
                 <div class="blockinfo-transaction-header-row">
                     <h3>Sender</h3>
                     <h3>Receiver</h3>
-                    <h3>Amount</h3>
+                    <h3>Value</h3>
                 </div>
                 {% for(var i = 0; i < o.transactions.length; i++) { %}
                     <div class="blockinfo-transaction-row">
                         <hash id="{% var elementId = 'sender-address-' + i; _getAndWriteSenderAddressHash(o.transactions[i], elementId); print(elementId); %}"></hash>
                         <hash>{%=o.transactions[i].recipientAddr.toHex()%}</hash>
-                        <span><img src="icons/nimiq_blue.svg"> {%=Nimiq.Policy.satoshisToCoins(o.transactions[i].value)%}</span>
+                        <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%}</span>
                     </div>
                 {% } %}
             {% } else { %}
@@ -496,6 +533,15 @@
             }
         }
 
+        function _formatBalance(value) {
+            // If the value has no decimal places below 0.01, display 0 decimals
+            if(parseFloat(value.toFixed(2)) === value) {
+                return value.toFixed(2);
+            }
+            // Otherwise, all required decimals will be displayed automatically
+            else return value;
+        }
+
         function _getBlockInfo(hash, callback) {
             if(typeof hash === "string") {
                 hash = Nimiq.Hash.fromHex(hash);
@@ -517,7 +563,7 @@
                         minerAddr:        block.minerAddr.toHex(),
                         transactionCount: block.transactionCount,
                         transactions:     block.transactions,
-                        transactionValue: Nimiq.Policy.satoshisToCoins(block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0)),
+                        transactionValue: block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0),
                         prevHash:         block.prevHash.toHex(),
                         nonce:            block.nonce
                     });
@@ -593,10 +639,10 @@
                 case "Account Hash":
                     $.accounts.getBalance(Nimiq.Address.fromHex(value)).then(function(balance) {
                         var accountInfo = {
-                            balance: Nimiq.Policy.satoshisToCoins(balance.value),
+                            balance: balance.value,
                             nonce: balance.nonce
                         };
-                        alert("Balance: " + accountInfo.balance + ", Nonce: " + accountInfo.nonce);
+                        alert("Balance: " + _formatBalance(Nimiq.Policy.satoshisToCoins(accountInfo.balance)) + ", Nonce: " + accountInfo.nonce);
                     });
                     break;
                 case "Block Hash":
