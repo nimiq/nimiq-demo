@@ -507,7 +507,7 @@
                             balance: Nimiq.Policy.satoshisToCoins(balance.value),
                             nonce: balance.nonce
                         };
-                        console.log(accountInfo);
+                        alert("Balance: " + accountInfo.balance + ", Nonce: " + accountInfo.nonce);
                     });
                     break;
                 case "Block Hash":
@@ -515,10 +515,9 @@
                     // 00000000A30C2FC0A05822A7C1255FB7657CCAC7861B85742134C48E6968A42B
                     _getBlockInfo(value, function(blockInfo) {
                         if(!blockInfo) {
-                            console.error("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
-                                    alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                            alert("That block cannot be found.\n\nIt my be out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex())
                         }
-                        console.log(blockInfo);
+                        // console.log(blockInfo);
 
                         document.getElementById('infobox').innerHTML = tmpl.blockInfo(blockInfo);
                     });
@@ -528,12 +527,10 @@
                     var pathIndex     = value - currentHeight - 1; // Should be a negative number
 
                     if(pathIndex < -$.blockchain.path.length) {
-                        console.error("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
-                                alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                        alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
                     }
                     if(pathIndex > -1) {
-                        console.error("That block has not been mined yet.");
-                                alert("That block has not been mined yet.");
+                        alert("That block has not been mined yet.");
                     }
 
                     var blockHash = $.blockchain.path.slice(pathIndex)[0];
@@ -542,7 +539,7 @@
                         if(!blockInfo) {
                             alert("Cannot find block.");
                         }
-                        console.log(blockInfo);
+                        // console.log(blockInfo);
 
                         document.getElementById('infobox').innerHTML = tmpl.blockInfo(blockInfo);
                     });
