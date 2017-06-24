@@ -361,9 +361,9 @@
                 <h3>Amount</h3>
                 {% for(var i = 0; i < o.transactions.length; i++) { %}
                     <div class="blockinfo-transaction-row">
-                        <span>{%=o.lol%}</span>
-                        <span>{%=o.lol%}</span>
-                        <span>{%=o.lol%}</span>
+                        <span id="{% var randomId = 'sender-address-' + i; _getAndWriteSenderAddressHash(o.transactions[i], randomId); print(randomId); %}"></span>
+                        <span>{%=o.transactions[i].recipientAddr.toHex()%}</span>
+                        <span>{%=Nimiq.Policy.satoshisToCoins(o.transactions[i].value)%}</span>
                     </div>
                 {% } %}
             </div>
@@ -439,6 +439,14 @@
                         nonce:            block.nonce
                     });
                 });
+            });
+        }
+
+        function _getAndWriteSenderAddressHash(tx, elementId) {
+            tx.getSenderAddr().then(function(address) {
+                setTimeout(function() {
+                    document.getElementById(elementId).innerText = address.toHex();
+                }, 0);
             });
         }
 
@@ -545,7 +553,7 @@
                     });
                     break;
                 default:
-                    console.warn("Format cannot be detected");
+                    alert("Format cannot be detected");
             }
         });
     </script>
