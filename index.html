@@ -812,6 +812,8 @@
             else {
                 var format = _detectHashFormat(value);
 
+                $searchInput.value = value;
+
                 switch(format) {
                     case "Account Address":
                         $.accounts.getBalance(Nimiq.Address.fromHex(value)).then(function(balance) {
