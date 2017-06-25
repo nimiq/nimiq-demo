@@ -421,6 +421,7 @@
     <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
     <script>
         function _onConsensusEstablished() {
+            document.getElementById('targetHeight').style.display = "none";
             $status.innerText = 'consensus established';
             $status.classList.add('consensus-established');
             document.getElementById('search-submit').removeAttribute('disabled');
@@ -461,6 +462,9 @@
 
             window.$ = $;
 
+            $.consensus.on('syncing', function(targetHeight) {
+                document.getElementById('targetHeight').innerText = "/" + targetHeight;
+            });
             $.consensus.on('established', _onConsensusEstablished);
             $.consensus.on('lost', _onConsensusLost);
 
@@ -498,7 +502,7 @@
         <a href="#about" onclick="_linkClicked(this, true);">What is this?</a>
         <span id="monitor" title="Connected to 0 peers">
             <strong>Status:</strong>
-            <span id="status" class="not-connected">not connected</span> @ <span id="height"><em>loading</em></span>
+            <span id="status" class="not-connected">not connected</span> @ <span id="height"><em>loading</em></span><span id="targetHeight"></span>
         </span>
     </header>
 
