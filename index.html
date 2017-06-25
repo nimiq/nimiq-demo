@@ -363,6 +363,11 @@
             document.getElementById('search-submit').removeAttribute('title');
 
             _buildListOfLatestBlocks();
+
+            if(!window.onhashchange) {
+                window.onhashchange = _onHashChange;
+                _onHashChange();
+            }
         }
 
         function _onConsensusLost() {
@@ -581,6 +586,8 @@
             accountInfo: tmpl('template-account-info')
         }
 
+        var $infobox = document.getElementById('infobox');
+
         function _detectHashFormat(value) {
             if(accountHashRegExp.test(value)) {
                 return "Account Address";
@@ -683,6 +690,71 @@
             blocklistNode.insertBefore(item, blocklistNode.firstChild);
         }
 
+        function _onHashChange(e) {
+            var value = window.location.hash;
+
+            if(value[0] === "#") value = value.substring(1);
+
+            if(value === "") {
+                // Display homepage
+                $infobox.innerText = "";
+            }
+            else {
+                var format = _detectHashFormat(value);
+
+                switch(format) {
+                    case "Account Address":
+                        $.accounts.getBalance(Nimiq.Address.fromHex(value)).then(function(balance) {
+                            var accountInfo = {
+                                hash: value,
+                                balance: balance.value,
+                                nonce: balance.nonce
+                            };
+
+                            $infobox.innerHTML = tmpl.accountInfo(accountInfo);
+                        });
+                        break;
+                    case "Block Hash":
+                        _getBlockInfo(value, function(blockInfo) {
+                            if(!blockInfo) {
+                                alert("That block cannot be found.\n\nIt my be out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex())
+                                return;
+                            }
+
+                            $infobox.innerHTML = tmpl.blockInfo(blockInfo);
+                        });
+                        break;
+                    case "Block Number":
+                        var currentHeight = $.blockchain.head.height;
+                        var pathIndex     = value - currentHeight - 1; // Should be a negative number
+
+                        if(pathIndex < -$.blockchain.path.length) {
+                            alert("That block is out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex());
+                            return;
+                        }
+                        if(pathIndex > -1) {
+                            alert("That block has not been mined yet.");
+                            return;
+                        }
+
+                        var blockHash = $.blockchain.path.slice(pathIndex)[0];
+
+                        _getBlockInfo(blockHash, function(blockInfo) {
+                            if(!blockInfo) {
+                                alert("Cannot find block.");
+                                return;
+                            }
+                            // console.log(blockInfo);
+
+                            $infobox.innerHTML = tmpl.blockInfo(blockInfo);
+                        });
+                        break;
+                    default:
+                        alert("Format cannot be detected.");
+                }
+            }
+        }
+
         document.getElementById('search-input').addEventListener('input', function(e) {
             document.getElementById('hash-format').innerHTML = _detectHashFormat(this.value) || "<em>none</em>";
         });
@@ -693,59 +765,11 @@
             if(!$.consensus.established) return;
 
             var value = document.getElementById('search-input').value;
-            var format = _detectHashFormat(value);
 
-            switch(format) {
-                case "Account Address":
-                    $.accounts.getBalance(Nimiq.Address.fromHex(value)).then(function(balance) {
-                        var accountInfo = {
-                            hash: value,
-                            balance: balance.value,
-                            nonce: balance.nonce
-                        };
-
-                        document.getElementById('infobox').innerHTML = tmpl.accountInfo(accountInfo);
-                    });
-                    break;
-                case "Block Hash":
-                    _getBlockInfo(value, function(blockInfo) {
-                        if(!blockInfo) {
-                            alert("That block cannot be found.\n\nIt my be out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex())
-                            return;
-                        }
-
-                        document.getElementById('infobox').innerHTML = tmpl.blockInfo(blockInfo);
-                    });
-                    break;
-                case "Block Number":
-                    var currentHeight = $.blockchain.head.height;
-                    var pathIndex     = value - currentHeight - 1; // Should be a negative number
-
-                    if(pathIndex < -$.blockchain.path.length) {
-                        alert("That block is out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex());
-                        return;
-                    }
-                    if(pathIndex > -1) {
-                        alert("That block has not been mined yet.");
-                        return;
-                    }
-
-                    var blockHash = $.blockchain.path.slice(pathIndex)[0];
-
-                    _getBlockInfo(blockHash, function(blockInfo) {
-                        if(!blockInfo) {
-                            alert("Cannot find block.");
-                            return;
-                        }
-                        // console.log(blockInfo);
-
-                        document.getElementById('infobox').innerHTML = tmpl.blockInfo(blockInfo);
-                    });
-                    break;
-                default:
-                    alert("Format cannot be detected.");
-            }
+            window.location.hash = "#" + value;
         });
+
+        document.getElementById('search-input').focus();
     </script>
 </body>
 </html>
