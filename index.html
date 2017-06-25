@@ -586,7 +586,8 @@
             accountInfo: tmpl('template-account-info')
         }
 
-        var $infobox = document.getElementById('infobox');
+        var $infobox = document.getElementById('infobox'),
+            $searchInput = document.getElementById('search-input');
 
         function _detectHashFormat(value) {
             if(accountHashRegExp.test(value)) {
@@ -698,6 +699,7 @@
             if(value === "") {
                 // Display homepage
                 $infobox.innerText = "";
+                $searchInput.value = "";
             }
             else {
                 var format = _detectHashFormat(value);
@@ -755,7 +757,7 @@
             }
         }
 
-        document.getElementById('search-input').addEventListener('input', function(e) {
+        $searchInput.addEventListener('input', function(e) {
             document.getElementById('hash-format').innerHTML = _detectHashFormat(this.value) || "<em>none</em>";
         });
 
@@ -764,12 +766,12 @@
 
             if(!$.consensus.established) return;
 
-            var value = document.getElementById('search-input').value;
+            var value = $searchInput.value;
 
             window.location.hash = "#" + value;
         });
 
-        document.getElementById('search-input').focus();
+        $searchInput.focus();
     </script>
 </body>
 </html>
