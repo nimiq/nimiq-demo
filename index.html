@@ -21,6 +21,14 @@
 
         a {
             color: #042146;
+            text-decoration: none;
+            border-bottom: 1px dotted;
+            position: relative;
+        }
+
+        a:hover,
+        a:focus {
+            border-bottom-style: solid;
         }
 
         header {
@@ -36,16 +44,17 @@
             box-shadow: 0 0 10px 0 black;
         }
 
-        header a {
-            color: inherit;
-            text-decoration: inherit;
-        }
-
         header h1 {
             margin: 0.2em 0;
             float: left;
             font-size: 1.5em;
             letter-spacing: 0.05em;
+        }
+
+        header h1 a {
+            color: inherit;
+            text-decoration: none;
+            border-bottom: none;
         }
 
         header .nimiq-logo {
@@ -303,6 +312,20 @@
             background: #F0F0F0;
         }
 
+        a.blocklist-cell::after {
+            position: absolute;
+            left: 20%;
+            bottom: 10px;
+            width: 60%;
+            content: "";
+            border-bottom: 1px dotted;
+        }
+
+        a.blocklist-cell:hover::after,
+        a.blocklist-cell:focus::after {
+            border-bottom-style: solid;
+        }
+
         .blocklist-cell {
             display: table-cell;
             padding: 0.6em 1em;
@@ -509,7 +532,7 @@
             </div>
             <div class="blockinfo-miner">
                 <label>Mined by </label>
-                <hash>{%=o.minerAddr%}</hash>
+                <hash><a href="#{%=o.minerAddr%}">{%=o.minerAddr%}</a></hash>
                 <!--
                 <label>Previous Block </label>
                 <hash>{%=o.prevHash%}</hash>
@@ -526,7 +549,7 @@
                 {% for(var i = 0; i < o.transactions.length; i++) { %}
                     <div class="blockinfo-transaction-row">
                         <hash id="{% var elementId = 'sender-address-' + i; _getAndWriteSenderAddressHash(o.transactions[i], elementId); print(elementId); %}"></hash>
-                        <hash>{%=o.transactions[i].recipientAddr.toHex()%}</hash>
+                        <hash><a href="#{%=o.transactions[i].recipientAddr.toHex()%}">{%=o.transactions[i].recipientAddr.toHex()%}</a></hash>
                         <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%}</span>
                     </div>
                 {% } %}
@@ -559,9 +582,9 @@
     </script>
 
     <script type="text/x-tmpl" id="template-blocklist-block">
-        <div class="blocklist-cell">
+        <a href="#{%=o.height%}" class="blocklist-cell">
             #{%=o.height%}
-        </div>
+        </a>
         <div class="blocklist-cell">
             {% var time = new Date(o.timestamp * 1000); print(time.toLocaleTimeString()); %}
         </div>
@@ -569,7 +592,7 @@
             {%=o.transactionCount%} {% if(o.transactionCount === 1) print('transaction'); else print('transactions'); %}
         </div>
         <div class="blocklist-cell ellipsis">
-            found by <hash>{%=o.minerAddr%}</hash>
+            found by <hash><a href="#{%=o.minerAddr%}">{%=o.minerAddr%}</a></hash>
         </div>
         <div class="blocklist-cell">
             {%=o.serializedSize%} Bytes
@@ -642,7 +665,7 @@
 
         function _getAndWriteSenderAddressHash(tx, elementId) {
             tx.getSenderAddr().then(function(address) {
-                document.getElementById(elementId).innerText = address.toHex();
+                document.getElementById(elementId).innerHTML = '<a href="#' + address.toHex() + '">' + address.toHex() + '</a>';
             });
         }
 
@@ -715,6 +738,7 @@
                             };
 
                             $infobox.innerHTML = tmpl.accountInfo(accountInfo);
+                            window.scrollTo(0, $infobox.offsetTop - 100);
                         });
                         break;
                     case "Block Hash":
@@ -725,6 +749,7 @@
                             }
 
                             $infobox.innerHTML = tmpl.blockInfo(blockInfo);
+                            window.scrollTo(0, $infobox.offsetTop - 100);
                         });
                         break;
                     case "Block Number":
@@ -750,6 +775,7 @@
                             // console.log(blockInfo);
 
                             $infobox.innerHTML = tmpl.blockInfo(blockInfo);
+                            window.scrollTo(0, $infobox.offsetTop - 100);
                         });
                         break;
                     default:
