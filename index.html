@@ -828,7 +828,7 @@
                     case "Block Hash":
                         _getBlockInfo(value, function(blockInfo) {
                             if(!blockInfo) {
-                                alert("That block cannot be found.\n\nIt my be out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex());
+                                alert("That block cannot be found. It my be out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
                                 return;
                             }
 
@@ -841,7 +841,7 @@
                         var pathIndex     = value - currentHeight - 1; // Should be a negative number
 
                         if(pathIndex < -$.blockchain.path.length) {
-                            alert("That block is out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex());
+                            alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
                             return;
                         }
                         if(pathIndex > -1) {
