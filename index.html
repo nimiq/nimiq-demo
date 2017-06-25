@@ -355,10 +355,9 @@
 
     <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
     <script>
-
         function _onConsensusEstablished() {
-            document.getElementById('status').innerText = 'consensus established';
-            document.getElementById('status').classList.add('consensus-established');
+            $status.innerText = 'consensus established';
+            $status.classList.add('consensus-established');
             document.getElementById('search-submit').removeAttribute('disabled');
             document.getElementById('search-submit').removeAttribute('title');
 
@@ -372,12 +371,12 @@
 
         function _onConsensusLost() {
             console.error('Consensus lost');
-            document.getElementById('status').innerText = 'consensus lost';
-            document.getElementById('status').classList.remove('consensus-established', 'synchronizing');
+            $status.innerText = 'consensus lost';
+            $status.classList.remove('consensus-established', 'synchronizing');
         }
 
         function _onHeadChanged() {
-            const height = $.blockchain.height;
+            var height = $.blockchain.height;
             document.getElementById('height').innerText = '#' + height;
 
             if(blocklistBuilt) {
@@ -391,18 +390,19 @@
             document.getElementById('monitor').setAttribute('title', 'Connected to ' + $.network.peerCount + ' peers');
         }
 
-        Nimiq.init($ => {
-            document.getElementById('status').innerText = 'synchronizing';
-            document.getElementById('status').classList.add('synchronizing');
+        Nimiq.init(function($) {
+            $status.innerText = 'synchronizing';
+            $status.classList.add('synchronizing');
 
             window.$ = $;
 
-            $.consensus.on('established',   () => _onConsensusEstablished());
-            $.consensus.on('lost',          () => _onConsensusLost());
+            $.consensus.on('established', _onConsensusEstablished);
+            $.consensus.on('lost', _onConsensusLost);
 
-            $.blockchain.on('head-changed', () => _onHeadChanged()); _onHeadChanged();
+            $.blockchain.on('head-changed', _onHeadChanged);
+            _onHeadChanged();
 
-            $.network.on('peers-changed',   () => _onPeersChanged());
+            $.network.on('peers-changed', _onPeersChanged);
 
             $.network.connect();
         }, function(error) {
@@ -582,12 +582,13 @@
 
         var tmpl = {
             blocklistBlock: tmpl('template-blocklist-block'),
-            blockInfo: tmpl('template-block-info'),
-            accountInfo: tmpl('template-account-info')
-        }
+            blockInfo:      tmpl('template-block-info'),
+            accountInfo:    tmpl('template-account-info')
+        };
 
-        var $infobox = document.getElementById('infobox'),
-            $searchInput = document.getElementById('search-input');
+        var $infobox     = document.getElementById('infobox'),
+            $searchInput = document.getElementById('search-input'),
+            $status      = document.getElementById('status');
 
         function _detectHashFormat(value) {
             if(accountHashRegExp.test(value)) {
@@ -597,7 +598,7 @@
                 return "Block Hash";
             }
             else if(value.match(/^[0-9]*$/) && parseInt(value)) {
-                return "Block Number"
+                return "Block Number";
             }
         }
 
@@ -667,10 +668,10 @@
                         _addBlockToListOfLatestBlocks(latestBlocks[i]);
                     }
 
-                    delete latestBlocks;
+                    latestBlocks = null;
                     blocklistBuilt = true;
                 }
-            }
+            };
 
             var hashes = $.blockchain.path.slice(-20);
 
@@ -719,7 +720,7 @@
                     case "Block Hash":
                         _getBlockInfo(value, function(blockInfo) {
                             if(!blockInfo) {
-                                alert("That block cannot be found.\n\nIt my be out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex())
+                                alert("That block cannot be found.\n\nIt my be out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex());
                                 return;
                             }
 
