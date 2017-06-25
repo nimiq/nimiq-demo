@@ -42,6 +42,7 @@
             box-sizing: border-box;
             width: 100%;
             box-shadow: 0 0 10px 0 black;
+            z-index: 1000;
         }
 
         header h1 {
@@ -481,15 +482,15 @@
 <body>
     <header>
         <h1>
-            <a href="#">
+            <a href="#" onclick="_linkClicked(this, true);">
                 <span class="nimiq-logo">
                     <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
                 </span>
                 NIMIQ.WATCH
             </a>
         </h1>
-        <a href="#">Search</a>
-        <a href="#about">What is this?</a>
+        <a href="#" onclick="_linkClicked(this, true);">Search</a>
+        <a href="#about" onclick="_linkClicked(this, true);">What is this?</a>
         <span id="monitor" title="Connected to 0 peers">
             <strong>Status:</strong>
             <span id="status" class="not-connected">not connected</span> @ <span id="height"><em>loading</em></span>
@@ -570,7 +571,7 @@
             </div>
             <div class="blockinfo-miner">
                 <label>Mined by </label>
-                <hash><a href="#{%=o.minerAddr%}">{%=o.minerAddr%}</a></hash>
+                <hash><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
                 <!--
                 <label>Previous Block </label>
                 <hash>{%=o.prevHash%}</hash>
@@ -587,7 +588,7 @@
                 {% for(var i = 0; i < o.transactions.length; i++) { %}
                     <div class="blockinfo-transaction-row">
                         <hash id="{% var elementId = 'sender-address-' + i; _getAndWriteSenderAddressHash(o.transactions[i], elementId); print(elementId); %}"></hash>
-                        <hash><a href="#{%=o.transactions[i].recipientAddr.toHex()%}">{%=o.transactions[i].recipientAddr.toHex()%}</a></hash>
+                        <hash><a href="#{%=o.transactions[i].recipientAddr.toHex()%}" onclick="_linkClicked(this);">{%=o.transactions[i].recipientAddr.toHex()%}</a></hash>
                         <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%}</span>
                     </div>
                 {% } %}
@@ -620,7 +621,7 @@
     </script>
 
     <script type="text/x-tmpl" id="template-blocklist-block">
-        <a href="#{%=o.height%}" class="blocklist-cell">
+        <a href="#{%=o.height%}" class="blocklist-cell" onclick="_linkClicked(this);">
             #{%=o.height%}
         </a>
         <div class="blocklist-cell">
@@ -630,7 +631,7 @@
             {%=o.transactionCount%} {% if(o.transactionCount === 1) print('transaction'); else print('transactions'); %}
         </div>
         <div class="blocklist-cell ellipsis">
-            found by <hash><a href="#{%=o.minerAddr%}">{%=o.minerAddr%}</a></hash>
+            found by <hash><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
         </div>
         <div class="blocklist-cell">
             {%=o.serializedSize%} Bytes
@@ -677,6 +678,8 @@
         var $infobox     = document.getElementById('infobox'),
             $searchInput = document.getElementById('search-input'),
             $status      = document.getElementById('status');
+
+        var directNavigationTargets = ['#about'];
 
         function _detectHashFormat(value) {
             if(accountHashRegExp.test(value)) {
@@ -730,7 +733,7 @@
 
         function _getAndWriteSenderAddressHash(tx, elementId) {
             tx.getSenderAddr().then(function(address) {
-                document.getElementById(elementId).innerHTML = '<a href="#' + address.toHex() + '">' + address.toHex() + '</a>';
+                document.getElementById(elementId).innerHTML = '<a href="#' + address.toHex() + '" onclick="_linkClicked(this);">' + address.toHex() + '</a>';
             });
         }
 
@@ -783,6 +786,7 @@
         function _onHashChange(e) {
             var value = window.location.hash;
 
+            // Remove leading '#'
             if(value[0] === "#") value = value.substring(1);
 
             if(value === "") {
@@ -791,7 +795,7 @@
                 $searchInput.value = "";
                 $searchInput.focus();
             }
-            else if(value ==="about") {
+            else if(value === "about") {
                 $infobox.innerHTML = tmpl.about();
                 window.scrollTo(0, $infobox.offsetTop - 100);
             }
@@ -874,8 +878,26 @@
             window.location.hash = "#" + value;
         });
 
+        function _linkClicked(self, skipReadyCheck) {
+            if(!$.consensus.established) {
+                if(!skipReadyCheck) {
+                    return;
+                }
+                else {
+                    window.location.hash = self.hash;
+                    _onHashChange();
+                    return;
+                }
+            }
+
+            if(window.location.hash === self.hash) {
+                console.log("_linkClicked triggered");
+                _onHashChange();
+            }
+        }
+
         $searchInput.focus();
-        if(window.location.hash === "#about") _onHashChange();
+        if(directNavigationTargets.indexOf(window.location.hash) > -1) _onHashChange();
     </script>
 </body>
 </html>
