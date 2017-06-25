@@ -220,10 +220,34 @@
             float: left;
             width: 200px;
             padding: 0 1em 1em 1em;
+            overflow: auto;
         }
 
         .blockinfo-header .height span {
             font-size: 40px;
+            float: left;
+        }
+
+        .blockinfo-header .height div {
+            float: left;
+            margin-left: 0.3em;
+        }
+
+        .blockinfo-header .height a {
+            display: block;
+            border: none;
+            opacity: 0.3;
+        }
+
+        .blockinfo-header .height a:hover,
+        .blockinfo-header .height a:focus {
+            opacity: 1;
+            /*color: #87cefa;  lightskyblue */
+        }
+
+        .blockinfo-header .height a:first-child {
+            margin-top: 6px;
+            margin-bottom: -6px;
         }
 
         .blockinfo-header .hash {
@@ -544,6 +568,10 @@
             <div class="height">
                 <h3>Height</h3>
                 <span>#{%=o.height%}</span>
+                <div>
+                    <a href="#{%=o.height + 1%}">&#9650;</a>
+                    <a href="#{%=o.height - 1%}">&#9660;</a>
+                </div>
             </div>
             <div class="hash">
                 <h3>Hash</h3>
