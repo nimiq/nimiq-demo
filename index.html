@@ -46,6 +46,7 @@
 
         header h1 {
             margin: 0.2em 0;
+            margin-right: 1em;
             float: left;
             font-size: 1.5em;
             letter-spacing: 0.05em;
@@ -65,6 +66,19 @@
         header .nimiq-logo {
             position: relative;
             top: 0.2em;
+        }
+
+        header > a {
+            line-height: 2.7em;
+            color: white;
+            float: left;
+            border: none;
+            padding: 0 1em;
+        }
+
+        header > a:hover,
+        header > a:focus {
+            border: none;
         }
 
         #monitor {
@@ -170,6 +184,23 @@
         .accountinfo-wrapper {
             width: 410px;
             margin: auto;
+        }
+
+        .about-wrapper {
+            width: 600px;
+            margin: auto;
+            padding: 1em;
+            background: white;
+            border: 1px solid #D9DEE4;
+            border-radius: 5px;
+        }
+
+        .about-wrapper h2 {
+            margin-top: 0;
+        }
+
+        .about-wrapper p:last-child {
+            margin-bottom: 0;
         }
 
         .blockinfo-header {
@@ -457,6 +488,8 @@
                 NIMIQ.WATCH
             </a>
         </h1>
+        <a href="#">Search</a>
+        <a href="#about">What is this?</a>
         <span id="monitor" title="Connected to 0 peers">
             <strong>Status:</strong>
             <span id="status" class="not-connected">not connected</span> @ <span id="height"><em>loading</em></span>
@@ -604,6 +637,31 @@
         </div>
     </script>
 
+    <script type="text/x-tmpl" id="template-about">
+        <div class="about-wrapper">
+            <h2>What is this?</h2>
+            <p>
+                This website is a blockchain explorer for the new <a href="https://nimiq.com" target="_blank">Nimiq</a> blockchain project.
+            </p>
+            <p>
+                Because the Nimiq blockchain lives in your browser, this website works without a server. All necessary information is
+                present in the blockchain, loaded in this browser.
+            </p>
+            <p>
+                The source code for this website is open source and available at
+                <a href="https://github.com/sisou/nimiq-watch" target="_blank">https://github.com/sisou/nimiq-watch</a>.
+            </p>
+            <p>
+                To learn more about the Nimiq blockchain, visit the
+                <a href="https://nimiq.com"                            target="_blank">homepage</a>, check out @nimiqnetwork on
+                <a href="https://twitter.com/nimiqnetwork"             target="_blank">Twitter</a> or
+                <a href="https://medium.com/nimiq-network"             target="_blank">Medium</a> and join the
+                <a href="https://nimiq-slackin.herokuapp.com/"         target="_blank">Slack</a> and
+                <a href="https://t.me/joinchat/AAAAAEJW-ozFwo7Er9jpHw" target="_blank">Telegram</a> channels.
+            </p>
+        </div>
+    </script>
+
     <script>
         var accountHashRegExp = new RegExp('^[A-Fa-f0-9]{40}$'),
             blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
@@ -611,7 +669,8 @@
         var tmpl = {
             blocklistBlock: tmpl('template-blocklist-block'),
             blockInfo:      tmpl('template-block-info'),
-            accountInfo:    tmpl('template-account-info')
+            accountInfo:    tmpl('template-account-info'),
+            about:          tmpl('template-about')
         };
 
         var $infobox     = document.getElementById('infobox'),
@@ -729,6 +788,11 @@
                 // Display homepage
                 $infobox.innerText = "";
                 $searchInput.value = "";
+                $searchInput.focus();
+            }
+            else if(value ==="about") {
+                $infobox.innerHTML = tmpl.about();
+                window.scrollTo(0, $infobox.offsetTop - 100);
             }
             else {
                 var format = _detectHashFormat(value);
@@ -800,10 +864,17 @@
 
             var value = $searchInput.value;
 
+            if(window.location.hash === "#" + value) {
+                // The hashchange event does not trigger if the hash does not change
+                // Thus we manually trigger the function
+                window.onhashchange();
+            }
+
             window.location.hash = "#" + value;
         });
 
         $searchInput.focus();
+        if(window.location.hash === "#about") _onHashChange();
     </script>
 </body>
 </html>
