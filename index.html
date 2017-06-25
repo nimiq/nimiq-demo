@@ -96,6 +96,7 @@
 
         #search-input {
             width: 83%;
+            text-transform: uppercase;
         }
 
         #search-submit {
@@ -416,7 +417,7 @@
 <body>
     <header>
         <h1>
-            <a href="//nimiq.watch">
+            <a href="#">
                 <span class="nimiq-logo">
                     <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
                 </span>
@@ -433,7 +434,7 @@
         <h1>Search accounts and blocks:</h1>
 
         <form action="#search" method="GET" id="search-form">
-            <input type="text" id="search-input" placeholder="HEX hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <input type="text" id="search-input" placeholder="account address, HEX block hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
             <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
         </form>
@@ -535,7 +536,7 @@
             <h2>Account Info</h2>
             <div class="blockinfo-header">
                 <div class="hash">
-                    <h3>Hash</h3>
+                    <h3>Address</h3>
                     <hash>{%=o.hash%}</hash>
                 </div>
             </div>
@@ -582,7 +583,7 @@
 
         function _detectHashFormat(value) {
             if(accountHashRegExp.test(value)) {
-                return "Account Hash";
+                return "Account Address";
             }
             else if(blockHashRegExp.test(value) && value[0] === "0" && value[1] === "0") {
                 return "Block Hash";
@@ -695,26 +696,23 @@
             var format = _detectHashFormat(value);
 
             switch(format) {
-                case "Account Hash":
+                case "Account Address":
                     $.accounts.getBalance(Nimiq.Address.fromHex(value)).then(function(balance) {
                         var accountInfo = {
                             hash: value,
                             balance: balance.value,
                             nonce: balance.nonce
                         };
-                        // alert("Balance: " + _formatBalance(Nimiq.Policy.satoshisToCoins(accountInfo.balance)) + ", Nonce: " + accountInfo.nonce);
+
                         document.getElementById('infobox').innerHTML = tmpl.accountInfo(accountInfo);
                     });
                     break;
                 case "Block Hash":
-                    // 0000000FB8DDCB2A2239B31FB268A716DC4D58C616A94319746A3E81539349A0
-                    // 00000000A30C2FC0A05822A7C1255FB7657CCAC7861B85742134C48E6968A42B
                     _getBlockInfo(value, function(blockInfo) {
                         if(!blockInfo) {
-                            alert("That block cannot be found.\n\nIt my be out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex())
+                            alert("That block cannot be found.\n\nIt my be out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex())
                             return;
                         }
-                        // console.log(blockInfo);
 
                         document.getElementById('infobox').innerHTML = tmpl.blockInfo(blockInfo);
                     });
@@ -724,7 +722,7 @@
                     var pathIndex     = value - currentHeight - 1; // Should be a negative number
 
                     if(pathIndex < -$.blockchain.path.length) {
-                        alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                        alert("That block is out of reach due to the temporary checkpoint solution.\n\nLowest possible block: " + $.blockchain.path[0].toHex());
                         return;
                     }
                     if(pathIndex > -1) {
@@ -745,7 +743,7 @@
                     });
                     break;
                 default:
-                    alert("Format cannot be detected");
+                    alert("Format cannot be detected.");
             }
         });
     </script>
