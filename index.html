@@ -152,12 +152,21 @@
             height: 12px;
         }
 
+        .accountinfo-wrapper {
+            width: 410px;
+            margin: auto;
+        }
+
         .blockinfo-header {
             overflow: auto;
             border: 1px solid #D9DEE4;
             border-top-left-radius: 5px;
             border-top-right-radius: 5px;
             background: #F0F0F0;
+        }
+
+        .accountinfo-wrapper .blockinfo-header {
+            padding: 2px 1em 1em 1em;
         }
 
         .blockinfo-header .height {
@@ -179,6 +188,13 @@
             border-left: 1px solid #D9DEE4;
             border-right: 1px solid #D9DEE4;
             background: white;
+        }
+
+        .accountinfo-wrapper .blockinfo-body {
+            padding: 0.25em 1em;
+            border-bottom: 1px solid #D9DEE4;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
         }
 
         .blockinfo-body-left,
@@ -459,37 +475,37 @@
         <div class="blockinfo-body">
             <div class="blockinfo-body-left">
                 <div class="blockinfo-body-row">
-                    <label>Transactions</label>
+                    <label>Transactions </label>
                     <span>{%=o.transactionCount%}</span>
                 </div>
                 <div class="blockinfo-body-row">
-                    <label>Transaction Value</label>
+                    <label>Transaction Value </label>
                     <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactionValue))%}</span>
                 </div>
                 <div class="blockinfo-body-row">
-                    <label>Difficulty</label>
+                    <label>Difficulty </label>
                     <span>{%=(Math.round(o.difficulty * 100) / 100)%}</span>
                 </div>
             </div>
             <div class="blockinfo-body-right">
                 <div class="blockinfo-body-row">
-                    <label>Timestamp</label>
+                    <label>Timestamp </label>
                     <span>{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
                 </div>
                 <div class="blockinfo-body-row">
-                    <label>Size</label>
+                    <label>Size </label>
                     <span>{%=o.serializedSize%} Bytes</span>
                 </div>
                 <div class="blockinfo-body-row">
-                    <label>Nonce</label>
+                    <label>Nonce </label>
                     <span>{%=o.nonce%}</span>
                 </div>
             </div>
             <div class="blockinfo-miner">
-                <label>Mined by</label>
+                <label>Mined by </label>
                 <hash>{%=o.minerAddr%}</hash>
                 <!--
-                <label>Previous Block</label>
+                <label>Previous Block </label>
                 <hash>{%=o.prevHash%}</hash>
                 -->
             </div>
@@ -515,6 +531,25 @@
     </script>
 
     <script type="text/x-tmpl" id="template-account-info">
+        <div class="accountinfo-wrapper">
+            <h2>Account Info</h2>
+            <div class="blockinfo-header">
+                <div class="hash">
+                    <h3>Hash</h3>
+                    <hash>{%=o.hash%}</hash>
+                </div>
+            </div>
+            <div class="blockinfo-body">
+                <div class="blockinfo-body-row">
+                    <label>Balance </label>
+                    <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%}</span>
+                </div>
+                <div class="blockinfo-body-row">
+                    <label>Nonce </label>
+                    <span>{%=o.nonce%}</span>
+                </div>
+            </div>
+        </div>
     </script>
 
     <script type="text/x-tmpl" id="template-blocklist-block">
@@ -663,10 +698,12 @@
                 case "Account Hash":
                     $.accounts.getBalance(Nimiq.Address.fromHex(value)).then(function(balance) {
                         var accountInfo = {
+                            hash: value,
                             balance: balance.value,
                             nonce: balance.nonce
                         };
-                        alert("Balance: " + _formatBalance(Nimiq.Policy.satoshisToCoins(accountInfo.balance)) + ", Nonce: " + accountInfo.nonce);
+                        // alert("Balance: " + _formatBalance(Nimiq.Policy.satoshisToCoins(accountInfo.balance)) + ", Nonce: " + accountInfo.nonce);
+                        document.getElementById('infobox').innerHTML = tmpl.accountInfo(accountInfo);
                     });
                     break;
                 case "Block Hash":
