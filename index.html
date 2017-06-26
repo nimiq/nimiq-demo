@@ -349,6 +349,22 @@
             color: #AAA;
         }
 
+        #infobox canvas {
+            width: 868px;
+            height: 450px;
+            padding: 1em;
+            background: white;
+            border: 1px solid #D9DEE4;
+            border-radius: 5px;
+        }
+
+        #infobox > small {
+            display: block;
+            margin-top: -1em;
+            margin-bottom: 1em;
+            color: #888;
+        }
+
         #blocklist-wrapper {
             max-width: 950px;
             margin: 4em auto 2em auto;
@@ -702,6 +718,12 @@
         </div>
     </script>
 
+    <script type="text/x-tmpl" id="template-wealth-distribution-chart">
+        <h2>Wealth Distribution</h3>
+        <small>Among all non-zero accounts</small>
+        <canvas class="chart"></canvas>
+    </script>
+
     <script>
         var accountHashRegExp = new RegExp('^[A-Fa-f0-9]{40}$'),
             blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
@@ -710,7 +732,8 @@
             blocklistBlock: tmpl('template-blocklist-block'),
             blockInfo:      tmpl('template-block-info'),
             accountInfo:    tmpl('template-account-info'),
-            about:          tmpl('template-about')
+            about:          tmpl('template-about'),
+            wealthDistributionChart: tmpl('template-wealth-distribution-chart')
         };
 
         var $infobox     = document.getElementById('infobox'),
@@ -947,6 +970,85 @@
 
         ga('create', 'UA-101611099-1', 'auto');
         ga('send', 'pageview');
+    </script>
+
+    <script>
+        async function _wealthDistribution() {
+            $infobox.innerHTML = tmpl.wealthDistributionChart();
+
+            console.log("Loading accounts tree");
+            var tree = await $.accounts.export();
+
+            // console.log(tree);
+
+            var balances = [];
+
+            tree.forEach(node => {
+                balances = balances.concat(_resolveAccountsTreeNode(node));
+            });
+
+            balances = balances.filter(balance => balance);
+            balances.sort((a, b) => a > b ? -1 : a < b ? 1 : 0);
+
+            balances = balances.map(balance => Nimiq.Policy.satoshisToCoins(balance));
+
+            console.log("Loading Chart.js");
+            var tag = document.createElement('script');
+            tag.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js";
+            tag.onload = function() {
+                var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
+                var chart = new Chart(ctx, {
+                    // The type of chart we want to create
+                    type: 'line',
+
+                    // The data for our dataset
+                    data: {
+                        labels: Array.apply(null, {length: balances.length}).map(Function.call, Number),
+                        datasets: [{
+                            label: "NIM",
+                            backgroundColor: '#042146',
+                            borderColor: '#042146',
+                            data: balances
+                        }]
+                    },
+
+                    // Configuration options go here
+                    options: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                });
+            };
+            document.body.appendChild(tag);
+        }
+
+        function _resolveAccountsTreeNode(node) {
+            // console.log(node);
+            node = Nimiq.AccountsTreeNode.unserialize(Nimiq.BufferUtils.fromBase64(node));
+            // console.log(node);
+
+            if(node.isTerminal()) {
+                // console.log("isTerminal, returned balance");
+                return [node.account.balance.value];
+            }
+            // else if(node.hasChildren()) {
+            //     var _balances = [];
+            //
+            //     console.log("hasChildren, recursing");
+            //
+            //     node.getChildren().forEach(child => {
+            //         _balances = _balances.concat(_resolveAccountsTreeNode(node.prefix + child));
+            //     });
+            //
+            //     return _balances;
+            // }
+            // else {
+            //     alert("Unberücksichtigte AccountsTreeNode:", node);
+            // }
+
+            return [];
+        }
     </script>
 </body>
 </html>
