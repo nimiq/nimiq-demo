@@ -349,6 +349,30 @@
             color: #AAA;
         }
 
+        #infobox canvas {
+            width: 100%;
+            height: 450px;
+            box-sizing: border-box;
+            padding: 1em;
+            background: white;
+            border: 1px solid #D9DEE4;
+            border-radius: 5px;
+        }
+
+        #infobox > small {
+            display: block;
+            margin-top: -1em;
+            margin-bottom: 1em;
+            color: #888;
+        }
+
+        #infobox > .chart-valid-info {
+            text-align: right;
+            font-size: smaller;
+            color: #888;
+            font-style: italic;
+        }
+
         #blocklist-wrapper {
             max-width: 950px;
             margin: 4em auto 2em auto;
@@ -702,6 +726,13 @@
         </div>
     </script>
 
+    <script type="text/x-tmpl" id="template-wealth-distribution-chart">
+        <h2>Wealth Distribution</h3>
+        <small>Among all non-zero accounts</small>
+        <canvas class="chart"></canvas>
+        <div class="chart-valid-info">Created at block #{%=o.height%} - {% var time = new Date(o.timestamp * 1000); print(time.toLocaleString()); %}</div>
+    </script>
+
     <script>
         var accountHashRegExp = new RegExp('^[A-Fa-f0-9]{40}$'),
             blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
@@ -710,7 +741,8 @@
             blocklistBlock: tmpl('template-blocklist-block'),
             blockInfo:      tmpl('template-block-info'),
             accountInfo:    tmpl('template-account-info'),
-            about:          tmpl('template-about')
+            about:          tmpl('template-about'),
+            wealthDistributionChart: tmpl('template-wealth-distribution-chart')
         };
 
         var $infobox     = document.getElementById('infobox'),
@@ -947,6 +979,77 @@
 
         ga('create', 'UA-101611099-1', 'auto');
         ga('send', 'pageview');
+    </script>
+
+    <script>
+        async function _wealthDistribution() {
+            $infobox.innerHTML = tmpl.wealthDistributionChart({
+                height: $.blockchain.head.height,
+                timestamp: $.blockchain.head.timestamp
+            });
+
+            var tag = document.createElement('script');
+            tag.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js";
+
+            console.log("Loading accounts tree");
+            var rootKey  = await $.accounts._tree._store.getRootKey();
+            var rootNode = await $.accounts._tree._store.get(rootKey);
+
+            var balances = [];
+
+            await _resolveAccountsTreeNode(rootNode, "", balances);
+
+            balances = balances.filter(balance => balance);
+            balances.sort((a, b) => a > b ? -1 : a < b ? 1 : 0);
+
+            balances = balances.map(balance => Nimiq.Policy.satoshisToCoins(balance));
+
+            tag.onload = function() {
+                var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
+
+                var labels = [];
+                for (var i = 1; i <= balances.length; i++) { labels.push(i); }
+                labels = labels.map(label => "#" + label);
+
+                var chart = new Chart(ctx, {
+                    // The type of chart we want to create
+                    type: 'line',
+
+                    // The data for our dataset
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "NIM",
+                            pointBackgroundColor: '#042146',
+                            borderColor: '#042146',
+                            data: balances
+                        }]
+                    },
+
+                    // Configuration options go here
+                    options: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                });
+            };
+            console.log("Loading Chart.js");
+            document.body.appendChild(tag);
+        }
+
+        async function _resolveAccountsTreeNode(currentNode, currentPrefix, balances) {
+            currentPrefix += currentNode.prefix;
+            if (currentNode.isTerminal()) {
+                balances.push(currentNode.account.balance.value);
+            }
+            else {
+                for (const childKey of currentNode.getChildren()) {
+                    const node = await $.accounts._tree._store.get(childKey);
+                    await _resolveAccountsTreeNode(node, currentPrefix, balances);
+                }
+            }
+        }
     </script>
 </body>
 </html>
