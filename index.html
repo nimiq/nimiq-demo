@@ -994,7 +994,7 @@
     </script>
 
     <script>
-        async function _wealthDistribution() {
+        async function _wealthDistribution(axisType = "linear") {
             $infobox.innerHTML = tmpl.wealthDistributionChart({
                 height: $.blockchain.head.height,
                 timestamp: $.blockchain.head.timestamp
@@ -1022,7 +1022,9 @@
 
                 $infobox.removeChild($infobox.getElementsByClassName('blocklist-loader')[0]);
 
-                var chart = new Chart(ctx, {
+                if(window.chart) window.chart.destroy();
+
+                window.chart = new Chart(ctx, {
                     // The type of chart we want to create
                     type: 'line',
 
@@ -1041,6 +1043,41 @@
                     options: {
                         legend: {
                             display: false
+                        },
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    callback: (value) => {
+                                        if(axisType === "linear") {
+                                            return value;
+                                        }
+                                        else if(axisType === "logarithmic") {
+                                            // let blockRewardInNim = Nimiq.Policy.BLOCK_REWARD / Nimiq.Policy.SATOSHIS_PER_COIN;
+
+                                            let label = Math.round(parseFloat(value) * Nimiq.Policy.SATOSHIS_PER_COIN) / Nimiq.Policy.SATOSHIS_PER_COIN;
+
+                                            if(label.toString()[0] !== "1" && label.toString().slice(-1) !== "1") return null;
+
+                                            return label;
+                                        }
+                                    }
+                                },
+                                type: axisType,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Balance in NIM",
+                                    fontFamily: "'Source Sans Pro', sans-serif",
+                                    fontSize: 16
+                                }
+                            }],
+                            xAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Accounts (ordered by balance)",
+                                    fontFamily: "'Source Sans Pro', sans-serif",
+                                    fontSize: 16
+                                }
+                            }]
                         }
                     }
                 });
