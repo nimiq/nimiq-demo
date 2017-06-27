@@ -823,20 +823,18 @@
                     return;
                 }
 
-                block.hash().then(function(hash) {
-                    callback({
-                        hash:             hash.toHex(),
-                        height:           block.height,
-                        timestamp:        block.timestamp,
-                        difficulty:       block.difficulty,
-                        serializedSize:   block.serializedSize,
-                        minerAddr:        block.minerAddr.toHex(),
-                        transactionCount: block.transactionCount,
-                        transactions:     block.transactions,
-                        transactionValue: block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0),
-                        prevHash:         block.prevHash.toHex(),
-                        nonce:            block.nonce
-                    });
+                callback({
+                    hash:             hash.toHex(),
+                    height:           block.height,
+                    timestamp:        block.timestamp,
+                    difficulty:       block.difficulty,
+                    serializedSize:   block.serializedSize,
+                    minerAddr:        block.minerAddr.toHex(),
+                    transactionCount: block.transactionCount,
+                    transactions:     block.transactions,
+                    transactionValue: block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0),
+                    prevHash:         block.prevHash.toHex(),
+                    nonce:            block.nonce
                 });
             });
         }
