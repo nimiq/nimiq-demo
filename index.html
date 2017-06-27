@@ -35,7 +35,7 @@
             background: #042146;
             color: white;
             padding: 0.5em 0.8em;
-            overflow: auto;
+            overflow: visible;
             position: fixed;
             top: 0;
             left: 0;
@@ -56,12 +56,6 @@
         header h1 a {
             color: inherit;
             text-decoration: none;
-            border-bottom: none;
-        }
-
-        header h1 a:hover,
-        header h1 a:focus {
-            border-bottom: none;
         }
 
         header .nimiq-logo {
@@ -69,17 +63,81 @@
             top: 0.25em;
         }
 
-        header > a {
+        header > a,
+        header .submenu-container,
+        header .submenu-container > a {
             line-height: 2.7em;
             color: white;
             float: left;
             border: none;
             padding: 0 0.75em;
+            position: relative;
+            display: block;
+            cursor: pointer;
+        }
+
+        header a,
+        header a:hover,
+        header a:focus {
+            border: none;
         }
 
         header > a:hover,
-        header > a:focus {
-            border: none;
+        header > a:focus,
+        header > a:target {
+            background: white;
+            color: #042146;
+            border-radius: 3px;
+        }
+
+        header .submenu-container {
+            padding: 0;
+            position: relative;
+        }
+
+        header .submenu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: -1px;
+            z-index: 1500;
+            border-radius: 3px;
+        }
+
+        header .submenu-container:hover > a {
+            background: white;
+            color: #042146;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+        }
+
+        header .submenu-container:hover .submenu {
+            display: block;
+        }
+
+        header .submenu a {
+            background: white;
+            display: block;
+            padding: 0 1em;
+            white-space: nowrap;
+            border: 1px solid;
+            border-top: none;
+            line-height: 2.7em;
+            padding: 0 0.75em;
+        }
+
+        header .submenu a:first-child {
+            border-top: 1px solid;
+            border-top-right-radius: 3px;
+        }
+
+        header .submenu a:last-child {
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+        }
+
+        header .submenu a:hover {
+            background: #F0F0F0;
         }
 
         #monitor {
@@ -572,8 +630,15 @@
                 NIMIQ.WATCH
             </a>
         </h1>
-        <a href="#" onclick="_linkClicked(this, true);">Search</a>
-        <a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Charts</a>
+        <a href="#search" onclick="_linkClicked(this, true);">Search</a>
+        <div class="submenu-container">
+            <a href="#charts" onclick="_linkClicked(this, true);">Charts</a>
+
+            <div class="submenu">
+                <a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>
+                <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
+            </div>
+        </div>
         <a href="#about" onclick="_linkClicked(this, true);">What is this?</a>
         <span id="monitor" title="Connected to 0 peers">
             <strong>Status:</strong>
@@ -773,16 +838,27 @@
         <div class="chart-valid-info"></div>
     </script>
 
+    <script type="text/x-tmpl" id="template-global-hashrate-chart">
+        <h2>Global Hashrate</h2>
+        <small>Since the last checkpoint</small>
+        <canvas class="chart"></canvas>
+        <div class="blocklist-loader over-canvas">
+            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+        </div>
+        <div class="chart-valid-info"></div>
+    </script>
+
     <script>
         var accountHashRegExp = new RegExp('^[A-Fa-f0-9]{40}$'),
             blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
 
         var tmpl = {
-            blocklistBlock: tmpl('template-blocklist-block'),
-            blockInfo:      tmpl('template-block-info'),
-            accountInfo:    tmpl('template-account-info'),
-            about:          tmpl('template-about'),
-            wealthDistributionChart: tmpl('template-wealth-distribution-chart')
+            blocklistBlock:          tmpl('template-blocklist-block'),
+            blockInfo:               tmpl('template-block-info'),
+            accountInfo:             tmpl('template-account-info'),
+            about:                   tmpl('template-about'),
+            wealthDistributionChart: tmpl('template-wealth-distribution-chart'),
+            globalHashrateChart:     tmpl('template-global-hashrate-chart')
         };
 
         var $infobox     = document.getElementById('infobox'),
@@ -897,7 +973,7 @@
             // Remove leading '#'
             if(value[0] === "#") value = value.substring(1);
 
-            if(value === "") {
+            if(value === "" || value === "search") {
                 // Display homepage
                 $infobox.innerText = "";
                 $searchInput.value = "";
@@ -909,6 +985,9 @@
             }
             else if(value === "chart-wealth-distribution") {
                 _wealthDistribution();
+            }
+            else if(value === "chart-global-hashrate") {
+                _globalHashrate();
             }
             else {
                 var format = _detectHashFormat(value);
@@ -1165,6 +1244,140 @@
             else {
                 _wealthDistribution("linear", true);
             }
+        }
+    </script>
+    <script>
+        async function _globalHashrate(skipRender = false) {
+            if(!skipRender) {
+                // Only replace infobox contents when not coming from the scale toggle
+                $infobox.innerHTML = tmpl.globalHashrateChart();
+                window.scrollTo(0, $infobox.offsetTop - 100);
+            }
+
+            // Analyze available path from the beginning, check when difficutly changes
+            var difficulty = [];
+            var timestamp  = [];
+
+            for(var i = 0; i < $.blockchain.path.length; i += Nimiq.Policy.DIFFICULTY_ADJUSTMENT_BLOCKS) {
+                const block = await $.blockchain.getBlock($.blockchain.path[i]);
+
+                difficulty.push(block.difficulty);
+                timestamp.push(block.timestamp);
+            }
+
+            // const months = [null, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+            // Calculate hashrate from difficulty
+            var hashrate  = difficulty.map(diff => Math.round(diff * Math.pow(2, 16) / Nimiq.Policy.BLOCK_TIME));
+            var timelabel = timestamp.map(time => {
+                let date = new Date(time * 1000);
+                return /*date.getDate() + ". " + months[date.getMonth()] + " " + */date.toTimeString().slice(0, 5);
+            });
+
+            var _renderGlobalHashrateChart = function() {
+                try {
+                    $infobox.removeChild($infobox.getElementsByClassName('blocklist-loader')[0]);
+                }
+                catch(e) {}
+
+                var time = new Date($.blockchain.head.timestamp * 1000);
+                $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created at block #" + $.blockchain.head.height + " - " + time.toLocaleString()
+
+                if(window.chart) window.chart.destroy();
+
+                var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
+
+                window.chart = new Chart(ctx, {
+                    // The type of chart we want to create
+                    type: 'line',
+
+                    // The data for our dataset
+                    data: {
+                        labels: timelabel,
+                        datasets: [{
+                            label: "Global hashrate",
+                            pointBackgroundColor: '#042146',
+                            borderColor: '#042146',
+                            data: hashrate,
+                            steppedLine: 'after'
+                        }]
+                    },
+
+                    // Configuration options go here
+                    options: {
+                        legend: {
+                            display: false
+                        },
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    callback: _humanReadableHashesPerSecond
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Hashrate",
+                                    fontFamily: "'Source Sans Pro', sans-serif",
+                                    fontSize: 16
+                                }
+                            }]
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: _humanReadableHashesPerSecond
+                            }
+                        }
+                    }
+                });
+            };
+
+            if(document.getElementById('chart-js-script')) {
+                _renderGlobalHashrateChart();
+            }
+            else {
+                var scriptTag = document.createElement('script');
+                scriptTag.id = "chart-js-script";
+                scriptTag.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js";
+                scriptTag.onload = _renderGlobalHashrateChart;
+                document.body.appendChild(scriptTag);
+            }
+        }
+
+        function _humanReadableHashesPerSecond(arg1, arg2) {
+            if(typeof arg1 === "number")
+                value = arg1;
+            else
+                value = arg1.yLabel;
+
+            var resultValue = 0;
+            var resultUnit = "H/s";
+
+            if(value < 1000) {
+                resultValue = value;
+            }
+            else {
+                let kilo = value / 1000;
+                if(kilo < 1000) {
+                    resultValue = kilo;
+                    resultUnit = "kH/s";
+                }
+                else {
+                    let mega = kilo / 1000;
+                    if(mega < 1000) {
+                        resultValue = mega;
+                        resultUnit = "MH/s";
+                    }
+                    else {
+                        resultValue = mega / 1000;
+                        resultUnit = "GH/s";
+                    }
+                }
+            }
+
+            if(arg2) {
+                resultValue = Math.round(resultValue * 100) / 100;
+            }
+
+            return resultValue + " " + resultUnit;
         }
     </script>
 </body>
