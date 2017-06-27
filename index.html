@@ -349,6 +349,21 @@
             color: #AAA;
         }
 
+        #infobox .axis-type-switch {
+            float: right;
+            font-size: 16px;
+            width: 250px;
+            margin-top: 1em;
+        }
+
+        #infobox .axis-type-switch label {
+            cursor: pointer;
+        }
+
+        #infobox .axis-type-switch label span span {
+            font-weight: normal;
+        }
+
         #infobox canvas {
             width: 100%;
             height: 450px;
@@ -357,6 +372,7 @@
             background: white;
             border: 1px solid #D9DEE4;
             border-radius: 5px;
+            clear: both;
         }
 
         #infobox > small {
@@ -733,13 +749,23 @@
     </script>
 
     <script type="text/x-tmpl" id="template-wealth-distribution-chart">
-        <h2>Wealth Distribution</h3>
+        <div class="axis-type-switch">
+            <label class="switch-light switch-candy" onclick="">
+                <input type="checkbox" onchange="_wealthDistributionSwitchScale(this);">
+                <span>
+                    <span>Linear</span>
+                    <span>Logarithmic</span>
+                    <a></a>
+                </span>
+            </label>
+        </div>
+        <h2>Wealth Distribution</h2>
         <small>Among non-zero accounts</small>
         <canvas class="chart"></canvas>
         <div class="blocklist-loader over-canvas">
             <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
         </div>
-        <div class="chart-valid-info">Created at block #{%=o.height%} - {% var time = new Date(o.timestamp * 1000); print(time.toLocaleString()); %}</div>
+        <div class="chart-valid-info"></div>
     </script>
 
     <script>
@@ -994,12 +1020,25 @@
     </script>
 
     <script>
-        async function _wealthDistribution(axisType = "linear") {
-            $infobox.innerHTML = tmpl.wealthDistributionChart({
-                height: $.blockchain.head.height,
-                timestamp: $.blockchain.head.timestamp
-            });
-            window.scrollTo(0, $infobox.offsetTop - 100);
+        async function _wealthDistribution(axisType = "linear", skipRender = false) {
+            if(!document.getElementById('toggle-switch-css-link')) {
+                if(document.createStyleSheet) {
+                    document.createStyleSheet("https://cdn.jsdelivr.net/css-toggle-switch/latest/toggle-switch.css");
+                }
+                else {
+                    var linkTag = document.createElement('link');
+                    linkTag.rel = "stylesheet";
+                    linkTag.href = "https://cdn.jsdelivr.net/css-toggle-switch/latest/toggle-switch.css";
+                    linkTag.id = "toggle-switch-css-link";
+                    document.head.appendChild(linkTag);
+                }
+            }
+
+            if(!skipRender) {
+                // Only replace infobox contents when not coming from the scale toggle
+                $infobox.innerHTML = tmpl.wealthDistributionChart();
+                window.scrollTo(0, $infobox.offsetTop - 100);
+            }
 
             var rootKey  = await $.accounts._tree._store.getRootKey();
             var rootNode = await $.accounts._tree._store.get(rootKey);
@@ -1013,16 +1052,22 @@
 
             balances = balances.map(balance => Nimiq.Policy.satoshisToCoins(balance));
 
-            _renderWealthDisributionChart = function() {
-                var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
-
+            var _renderWealthDisributionChart = function() {
                 var labels = [];
                 for (var i = 1; i <= balances.length; i++) { labels.push(i); }
                 labels = labels.map(label => "#" + label);
 
-                $infobox.removeChild($infobox.getElementsByClassName('blocklist-loader')[0]);
+                try {
+                    $infobox.removeChild($infobox.getElementsByClassName('blocklist-loader')[0]);
+                }
+                catch(e) {}
+
+                var time = new Date($.blockchain.head.timestamp * 1000);
+                $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created at block #" + $.blockchain.head.height + " - " + time.toLocaleString()
 
                 if(window.chart) window.chart.destroy();
+
+                var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
 
                 window.chart = new Chart(ctx, {
                     // The type of chart we want to create
@@ -1081,17 +1126,19 @@
                         }
                     }
                 });
+
+                $infobox.getElementsByTagName('input')[0].removeAttribute('disabled');
             };
 
             if(document.getElementById('chart-js-script')) {
                 _renderWealthDisributionChart();
             }
             else {
-                var tag = document.createElement('script');
-                tag.id = "chart-js-script";
-                tag.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js";
-                tag.onload = _renderWealthDisributionChart;
-                document.body.appendChild(tag);
+                var scriptTag = document.createElement('script');
+                scriptTag.id = "chart-js-script";
+                scriptTag.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js";
+                scriptTag.onload = _renderWealthDisributionChart;
+                document.body.appendChild(scriptTag);
             }
         }
 
@@ -1105,6 +1152,15 @@
                     const node = await $.accounts._tree._store.get(childKey);
                     await _resolveAccountsTreeNode(node, currentPrefix, balances);
                 }
+            }
+        }
+
+        function _wealthDistributionSwitchScale(self) {
+            if(self.checked) {
+                _wealthDistribution("logarithmic", true);
+            }
+            else {
+                _wealthDistribution("linear", true);
             }
         }
     </script>
