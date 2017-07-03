@@ -11,65 +11,85 @@
     <link href="style.css" rel="stylesheet">
 
     <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
-    <script src="vendor/tmpl.min.js"></script>
+    <script src="http://vuejs.org/js/vue.js"></script>
 </head>
 <body>
-    <header>
-        <h1>
-            <a href="#" onclick="_linkClicked(this, true);">
-                <span class="nimiq-logo">
-                    <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
-                </span>
-                NIMIQ.WATCH
-            </a>
-        </h1>
-        <a href="#search" onclick="_linkClicked(this, true);" id="search">Search</a>
-        <div class="submenu-container">
-            <a href="#charts" onclick="_linkClicked(this, true);" id="charts">Charts</a>
-
-            <div class="submenu">
-                <a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>
-                <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
-            </div>
-        </div>
-        <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
-        <span id="monitor" title="Connected to 0 peers">
-            <strong>Status:</strong>
-            <span id="status" class="not-connected">connecting</span> @ <span id="height"><em>loading</em></span><span id="targetHeight"></span>
-        </span>
-    </header>
-
-    <div id="searchbox">
-        <h1>Search accounts and blocks:</h1>
-
-        <form action="#search" method="GET" id="search-form">
-            <input type="text" id="search-input" placeholder="account address, HEX block hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-            <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
-            <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
-        </form>
-    </div>
-
-    <div id="infobox">
-    </div>
-
-    <div id="blocklist-wrapper">
-        <h2>Latest blocks</h2>
-        <div id="blocklist">
-            <div class="blocklist-block">
-                <div class="blocklist-cell">
-                    <div class="blocklist-loader">
+    <div id="main">
+        <header>
+            <h1>
+                <a href="#" onclick="_linkClicked(this, true);">
+                    <span class="nimiq-logo">
                         <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+                    </span>
+                    NIMIQ.WATCH
+                </a>
+            </h1>
+            <a href="#search" onclick="_linkClicked(this, true);" id="search">Search</a>
+            <div class="submenu-container">
+                <a href="#charts" onclick="_linkClicked(this, true);" id="charts">Charts</a>
+
+                <div class="submenu">
+                    <a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>
+                    <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
+                </div>
+            </div>
+            <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
+            <span id="monitor" :title="'Connected to ' + peerCount + ' peers'">
+                <strong>Status:</strong>
+                <span id="status" :class="status == 'initializing' || status == 'consensus lost' ? 'not-connected' : status == 'synchronizing' ? 'synchronizing' : 'consensus-established'">{{ status }}</span> @ <span id="height">{{ height }}</span><span id="targetHeight" v-if="targetHeight">/{{ targetHeight }}</span>
+            </span>
+        </header>
+
+        <div id="searchbox">
+            <h1>Search accounts and blocks:</h1>
+
+            <form action="#search" method="GET" id="search-form">
+                <input type="text" id="search-input" placeholder="account address, HEX block hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
+                <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
+            </form>
+        </div>
+
+        <div id="infobox">
+        </div>
+
+        <div id="blocklist-wrapper">
+            <h2>Latest blocks</h2>
+            <div id="blocklist">
+                <div class="blocklist-block" v-if="!blocks.length">
+                    <div class="blocklist-cell">
+                        <div class="blocklist-loader">
+                            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+                        </div>
+                        <p class="blocklist-loader-text">Please wait while the blockchain is being synchronized. You can track the progress in the top right corner of the screen.</p>
                     </div>
-                    <p class="blocklist-loader-text">Please wait while the blockchain is being synchronized. You can track the progress in the top right corner of the screen.</p>
+                </div>
+
+                <div class="blocklist-block" v-for="block in blocks">
+                    <a :href="'#' + block.height" class="blocklist-cell" onclick="_linkClicked(this);">
+                        #{{ block.height }}
+                    </a>
+                    <div class="blocklist-cell">
+                        {{ (new Date(block.timestamp * 1000)).toLocaleTimeString() }}
+                    </div>
+                    <div class="blocklist-cell">
+                        {{ block.transactionCount }} {{ block.transactionCount === 1 ? 'transaction' : 'transactions' }}
+                    </div>
+                    <div class="blocklist-cell ellipsis">
+                        found by <code><a :href="'#' + block.minerAddr" onclick="_linkClicked(this);">{{ block.minerAddr }}</a></code>
+                    </div>
+                    <div class="blocklist-cell">
+                        {{ block.serializedSize }} Bytes
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <footer>
-        This web application is built on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
-        <a target="_blank" href="https://github.com/sisou/nimiq-watch">View Source Code on Github.</a>
-    </footer>
+        <footer>
+            This web application is built on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
+            <a target="_blank" href="https://github.com/sisou/nimiq-watch">View Source Code on Github.</a>
+        </footer>
+    </div> <!-- #main -->
 
     <script type="text/x-tmpl" id="template-block-info">
         <h2>Block Info</h2>
@@ -84,7 +104,7 @@
             </div>
             <div class="hash">
                 <h3>Hash</h3>
-                <hash>{%=o.hash%}</hash>
+                <code>{%=o.hash%}</code>
             </div>
         </div>
         <div class="blockinfo-body">
@@ -118,10 +138,10 @@
             </div>
             <div class="blockinfo-miner">
                 <label>Mined by </label>
-                <hash><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
+                <code><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></code>
                 <!--
                 <label>Previous Block </label>
-                <hash>{%=o.prevHash%}</hash>
+                <code>{%=o.prevHash%}</code>
                 -->
             </div>
         </div>
@@ -134,8 +154,8 @@
                 </div>
                 {% for(var i = 0; i < o.transactions.length; i++) { %}
                     <div class="blockinfo-transaction-row">
-                        <hash id="{% var elementId = 'sender-address-' + i; _getAndWriteSenderAddressHash(o.transactions[i], elementId); print(elementId); %}"></hash>
-                        <hash><a href="#{%=o.transactions[i].recipientAddr.toHex()%}" onclick="_linkClicked(this);">{%=o.transactions[i].recipientAddr.toHex()%}</a></hash>
+                        <code id="{% var elementId = 'sender-address-' + i; _getAndWriteSenderAddressHash(o.transactions[i], elementId); print(elementId); %}"></code>
+                        <code><a href="#{%=o.transactions[i].recipientAddr.toHex()%}" onclick="_linkClicked(this);">{%=o.transactions[i].recipientAddr.toHex()%}</a></code>
                         <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%}</span>
                     </div>
                 {% } %}
@@ -151,7 +171,7 @@
             <div class="blockinfo-header">
                 <div class="hash">
                     <h3>Address</h3>
-                    <hash>{%=o.hash%}</hash>
+                    <code>{%=o.hash%}</code>
                 </div>
             </div>
             <div class="blockinfo-body">
@@ -178,7 +198,7 @@
             {%=o.transactionCount%} {% if(o.transactionCount === 1) print('transaction'); else print('transactions'); %}
         </div>
         <div class="blocklist-cell ellipsis">
-            found by <hash><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
+            found by <code><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></code>
         </div>
         <div class="blocklist-cell">
             {%=o.serializedSize%} Bytes
