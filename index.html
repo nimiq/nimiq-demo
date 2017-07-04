@@ -36,7 +36,9 @@
             <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
             <span id="monitor" :title="'Connected to ' + peerCount + ' peers'">
                 <strong>Status:</strong>
-                <span id="status" :class="status == 'initializing' || status == 'consensus lost' ? 'not-connected' : status == 'synchronizing' ? 'synchronizing' : 'consensus-established'">{{ status }}</span> @ <span id="height">{{ height }}</span><span id="targetHeight" v-if="targetHeight">/{{ targetHeight }}</span>
+                <span id="status"
+                      :class="status === 'connected' ? 'consensus-established' : status == 'synchronizing' ? 'synchronizing' : 'not-connected'"
+                >{{ status }}</span> @ <span id="height">{{ parseInt(height) ? '#' : '' }}{{ height }}</span><span id="targetHeight" v-if="targetHeight">/{{ targetHeight }}</span>
             </span>
         </header>
 
