@@ -1,12 +1,40 @@
-var About  = { template: '#template-about' },
-    Charts = { template: '#template-charts' },
-    Temp   = { template: '<p>Hash {{ $route.params.hash }}</p>' };
+var About    = { template: '#template-about' },
+    Charts   = { template: '#template-charts' },
+    HashInfo = {
+        // template: '#template-hashinfo',
+        template: '<p>Hash: {{ hash }}, type: {{ type }}</p>',
+        props: ['hash'],
+        data: function() {
+            return {
+                obj: {}
+            };
+        },
+        computed: {
+            type: function() {
+                var accountHashRegExp = new RegExp('^[A-Fa-f0-9]{40}$'),
+                    blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
+
+                if(accountHashRegExp.test(this.hash)) {
+                    return 'Account Address';
+                }
+                else if(blockHashRegExp.test(this.hash) && this.hash.substr(0, 2) === "00") {
+                    return 'Block Hash';
+                }
+                else if(this.hash.match(/^[0-9]*$/) && parseInt(this.hash)) {
+                    return 'Block Number';
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+    };
 
 var router = new VueRouter({
     routes: [
-        { path: '/about', component: About },
-        { path: '/charts', component: Charts },
-        { path: '/:hash', component: Temp }
+        { path: '/about', component: About   },
+        { path: '/charts', component: Charts   },
+        { path: '/:hash', component: HashInfo, props: true }
     ]
 });
 
@@ -18,7 +46,13 @@ var vue = new Vue({
         height: 'loading',
         targetHeight: false,
         peerCount: 0,
+        searchTerm: '',
         blocks: []
+    },
+    methods: {
+        search: function() {
+            router.push(this.searchTerm);
+        }
     }
 });
 

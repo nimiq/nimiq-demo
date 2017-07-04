@@ -53,8 +53,8 @@
         <div id="searchbox">
             <h1>Search accounts and blocks:</h1>
 
-            <form action="#/search" method="GET" id="search-form" @submit.prevent="">
-                <input type="text" id="search-input" placeholder="account address, HEX block hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <form action="#/search" method="GET" id="search-form" @submit.prevent="search">
+                <input type="text" id="search-input" v-model="searchTerm" placeholder="account address, HEX block hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 <input type="submit" id="search-submit" value="go" :disabled="status !== 'connected'" title="Consensus not established">
                 <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
             </form>
@@ -196,24 +196,6 @@
                     <span>{%=o.nonce%}</span>
                 </div>
             </div>
-        </div>
-    </script>
-
-    <script type="text/x-template" id="template-blocklist-block">
-        <a href="#{%=o.height%}" class="blocklist-cell" onclick="_linkClicked(this);">
-            #{%=o.height%}
-        </a>
-        <div class="blocklist-cell">
-            {% var time = new Date(o.timestamp * 1000); print(time.toLocaleTimeString()); %}
-        </div>
-        <div class="blocklist-cell">
-            {%=o.transactionCount%} {% if(o.transactionCount === 1) print('transaction'); else print('transactions'); %}
-        </div>
-        <div class="blocklist-cell ellipsis">
-            found by <code><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></code>
-        </div>
-        <div class="blocklist-cell">
-            {%=o.serializedSize%} Bytes
         </div>
     </script>
 
