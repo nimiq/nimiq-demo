@@ -1,29 +1,90 @@
+// Simple event bus to broadcast events
+var bus = new Vue();
+
 var About    = { template: '#template-about' },
     Charts   = { template: '#template-charts' },
+    Block    = { template: '#template-block-info' },
+    Account  = { template: '#template-account-info' },
     HashInfo = {
         // template: '#template-hashinfo',
-        template: '<p>Hash: {{ hash }}, type: {{ type }}</p>',
+        template: '<p>Hash: {{ hash }}, type: {{ type }}, obj: {{ obj }}</p>',
         props: ['hash'],
         data: function() {
             return {
                 obj: {}
             };
         },
+        beforeRouteEnter: function(to, from, next) {
+            if(router.app.status === 'connected') next();
+            else bus.$once('connected', next);
+        },
         computed: {
             type: function() {
-                var accountHashRegExp = new RegExp('^[A-Fa-f0-9]{40}$'),
-                    blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
+                var value = this.hash;
 
-                if(accountHashRegExp.test(this.hash)) {
+                if(vue.status !== 'connected') return null;
+
+                if(value.match(/^[A-Fa-f0-9]{40}$/)) {
+                    $.accounts.getBalance(Nimiq.Address.fromHex(value)).then(function(balance) {
+                        var accountInfo = {
+                            hash: value,
+                            balance: balance.value,
+                            nonce: balance.nonce,
+                            transactions: []
+                        };
+
+                        this.obj = accountInfo;
+
+                        window.scrollTo(0, this.$el.offsetTop - 100);
+                    }.bind(this));
+
                     return 'Account Address';
                 }
-                else if(blockHashRegExp.test(this.hash) && this.hash.substr(0, 2) === "00") {
+                else if(value.match(/^[A-Fa-f0-9]{64}$/) && value.substr(0, 2) === "00") {
+                    getBlockInfo(value, function(blockInfo) {
+                        if(!blockInfo) {
+                            alert("That block cannot be found. It my be out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                            return;
+                        }
+
+                        this.obj = blockInfo;
+
+                        window.scrollTo(0, this.$el.offsetTop - 100);
+                    }.bind(this));
+
                     return 'Block Hash';
                 }
-                else if(this.hash.match(/^[0-9]*$/) && parseInt(this.hash)) {
+                else if(value.match(/^[0-9]*$/) && parseInt(value)) {
+                    var currentHeight = $.blockchain.head.height;
+                    var pathIndex     = value - currentHeight - 1; // Should be a negative number
+
+                    if(pathIndex < -$.blockchain.path.length) {
+                        alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                        return;
+                    }
+                    if(pathIndex > -1) {
+                        alert("That block has not been mined yet.");
+                        return;
+                    }
+
+                    var blockHash = $.blockchain.path.slice(pathIndex)[0];
+
+                    getBlockInfo(blockHash, function(blockInfo) {
+                        if(!blockInfo) {
+                            alert("Cannot find block.");
+                            return;
+                        }
+                        // console.log(blockInfo);
+
+                        this.obj = blockInfo;
+
+                        window.scrollTo(0, this.$el.offsetTop - 100);
+                    }.bind(this));
+
                     return 'Block Number';
                 }
                 else {
+                    this.obj = {};
                     return null;
                 }
             }
@@ -35,7 +96,14 @@ var router = new VueRouter({
         { path: '/about', component: About   },
         { path: '/charts', component: Charts   },
         { path: '/:hash', component: HashInfo, props: true }
-    ]
+    ],
+    // Can only be used with HTML5 history mode (requires server config)
+    // scrollBehavior: function(to, from, savedPosition) {
+    //     console.log(to);
+    //     if(savedPosition) return savedPosition;
+    //     else if(to === '/') return {x: 0, y: 0};
+    //     else return { selector: '#infobox', offset: {y: -100} };
+    // }
 });
 
 var vue = new Vue({
@@ -59,6 +127,8 @@ var vue = new Vue({
 function _onConsensusEstablished() {
     vue.status = 'connected';
     vue.targetHeight = false;
+
+    bus.$emit('connected');
 
     getLatestBlocks();
 }

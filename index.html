@@ -78,9 +78,9 @@
                 </div>
 
                 <div class="blocklist-block" v-for="block in blocks">
-                    <a :href="'#' + block.height" class="blocklist-cell" onclick="_linkClicked(this);">
+                    <router-link :to="block.height.toString()" class="blocklist-cell">
                         #{{ block.height }}
-                    </a>
+                    </router-link>
                     <div class="blocklist-cell">
                         {{ (new Date(block.timestamp * 1000)).toLocaleTimeString() }}
                     </div>
@@ -88,7 +88,7 @@
                         {{ block.transactionCount }} {{ block.transactionCount === 1 ? 'transaction' : 'transactions' }}
                     </div>
                     <div class="blocklist-cell ellipsis">
-                        found by <code><a :href="'#' + block.minerAddr" onclick="_linkClicked(this);">{{ block.minerAddr }}</a></code>
+                        found by <code><router-link :to="block.minerAddr">{{ block.minerAddr }}</router-link></code>
                     </div>
                     <div class="blocklist-cell">
                         {{ block.serializedSize }} Bytes
