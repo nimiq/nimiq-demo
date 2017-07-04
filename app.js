@@ -27,11 +27,6 @@ function _onConsensusEstablished() {
     vue.targetHeight = false;
 
     getLatestBlocks();
-
-    // if(!window.onhashchange) {
-    //     window.onhashchange = _onHashChange;
-    //     _onHashChange();
-    // }
 }
 
 function _onConsensusLost() {
@@ -85,7 +80,6 @@ function getLatestBlocks() {
     var blockStore = [];
 
     var _accumulateBlocks = function(blockInfo) {
-        // blockStore.push(Object.assign({}, vue.blocks[0], blockInfo));
         blockStore.push(blockInfo);
 
         if(blockStore.length === 20) {
