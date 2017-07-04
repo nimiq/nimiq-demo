@@ -10,8 +10,13 @@
     <link href="https://fonts.googleapis.com/css?family=Fira+Mono|Source+Sans+Pro:400,600" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
 
-    <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
-    <script src="http://vuejs.org/js/vue.js"></script>
+    <script src="https://cdn.nimiq.com/core/nimiq.js"></script>
+
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+
+    <!-- <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.min.js"></script> -->
 </head>
 <body>
     <div id="main">
@@ -24,16 +29,19 @@
                     NIMIQ.WATCH
                 </a>
             </h1>
-            <a href="#search" onclick="_linkClicked(this, true);" id="search">Search</a>
+            <!-- <a href="#/search" onclick="_linkClicked(this, true);" id="search">Search</a> -->
+            <router-link to="/">Search</router-link>
             <div class="submenu-container">
-                <a href="#charts" onclick="_linkClicked(this, true);" id="charts">Charts</a>
+                <!-- <a href="#/charts" onclick="_linkClicked(this, true);" id="charts">Charts</a> -->
+                <router-link to="/charts">Charts</router-link>
 
                 <div class="submenu">
                     <a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>
                     <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
                 </div>
             </div>
-            <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
+            <!-- <a href="#/about" onclick="_linkClicked(this, true);" id="about">What is this?</a> -->
+            <router-link to="/about">What is this?</router-link>
             <span id="monitor" :title="'Connected to ' + peerCount + ' peers'">
                 <strong>Status:</strong>
                 <span id="status"
@@ -45,15 +53,17 @@
         <div id="searchbox">
             <h1>Search accounts and blocks:</h1>
 
-            <form action="#search" method="GET" id="search-form">
+            <form action="#/search" method="GET" id="search-form" @submit.prevent="">
                 <input type="text" id="search-input" placeholder="account address, HEX block hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
+                <input type="submit" id="search-submit" value="go" :disabled="status !== 'connected'" title="Consensus not established">
                 <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
             </form>
         </div>
 
         <div id="infobox">
+            <router-view></router-view>
         </div>
+
 
         <div id="blocklist-wrapper">
             <h2>Latest blocks</h2>
@@ -93,7 +103,7 @@
         </footer>
     </div> <!-- #main -->
 
-    <script type="text/x-tmpl" id="template-block-info">
+    <script type="text/x-template" id="template-block-info">
         <h2>Block Info</h2>
         <div class="blockinfo-header">
             <div class="height">
@@ -167,7 +177,7 @@
         </div>
     </script>
 
-    <script type="text/x-tmpl" id="template-account-info">
+    <script type="text/x-template" id="template-account-info">
         <div class="accountinfo-wrapper">
             <h2>Account Info</h2>
             <div class="blockinfo-header">
@@ -189,7 +199,7 @@
         </div>
     </script>
 
-    <script type="text/x-tmpl" id="template-blocklist-block">
+    <script type="text/x-template" id="template-blocklist-block">
         <a href="#{%=o.height%}" class="blocklist-cell" onclick="_linkClicked(this);">
             #{%=o.height%}
         </a>
@@ -207,7 +217,7 @@
         </div>
     </script>
 
-    <script type="text/x-tmpl" id="template-about">
+    <script type="text/x-template" id="template-about">
         <div class="about-wrapper">
             <h2>What is this?</h2>
             <p>
@@ -231,9 +241,9 @@
                 <a href="https://t.me/joinchat/AAAAAEJW-ozFwo7Er9jpHw" target="_blank">Telegram</a> channels.
             </p>
         </div>
-    </script>
+    </script>>
 
-    <script type="text/x-tmpl" id="template-charts">
+    <script type="text/x-template" id="template-charts">
         <div class="charts-wrapper">
             <h2>Charts</h2>
             <p>
@@ -243,7 +253,7 @@
         </div>
     </script>
 
-    <script type="text/x-tmpl" id="template-wealth-distribution-chart">
+    <script type="text/x-template" id="template-wealth-distribution-chart">
         <div class="axis-type-switch">
             <label class="switch-light switch-candy" onclick="">
                 <input type="checkbox" onchange="_wealthDistributionSwitchScale(this);" disabled="">
@@ -263,7 +273,7 @@
         <div class="chart-valid-info"></div>
     </script>
 
-    <script type="text/x-tmpl" id="template-global-hashrate-chart">
+    <script type="text/x-template" id="template-global-hashrate-chart">
         <h2>Global Hashrate</h2>
         <small>During the last 24 hours</small>
         <canvas class="chart"></canvas>

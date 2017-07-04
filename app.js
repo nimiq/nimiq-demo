@@ -1,5 +1,17 @@
+var About  = { template: '#template-about' },
+    Charts = { template: '#template-charts' },
+    Temp   = { template: '<p>Hash {{ $route.params.hash }}</p>' };
+
+var router = new VueRouter({
+    routes: [
+        { path: '/about', component: About },
+        { path: '/charts', component: Charts },
+        { path: '/:hash', component: Temp }
+    ]
+});
 
 var vue = new Vue({
+    router: router,
     el: '#main',
     data: {
         status: 'initializing',

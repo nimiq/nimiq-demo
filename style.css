@@ -75,9 +75,9 @@ header a:focus {
 
 header > a:hover,
 header > a:focus,
-header > a:target,
+header > .router-link-exact-active,
 header .submenu-container > a:focus,
-header .submenu-container > a:target {
+header .submenu-container > .router-link-exact-active {
     background: white;
     color: #042146;
 }
