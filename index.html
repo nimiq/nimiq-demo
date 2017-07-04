@@ -56,7 +56,7 @@
             <form action="#/search" method="GET" id="search-form" @submit.prevent="search">
                 <input type="text" id="search-input" v-model="searchTerm" placeholder="account address, HEX block hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 <input type="submit" id="search-submit" value="go" :disabled="status !== 'connected'" title="Consensus not established">
-                <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
+                <span class="detection">Format detected: <span id="hash-format">{{ searchTermFormat }}</span></span>
             </form>
         </div>
 
@@ -78,7 +78,7 @@
                 </div>
 
                 <div class="blocklist-block" v-for="block in blocks">
-                    <router-link :to="block.height.toString()" class="blocklist-cell">
+                    <router-link :to="'/' + block.height" class="blocklist-cell">
                         #{{ block.height }}
                     </router-link>
                     <div class="blocklist-cell">
@@ -88,7 +88,7 @@
                         {{ block.transactionCount }} {{ block.transactionCount === 1 ? 'transaction' : 'transactions' }}
                     </div>
                     <div class="blocklist-cell ellipsis">
-                        found by <code><router-link :to="block.minerAddr">{{ block.minerAddr }}</router-link></code>
+                        found by <code><router-link :to="'/' + block.minerAddr">{{ block.minerAddr }}</router-link></code>
                     </div>
                     <div class="blocklist-cell">
                         {{ block.serializedSize }} Bytes
@@ -104,76 +104,74 @@
     </div> <!-- #main -->
 
     <script type="text/x-template" id="template-block-info">
+        <div>
         <h2>Block Info</h2>
         <div class="blockinfo-header">
             <div class="height">
                 <h3>Height</h3>
-                <span>#{%=o.height%}</span>
+                <span>#{{ block.height }}</span>
                 <div>
-                    <a href="#{%=o.height + 1%}">&#9650;</a>
-                    <a href="#{%=o.height - 1%}">&#9660;</a>
+                    <router-link :to="'/' + (block.height + 1)">&#9650;</router-link>
+                    <router-link :to="'/' + (block.height - 1)">&#9660;</router-link>
                 </div>
             </div>
             <div class="hash">
                 <h3>Hash</h3>
-                <code>{%=o.hash%}</code>
+                <code>{{ block.hash }}</code>
             </div>
         </div>
         <div class="blockinfo-body">
             <div class="blockinfo-body-left">
                 <div class="blockinfo-body-row">
                     <label>Transactions </label>
-                    <span>{%=o.transactionCount%}</span>
+                    <span>{{ block.transactionCount }}</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Transaction Value </label>
-                    <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactionValue))%}</span>
+                    <span><img src="icons/nimiq_blue.svg"> {{ block.transactionValue | formatBalance }}</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Difficulty </label>
-                    <span>{%=(Math.round(o.difficulty * 100) / 100)%}</span>
+                    <span>{{ Math.round(block.difficulty * 100) / 100 }}</span>
                 </div>
             </div>
             <div class="blockinfo-body-right">
                 <div class="blockinfo-body-row">
                     <label>Timestamp </label>
-                    <span>{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
+                    <span>{{ (new Date(block.timestamp * 1000)).toLocaleString()  }}</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Size </label>
-                    <span>{%=o.serializedSize%} Bytes</span>
+                    <span>{{ block.serializedSize }} Bytes</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Nonce </label>
-                    <span>{%=o.nonce%}</span>
+                    <span>{{ block.nonce }}</span>
                 </div>
             </div>
             <div class="blockinfo-miner">
                 <label>Mined by </label>
-                <code><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></code>
+                <code><router-link :to="'/' + block.minerAddr">{{ block.minerAddr }}</router-link></code>
                 <!--
                 <label>Previous Block </label>
-                <code>{%=o.prevHash%}</code>
+                <code>{{ block.prevHash }}</code>
                 -->
             </div>
         </div>
         <div class="blockinfo-transactions">
-            {% if(o.transactionCount) { %}
-                <div class="blockinfo-transaction-header-row">
+                <div class="blockinfo-transaction-header-row" v-if="block.transactionCount">
                     <h3>Sender</h3>
                     <h3>Receiver</h3>
                     <h3>Value</h3>
                 </div>
-                {% for(var i = 0; i < o.transactions.length; i++) { %}
-                    <div class="blockinfo-transaction-row">
-                        <code id="{% var elementId = 'sender-address-' + i; _getAndWriteSenderAddressHash(o.transactions[i], elementId); print(elementId); %}"></code>
-                        <code><a href="#{%=o.transactions[i].recipientAddr.toHex()%}" onclick="_linkClicked(this);">{%=o.transactions[i].recipientAddr.toHex()%}</a></code>
-                        <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%}</span>
-                    </div>
-                {% } %}
-            {% } else { %}
-                <div class="no-transactions">No transactions</div>
-            {% } %}
+                <div class="no-transactions" v-else>No transactions</div>
+
+                <div class="blockinfo-transaction-row" v-for="tx in block.transactions">
+                    <code><router-link :to="'/' + tx.senderAddr.toHex()">{{ tx.senderAddr.toHex() }}</router-link></code>
+                    <code><router-link :to="'/' + tx.recipientAddr.toHex()">{{ tx.recipientAddr.toHex() }}</router-link></code>
+                    <span><img src="icons/nimiq_blue.svg"> {{ tx.value | formatBalance }}</span>
+                </div>
+        </div>
         </div>
     </script>
 
@@ -183,17 +181,17 @@
             <div class="blockinfo-header">
                 <div class="hash">
                     <h3>Address</h3>
-                    <code>{%=o.hash%}</code>
+                    <code>{{ account.hash }}</code>
                 </div>
             </div>
             <div class="blockinfo-body">
                 <div class="blockinfo-body-row">
                     <label>Balance </label>
-                    <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%}</span>
+                    <span><img src="icons/nimiq_blue.svg"> {{ account.balance | formatBalance }}</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Nonce </label>
-                    <span>{%=o.nonce%}</span>
+                    <span>{{ account.nonce }}</span>
                 </div>
             </div>
         </div>

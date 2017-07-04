@@ -1,13 +1,26 @@
 // Simple event bus to broadcast events
 var bus = new Vue();
 
+Vue.filter('formatBalance', function(value) {
+    value = Nimiq.Policy.satoshisToCoins(value);
+
+    // If the value has no decimal places below 0.01, display 0 decimals
+    if(parseFloat(value.toFixed(2)) === value) {
+        return value.toFixed(2);
+    }
+    // Otherwise, all required decimals will be displayed automatically
+    else return value;
+});
+
 var About    = { template: '#template-about' },
     Charts   = { template: '#template-charts' },
-    Block    = { template: '#template-block-info' },
-    Account  = { template: '#template-account-info' },
+    Block    = { template: '#template-block-info', props: ['block'] },
+    Account  = { template: '#template-account-info', props: ['account'] },
     HashInfo = {
         // template: '#template-hashinfo',
-        template: '<p>Hash: {{ hash }}, type: {{ type }}, obj: {{ obj }}</p>',
+        template: '<block-info v-if="type === \'Block Hash\' || type === \'Block Number\'" :block="obj"></block-info>'
+                + '<account-info v-else-if="type === \'Account Address\'" :account="obj"></account-info>'
+                + '<h2 v-else>Not Found</h2>',
         props: ['hash'],
         data: function() {
             return {
@@ -17,6 +30,10 @@ var About    = { template: '#template-about' },
         beforeRouteEnter: function(to, from, next) {
             if(router.app.status === 'connected') next();
             else bus.$once('connected', next);
+        },
+        components: {
+            'block-info': Block,
+            'account-info': Account
         },
         computed: {
             type: function() {
@@ -44,7 +61,7 @@ var About    = { template: '#template-about' },
                     getBlockInfo(value, function(blockInfo) {
                         if(!blockInfo) {
                             alert("That block cannot be found. It my be out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
-                            return;
+                            return null;
                         }
 
                         this.obj = blockInfo;
@@ -60,11 +77,11 @@ var About    = { template: '#template-about' },
 
                     if(pathIndex < -$.blockchain.path.length) {
                         alert("That block is out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
-                        return;
+                        return null;
                     }
                     if(pathIndex > -1) {
                         alert("That block has not been mined yet.");
-                        return;
+                        return null;
                     }
 
                     var blockHash = $.blockchain.path.slice(pathIndex)[0];
@@ -72,7 +89,7 @@ var About    = { template: '#template-about' },
                     getBlockInfo(blockHash, function(blockInfo) {
                         if(!blockInfo) {
                             alert("Cannot find block.");
-                            return;
+                            return null;
                         }
                         // console.log(blockInfo);
 
@@ -115,6 +132,7 @@ var vue = new Vue({
         targetHeight: false,
         peerCount: 0,
         searchTerm: '',
+        searchTermFormat: 'none',
         blocks: []
     },
     methods: {
@@ -215,7 +233,7 @@ function getBlockInfo(hash, callback) {
             return;
         }
 
-        callback({
+        var blockInfo = {
             hash:             hash.toHex(),
             height:           block.height,
             timestamp:        block.timestamp,
@@ -227,6 +245,27 @@ function getBlockInfo(hash, callback) {
             transactionValue: block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0),
             prevHash:         block.prevHash.toHex(),
             nonce:            block.nonce
+        };
+
+        if(!blockInfo.transactionCount) callback(blockInfo);
+        else {
+            for(var i = 0; i < blockInfo.transactionCount; i++) {
+                getSenderAddrAndResolve(blockInfo.transactions[i], blockInfo, callback);
+            }
+        }
+    });
+}
+
+function getSenderAddrAndResolve(tx, blockInfo, callback) {
+    tx.getSenderAddr().then(function(address) {
+        blockInfo.transactions[blockInfo.transactions.indexOf(tx)].senderAddr = address;
+
+        var unresolvedTx = blockInfo.transactions.filter(function(tx) {
+            return !tx.senderAddr;
         });
+
+        if(!unresolvedTx.length) {
+            callback(blockInfo);
+        }
     });
 }
