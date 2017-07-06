@@ -598,7 +598,7 @@
     <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
     <script>
         function _onConsensusEstablished() {
-            document.getElementById('targetHeight').style.display = "none";
+            $syncPercentage.style.display = "none";
             $status.innerText = 'connected';
             $status.classList.add('consensus-established');
             document.getElementById('search-submit').removeAttribute('disabled');
@@ -620,7 +620,9 @@
 
         function _onHeadChanged() {
             var height = $.blockchain.height;
-            document.getElementById('height').innerText = '#' + height;
+            $height.innerText = '#' + height;
+            if(syncStartHeight !== 0 && syncTargetHeight !== 0)
+                $syncPercentage.innerText = " (" + Math.round((height - syncStartHeight) / (syncTargetHeight - syncStartHeight) * 100) + "%)";
 
             if(blocklistBuilt) {
                 _getBlockInfo($.blockchain.headHash, function(blockInfo) {
@@ -640,7 +642,8 @@
             window.$ = $;
 
             $.consensus.on('syncing', function(targetHeight) {
-                document.getElementById('targetHeight').innerText = "/" + targetHeight;
+                syncTargetHeight = targetHeight;
+                syncStartHeight = $.blockchain.head.height;
             });
             $.consensus.on('established', _onConsensusEstablished);
             $.consensus.on('lost', _onConsensusLost);
@@ -687,7 +690,7 @@
         <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
         <span id="monitor" title="Connected to 0 peers">
             <strong>Status:</strong>
-            <span id="status" class="not-connected">connecting</span> @ <span id="height"><em>loading</em></span><span id="targetHeight"></span>
+            <span id="status" class="not-connected">connecting</span> @ <span id="height"><em>loading</em></span><span id="syncPercentage"></span>
         </span>
     </header>
 
@@ -920,11 +923,15 @@
             globalHashrateChart:     tmpl('template-global-hashrate-chart')
         };
 
-        var $infobox     = document.getElementById('infobox'),
-            $searchInput = document.getElementById('search-input'),
-            $status      = document.getElementById('status');
+        var $infobox        = document.getElementById('infobox'),
+            $searchInput    = document.getElementById('search-input'),
+            $status         = document.getElementById('status'),
+            $height         = document.getElementById('height'),
+            $syncPercentage = document.getElementById('syncPercentage');
 
         var directNavigationTargets = ['#search', '#charts', '#about'];
+        var syncTargetHeight = 0,
+            syncStartHeight  = 0;
 
         function _detectHashFormat(value) {
             if(accountHashRegExp.test(value)) {
