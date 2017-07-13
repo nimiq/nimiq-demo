@@ -622,7 +622,7 @@
             var height = $.blockchain.height;
             $height.innerText = '#' + height;
             if(syncStartHeight !== 0 && syncTargetHeight !== 0)
-                $syncPercentage.innerText = " (" + Math.round((height - syncStartHeight) / (syncTargetHeight - syncStartHeight) * 100) + "%)";
+                $syncPercentage.innerText = " (" + Math.floor((height - syncStartHeight) / (syncTargetHeight - syncStartHeight) * 100) + "%)";
 
             if(blocklistBuilt) {
                 _getBlockInfo($.blockchain.headHash, function(blockInfo) {
