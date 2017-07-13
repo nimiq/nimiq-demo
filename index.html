@@ -42,7 +42,7 @@ Nimiq.init($ => {
     $.consensus.on('established', () => _onConsensusEstablished());
     $.consensus.on('lost', () => console.error('Consensus lost'));
 
-    $.blockchain.on('head-changed', _ => _onHeadChanged());
+    $.blockchain.on('head-changed', () => _onHeadChanged());
     $.network.on('peers-changed', () => _onPeersChanged());
 
     $.network.connect();
