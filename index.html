@@ -686,7 +686,7 @@
             <div class="submenu">
                 <a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>
                 <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
-                <a href="#chart-transactions-per-block" onclick="_linkClicked(this);">Transactions per Block</a>
+                <a href="#chart-transactions-per-block" onclick="_linkClicked(this);">Transactions</a>
             </div>
         </div>
         <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
@@ -874,7 +874,7 @@
             <p>
                 <a href="#chart-wealth-distribution">Wealth Distribution</a>
                 <a href="#chart-global-hashrate">Global Hashrate</a>
-                <a href="#chart-transactions-per-block">Transactions per Block</a>
+                <a href="#chart-transactions-per-block">Transactions</a>
             </p>
         </div>
     </script>
@@ -913,7 +913,7 @@
     </script>
 
     <script type="text/x-tmpl" id="template-transactions-per-block-chart">
-        <h2>Transactions per Block</h2>
+        <h2>Transactions</h2>
         <small>During the last 24 hours</small>
         <canvas class="chart"></canvas>
         <div class="blocklist-loader over-canvas">
@@ -1225,7 +1225,7 @@
             var _renderWealthDisributionChart = function() {
                 var labels = [];
                 for (var i = 1; i <= balances.length; i++) { labels.push(i); }
-                labels = labels.map(label => "#" + label);
+                labels = labels.map(label => label + '.');
 
                 try {
                     $infobox.removeChild($infobox.getElementsByClassName('blocklist-loader')[0]);
@@ -1316,6 +1316,8 @@
         }
 
         async function _resolveAccountsTreeNode(currentNode, currentPrefix, balances) {
+            if(!currentNode) return;
+
             currentPrefix += currentNode.prefix;
             if (currentNode.isTerminal()) {
                 balances.push(currentNode.account.balance.value);
@@ -1478,8 +1480,9 @@
             $infobox.innerHTML = tmpl.transactionsPerBlockChart();
             window.scrollTo(0, $infobox.offsetTop - 100);
 
-            var transactionCount = [];
-            var height           = [];
+            var transactionCount = [],
+                transactionValue = [],
+                height           = [];
 
             for(var i = 0; i < $.blockchain.path.length; i += Nimiq.Policy.DIFFICULTY_ADJUSTMENT_BLOCKS) {
                 const block = await $.blockchain.getBlock($.blockchain.path[i]);
@@ -1489,9 +1492,12 @@
 
                 if(block.timestamp >= startTime) {
                     transactionCount.push(block.transactionCount);
+                    transactionValue.push(block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0));
                     height.push(block.height);
                 }
             }
+
+            transactionValue = transactionValue.map(value => Nimiq.Policy.satoshisToCoins(value));
 
             var _renderTransactionsPerBlockChart = function() {
                 try {
@@ -1513,24 +1519,56 @@
                     // The data for our dataset
                     data: {
                         labels: height,
-                        datasets: [{
-                            label: "Transactions per block",
+                        datasets: [
+                        {
+                            label: "Transaction Volume",
+                            backgroundColor: '#F6AE2D',
+                            pointBackgroundColor: 'transparent',
+                            borderColor: '#F6AE2D',
+                            pointRadius: 3,
+                            borderWidth: 2,
+                            fill: false,
+                            data: transactionValue,
+                            type: 'line',
+                            yAxisID: 'transactionValue'
+                        },
+                        {
+                            label: "Transactions",
                             backgroundColor: '#042146',
                             borderColor: '#042146',
-                            data: transactionCount
+                            data: transactionCount,
+                            yAxisID: 'transactionCount'
                         }]
                     },
 
                     // Configuration options go here
                     options: {
                         legend: {
-                            display: false
+                            // display: false
+                            reverse: true,
+                            labels: {
+                                fontFamily: "'Source Sans Pro', sans-serif",
+                                fontSize: 16,
+                                boxWidth: 16
+                            }
                         },
                         scales: {
                             yAxes: [{
+                                id: 'transactionCount',
+                                position: 'left',
                                 scaleLabel: {
                                     display: true,
                                     labelString: "Transactions",
+                                    fontFamily: "'Source Sans Pro', sans-serif",
+                                    fontSize: 16
+                                }
+                            },
+                            {
+                                id: 'transactionValue',
+                                position: 'right',
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Transaction Volume",
                                     fontFamily: "'Source Sans Pro', sans-serif",
                                     fontSize: 16
                                 }
