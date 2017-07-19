@@ -1484,6 +1484,10 @@
                 transactionValue = [],
                 height           = [];
 
+            var countAcc = 0,
+                valueAcc = 0,
+                counter  = 0;
+
             for(var i = 0; i < $.blockchain.path.length; i++) {
                 const block = await $.blockchain.getBlock($.blockchain.path[i]);
 
@@ -1491,9 +1495,20 @@
                 var startTime = Math.round(Date.now() / 1000) - 60 * 60 * 24;
 
                 if(block.timestamp >= startTime) {
-                    transactionCount.push(block.transactionCount);
-                    transactionValue.push(block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0));
-                    height.push(block.height);
+                    counter++;
+
+                    countAcc += block.transactionCount;
+                    valueAcc += block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0);
+
+                    if(counter >= 10) {
+                        transactionCount.push(countAcc);
+                        transactionValue.push(valueAcc);
+                        height.push(block.height);
+
+                        countAcc = 0;
+                        valueAcc = 0;
+                        counter  = 0;
+                    }
                 }
             }
 
