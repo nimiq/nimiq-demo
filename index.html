@@ -1503,7 +1503,7 @@
                     if(counter >= 10) {
                         transactionCount.push(countAcc);
                         transactionValue.push(valueAcc);
-                        height.push((block.height - counter) + "-" + block.height);
+                        height.push((block.height - counter + 1) + "-" + block.height);
 
                         countAcc = 0;
                         valueAcc = 0;
@@ -1515,7 +1515,7 @@
             if(counter > 0) {
                 transactionCount.push(countAcc);
                 transactionValue.push(valueAcc);
-                height.push(($.blockchain.height - counter) + "-" + $.blockchain.height);
+                height.push(($.blockchain.height - counter + 1) + "-" + $.blockchain.height);
             }
 
             transactionValue = transactionValue.map(value => Nimiq.Policy.satoshisToCoins(value));
