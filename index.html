@@ -1503,7 +1503,7 @@
                     if(counter >= 10) {
                         transactionCount.push(countAcc);
                         transactionValue.push(valueAcc);
-                        height.push(block.height);
+                        height.push((block.height - 10) + "-" + block.height);
 
                         countAcc = 0;
                         valueAcc = 0;
