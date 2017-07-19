@@ -1484,7 +1484,7 @@
                 transactionValue = [],
                 height           = [];
 
-            for(var i = 0; i < $.blockchain.path.length; i += Nimiq.Policy.DIFFICULTY_ADJUSTMENT_BLOCKS) {
+            for(var i = 0; i < $.blockchain.path.length; i++) {
                 const block = await $.blockchain.getBlock($.blockchain.path[i]);
 
                 // Set start time to 24h ago
