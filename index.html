@@ -1724,9 +1724,11 @@
 
             // Filter out the little guys
             var others24 = 0;
+            var others24Sum = 0;
             blocksMined24 = blocksMined24.filter(blocksMined => {
-                if(blocksMined < 6) {
+                if(blocksMined < 5) {
                     others24 += blocksMined;
+                    others24Sum++;
                     return false;
                 }
                 else
@@ -1734,9 +1736,11 @@
             });
 
             var others12 = 0;
+            var others12Sum = 0;
             blocksMined12 = blocksMined12.filter(blocksMined => {
                 if(blocksMined < 3) {
                     others12 += blocksMined;
+                    others12Sum++;
                     return false;
                 }
                 else
@@ -1744,9 +1748,11 @@
             });
 
             var others2 = 0;
+            var others2Sum = 0;
             blocksMined2 = blocksMined2.filter(blocksMined => {
                 if(blocksMined < 2) {
                     others2 += blocksMined;
+                    others2Sum++;
                     return false;
                 }
                 else
@@ -1755,13 +1761,13 @@
 
             // Adapt labels
             addresses24 = addresses24.slice(0, blocksMined24.length);
-            addresses24.push('other');
+            addresses24.push(others24Sum + ' others');
 
             addresses12 = addresses12.slice(0, blocksMined12.length);
-            addresses12.push('other');
+            addresses12.push(others12Sum + ' others');
 
             addresses2  = addresses2.slice(0, blocksMined2.length);
-            addresses2.push('other');
+            addresses2.push(others2Sum + ' others');
 
             // Add blockMined by other to data
             blocksMined24.push(others24);
