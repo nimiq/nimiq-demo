@@ -453,6 +453,11 @@
             background: white;
         }
 
+        #hashing-distribution-chart-wrapper {
+            width: 450px;
+            margin: auto;
+        }
+
         #infobox .axis-type-switch {
             float: right;
             font-size: 16px;
@@ -484,14 +489,14 @@
             clear: both;
         }
 
-        #infobox > small {
+        #infobox small {
             display: block;
             margin-top: -1em;
             margin-bottom: 1em;
             color: #888;
         }
 
-        #infobox > .chart-valid-info {
+        #infobox .chart-valid-info {
             text-align: right;
             font-size: smaller;
             color: #888;
@@ -687,6 +692,7 @@
                 <a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>
                 <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
                 <a href="#chart-transactions-per-block" onclick="_linkClicked(this);">Transactions</a>
+                <a href="#chart-hashing-distribution" onclick="_linkClicked(this);">Hashing Distribution</a>
             </div>
         </div>
         <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
@@ -875,6 +881,7 @@
                 <a href="#chart-wealth-distribution">Wealth Distribution</a>
                 <a href="#chart-global-hashrate">Global Hashrate</a>
                 <a href="#chart-transactions-per-block">Transactions</a>
+                <a href="#chart-hashing-distribution">Hashing Distribution</a>
             </p>
         </div>
     </script>
@@ -922,6 +929,23 @@
         <div class="chart-valid-info"></div>
     </script>
 
+    <script type="text/x-tmpl" id="template-hashing-distribution-chart">
+        <div id="hashing-distribution-chart-wrapper">
+            <h2>Hashing Distribution (last 2h)</h2>
+            <canvas class="chart"></canvas>
+            <div class="blocklist-loader over-canvas">
+                <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+            </div>
+
+            <h2>Hashing Distribution (last 12h)</h2>
+            <canvas class="chart"></canvas>
+
+            <h2>Hashing Distribution (last 24h)</h2>
+            <canvas class="chart"></canvas>
+            <div class="chart-valid-info"></div>
+        </div>
+    </script>
+
     <script>
         var accountHashRegExp = new RegExp('^[A-Fa-f0-9]{40}$'),
             blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
@@ -934,7 +958,8 @@
             charts:                    tmpl('template-charts'),
             wealthDistributionChart:   tmpl('template-wealth-distribution-chart'),
             globalHashrateChart:       tmpl('template-global-hashrate-chart'),
-            transactionsPerBlockChart: tmpl('template-transactions-per-block-chart')
+            transactionsPerBlockChart: tmpl('template-transactions-per-block-chart'),
+            hashingDistributionChart:  tmpl('template-hashing-distribution-chart')
         };
 
         var $infobox        = document.getElementById('infobox'),
@@ -946,6 +971,9 @@
         var directNavigationTargets = ['#search', '#charts', '#about'];
         var syncTargetHeight = 0,
             syncStartHeight  = 0;
+
+        var default_colors = ['#3366CC','#DC3912','#FF9900','#109618','#990099','#3B3EAC','#0099C6','#DD4477','#66AA00','#B82E2E','#316395','#994499','#22AA99','#AAAA11','#6633CC','#E67300','#8B0707','#329262','#5574A6','#3B3EAC'];
+        default_colors = default_colors.concat(default_colors, default_colors);
 
         function _detectHashFormat(value) {
             if(accountHashRegExp.test(value)) {
@@ -1076,6 +1104,9 @@
             }
             else if(value === "chart-transactions-per-block") {
                 _transactionsPerBlock();
+            }
+            else if(value === "chart-hashing-distribution") {
+                _hashingDistribution();
             }
             else {
                 var format = _detectHashFormat(value);
@@ -1236,6 +1267,8 @@
                 $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created at block #" + $.blockchain.head.height + " - " + time.toLocaleString()
 
                 if(window.chart) window.chart.destroy();
+                if(window.chart2) window.chart2.destroy();
+                if(window.chart3) window.chart3.destroy();
 
                 var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
 
@@ -1348,11 +1381,11 @@
             var difficulty = [];
             var timestamp  = [];
 
+            // Set start time to 24h ago
+            var startTime = Math.round(Date.now() / 1000) - 60 * 60 * 24;
+
             for(var i = 0; i < $.blockchain.path.length; i += Nimiq.Policy.DIFFICULTY_ADJUSTMENT_BLOCKS) {
                 const block = await $.blockchain.getBlock($.blockchain.path[i]);
-
-                // Set start time to 24h ago
-                var startTime = Math.round(Date.now() / 1000) - 60 * 60 * 24;
 
                 if(block.timestamp >= startTime) {
                     difficulty.push(block.difficulty);
@@ -1379,6 +1412,8 @@
                 $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created at block #" + $.blockchain.head.height + " - " + time.toLocaleString()
 
                 if(window.chart) window.chart.destroy();
+                if(window.chart2) window.chart2.destroy();
+                if(window.chart3) window.chart3.destroy();
 
                 var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
 
@@ -1488,11 +1523,11 @@
                 valueAcc = 0,
                 counter  = 0;
 
+            // Set start time to 24h ago
+            var startTime = Math.round(Date.now() / 1000) - 60 * 60 * 24;
+
             for(var i = 0; i < $.blockchain.path.length; i++) {
                 const block = await $.blockchain.getBlock($.blockchain.path[i]);
-
-                // Set start time to 24h ago
-                var startTime = Math.round(Date.now() / 1000) - 60 * 60 * 24;
 
                 if(block.timestamp >= startTime) {
                     counter++;
@@ -1530,6 +1565,8 @@
                 $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created at block #" + $.blockchain.head.height + " - " + time.toLocaleString()
 
                 if(window.chart) window.chart.destroy();
+                if(window.chart2) window.chart2.destroy();
+                if(window.chart3) window.chart3.destroy();
 
                 var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
 
@@ -1607,6 +1644,233 @@
                 scriptTag.id = "chart-js-script";
                 scriptTag.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js";
                 scriptTag.onload = _renderTransactionsPerBlockChart;
+                document.body.appendChild(scriptTag);
+            }
+        }
+    </script>
+    <script>
+        async function _hashingDistribution() {
+            $infobox.innerHTML = tmpl.hashingDistributionChart();
+            window.scrollTo(0, $infobox.offsetTop - 100);
+
+            var blocksMined24 = {},
+                blocksMined12 = {},
+                blocksMined2  = {};
+
+            var blocksMined24Sum = 0,
+                blocksMined12Sum = 0,
+                blocksMined2Sum  = 0;
+
+            // Set start time to 24h ago
+            var startTime24 = Math.round(Date.now() / 1000) - 60 * 60 * 24;
+            var startTime12 = Math.round(Date.now() / 1000) - 60 * 60 * 12;
+            var startTime2  = Math.round(Date.now() / 1000) - 60 * 60 * 2;
+
+            // Collect data
+            for(var i = 0; i < $.blockchain.path.length; i++) {
+                const block = await $.blockchain.getBlock($.blockchain.path[i]);
+
+                let address = block.minerAddr.toHex();
+
+                if(block.timestamp >= startTime24) {
+                    if(blocksMined24[address]) blocksMined24[address]++;
+                    else                       blocksMined24[address] = 1;
+
+                    blocksMined24Sum++;
+                }
+
+                if(block.timestamp >= startTime12) {
+                    if(blocksMined12[address]) blocksMined12[address]++;
+                    else                       blocksMined12[address] = 1;
+
+                    blocksMined12Sum++;
+                }
+
+                if(block.timestamp >= startTime2) {
+                    if(blocksMined2[address]) blocksMined2[address]++;
+                    else                       blocksMined2[address] = 1;
+
+                    blocksMined2Sum++;
+                }
+            }
+
+            // Convert into sortable array
+            var blocksMined24Array = [];
+            for(address in blocksMined24)
+                blocksMined24Array.push({address: address, blocksMined: blocksMined24[address]});
+
+            var blocksMined12Array = [];
+            for(address in blocksMined12)
+                blocksMined12Array.push({address: address, blocksMined: blocksMined12[address]});
+
+            var blocksMined2Array = [];
+            for(address in blocksMined2)
+                blocksMined2Array.push({address: address, blocksMined: blocksMined2[address]});
+
+            // Sort by blocksMined
+            blocksMined24Array.sort((a, b) => a.blocksMined > b.blocksMined ? -1 : a.blocksMined < b.blocksMined ? 1 : 0);
+            blocksMined12Array.sort((a, b) => a.blocksMined > b.blocksMined ? -1 : a.blocksMined < b.blocksMined ? 1 : 0);
+            blocksMined2Array.sort((a, b) => a.blocksMined > b.blocksMined ? -1 : a.blocksMined < b.blocksMined ? 1 : 0);
+
+            // Converting into label and data arrays
+            var addresses24 = blocksMined24Array.map(obj => obj.address.substr(0, 20).toUpperCase() + '…');
+            var blocksMined24 = blocksMined24Array.map(obj => obj.blocksMined);
+
+            var addresses12 = blocksMined12Array.map(obj => obj.address.substr(0, 20).toUpperCase() + '…');
+            var blocksMined12 = blocksMined12Array.map(obj => obj.blocksMined);
+
+            var addresses2 = blocksMined2Array.map(obj => obj.address.substr(0, 20).toUpperCase() + '…');
+            var blocksMined2 = blocksMined2Array.map(obj => obj.blocksMined);
+
+            // Filter out the little guys
+            var others24 = 0;
+            blocksMined24 = blocksMined24.filter(blocksMined => {
+                if(blocksMined < 6) {
+                    others24 += blocksMined;
+                    return false;
+                }
+                else
+                    return true;
+            });
+
+            var others12 = 0;
+            blocksMined12 = blocksMined12.filter(blocksMined => {
+                if(blocksMined < 3) {
+                    others12 += blocksMined;
+                    return false;
+                }
+                else
+                    return true;
+            });
+
+            var others2 = 0;
+            blocksMined2 = blocksMined2.filter(blocksMined => {
+                if(blocksMined < 2) {
+                    others2 += blocksMined;
+                    return false;
+                }
+                else
+                    return true;
+            });
+
+            // Adapt labels
+            addresses24 = addresses24.slice(0, blocksMined24.length);
+            addresses24.push('other');
+
+            addresses12 = addresses12.slice(0, blocksMined12.length);
+            addresses12.push('other');
+
+            addresses2  = addresses2.slice(0, blocksMined2.length);
+            addresses2.push('other');
+
+            // Add blockMined by other to data
+            blocksMined24.push(others24);
+            blocksMined12.push(others12);
+            blocksMined2.push(others2);
+
+            // Convert into percentages
+            blocksMined24 = blocksMined24.map(blocksMined => Math.round(blocksMined / blocksMined24Sum * 10000) / 100);
+            blocksMined12 = blocksMined12.map(blocksMined => Math.round(blocksMined / blocksMined12Sum * 10000) / 100);
+            blocksMined2  = blocksMined2.map(blocksMined => Math.round(blocksMined / blocksMined2Sum * 10000) / 100);
+
+
+            var _renderHashingDistributionChart = function() {
+                try {
+                    $infobox.querySelector('#hashing-distribution-chart-wrapper').removeChild($infobox.getElementsByClassName('blocklist-loader')[0]);
+                }
+                catch(e) {}
+
+                var time = new Date($.blockchain.head.timestamp * 1000);
+                $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created at block #" + $.blockchain.head.height + " - " + time.toLocaleString()
+
+                if(window.chart) window.chart.destroy();
+                if(window.chart2) window.chart2.destroy();
+                if(window.chart3) window.chart3.destroy();
+
+                var ctxs = $infobox.getElementsByTagName('canvas')
+
+                var ctx  = ctxs[0].getContext('2d'),
+                    ctx2 = ctxs[1].getContext('2d'),
+                    ctx3 = ctxs[2].getContext('2d');
+
+                window.chart = new Chart(ctx, {
+                    // The type of chart we want to create
+                    type: 'doughnut',
+
+                    // The data for our dataset
+                    data: {
+                        labels: addresses2,
+                        datasets: [
+                        {
+                            label: "Blocks mined",
+                            data: blocksMined2,
+                            backgroundColor: (() => { var c = default_colors.slice(); c[blocksMined2.length - 1] = Chart.defaults.global.defaultColor; return c })()
+                        }]
+                    },
+
+                    // Configuration options go here
+                    options: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                });
+
+                window.chart2 = new Chart(ctx2, {
+                    // The type of chart we want to create
+                    type: 'doughnut',
+
+                    // The data for our dataset
+                    data: {
+                        labels: addresses12,
+                        datasets: [
+                        {
+                            label: "Blocks mined",
+                            data: blocksMined12,
+                            backgroundColor:  (() => { var c = default_colors.slice(); c[blocksMined12.length - 1] = Chart.defaults.global.defaultColor; return c })()
+                        }]
+                    },
+
+                    // Configuration options go here
+                    options: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                });
+
+                window.chart3 = new Chart(ctx3, {
+                    // The type of chart we want to create
+                    type: 'doughnut',
+
+                    // The data for our dataset
+                    data: {
+                        labels: addresses24,
+                        datasets: [
+                        {
+                            label: "Blocks mined",
+                            data: blocksMined24,
+                            backgroundColor:  (() => { var c = default_colors.slice(); c[blocksMined24.length - 1] = Chart.defaults.global.defaultColor; return c })()
+                        }]
+                    },
+
+                    // Configuration options go here
+                    options: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                });
+            };
+
+            if(document.getElementById('chart-js-script')) {
+                _renderHashingDistributionChart();
+            }
+            else {
+                var scriptTag = document.createElement('script');
+                scriptTag.id = "chart-js-script";
+                scriptTag.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js";
+                scriptTag.onload = _renderHashingDistributionChart;
                 document.body.appendChild(scriptTag);
             }
         }
