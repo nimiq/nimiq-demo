@@ -1,7 +1,3 @@
----
-title: "Week In Review #1"
----
-
 # Week In Review #1
 *24 Nov 2017*
 
