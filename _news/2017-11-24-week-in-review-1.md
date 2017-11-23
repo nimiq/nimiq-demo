@@ -1,7 +1,8 @@
 ---
 layout: default
-title: "Week In Review #1"
 date: 2017-11-24
+title: "Week In Review #1"
+description: "Welcome to the first edition of Week In Review for the Nimiq blockchain project. With these articles I hope to bring regular updates of what is publicly happening in the Nimiq blockchain project to the community."
 ---
 
 # Week In Review #1
@@ -11,12 +12,12 @@ Welcome to the first edition of *Week In Review* for the [Nimiq blockchain proje
 
 > This article is fan-created and has no official connection to the Nimiq developer team or the Nimiq Foundation. As such this article is not able to talk about inner workings of the team, coding in private repositories or plans for the future.
 
-With these *Week In Review* articles I hope to bring regular updates of what is happening publicly in the Nimiq blockchain project to the community. This includes a summary of general news and updates from the team, updates on what is being worked on in the public [Github repository](https://github.com/nimiq-network/core) and information about community projects that are worth pointing out.
+With these *Week In Review* articles I hope to bring regular updates of what is publicly happening in the Nimiq blockchain project to the community. This includes a summary of general news and updates from the team, updates on what is being worked on in the public [Github repository](https://github.com/nimiq-network/core) and information about community projects that are worth pointing out.
 
 Since this is the first of (hopefully) many *Week In Review* editions, and because there has been a lot of activity in the Github repository in the lead up to the Luna testnet launch, this first edition will cover a bit more than just the last week of updates.
 
 ## Nimiq News
-* The next version of the testnet, *Luna*, is set to be released before the end of November
+* The next version of the testnet, [Luna](https://medium.com/nimiq-network/introducing-luna-fa0a845fd33e), is set to be released before the end of November
 * The launch date for the mainnet has been quietly pushed back to "Q1 2018", from the previous target date of "December 2017"
     * Richy explained that the delay is not caused by technical problems, but rather to have enough time for the conversion of NET to NIM after the Christmas and New Year's holidays.
 * The developer team is currently living and working in Germany, in the lovely town of Saarbrücken (<https://youtu.be/DD2cIUTKBEY?t=4m15s>)
