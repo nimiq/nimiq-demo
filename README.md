@@ -14,5 +14,5 @@ To learn more about the Nimiq blockchain, visit the
 check out @nimiqnetwork on
 [Twitter](https://twitter.com/nimiqnetwork) or
 [Medium](https://medium.com/nimiq-network) and join the
-[Slack](https://nimiq-slackin.herokuapp.com/) and
+[Discord](https://discord.gg/cMHemg8) and
 [Telegram](https://t.me/joinchat/AAAAAEJW-ozFwo7Er9jpHw) channels.
