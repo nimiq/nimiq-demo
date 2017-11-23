@@ -1,7 +1,7 @@
 ---
+layout: default
 title: "Week In Review #1"
 date: 2017-11-24
-layout: default
 ---
 
 # Week In Review #1
