@@ -27,8 +27,7 @@ Since this is the first of (hopefully) many *Week In Review* editions, and becau
 Marvin, Pascal and Philipp have been very active these last weeks preparing the code for the Luna testnet release. Important changes were among others:
 * Enable nano and light clients
     * Efficient mini-blockchain scheme (<https://cryptonite.info/files/mbc-scheme-rev3.pdf>)
-    * Non-interactive Proof-of-Proof-of-Work implementation (<http://fc16.ifca.ai/bitcoin/papers/KLS16.pdf>)
-    * Incremental chain updates, blockchain interlink (<https://eprint.iacr.org/2017/963.pdf>)
+    * Incremental chain updates and blockchain interlink, powered by a *Non-Interactive Proof-of-Proof-of-Work* implementation (<http://fc16.ifca.ai/bitcoin/papers/KLS16.pdf> and <https://eprint.iacr.org/2017/963.pdf>)
 * New difficulty algorithm based on the block time of the last 120 blocks (~2 hours)
     * This should lead to smoother difficulty changes
 * Updating how clients communicate with each other
