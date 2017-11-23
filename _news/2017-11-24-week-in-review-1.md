@@ -1,3 +1,8 @@
+---
+title: "Week In Review #1"
+date: 2017-11-24
+---
+
 # Week In Review #1
 *24 Nov 2017*
 
