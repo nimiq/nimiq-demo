@@ -2,7 +2,7 @@
 layout: default
 date: 2017-11-24
 title: "Week In Review #1"
-description: "Welcome to the first edition of Week In Review for the Nimiq blockchain project. With these articles I hope to bring regular updates of what is publicly happening in the Nimiq blockchain project to the community."
+description: "Welcome to the first edition of Week In Review for the Nimiq blockchain project."
 ---
 
 # Week In Review #1
@@ -10,7 +10,7 @@ description: "Welcome to the first edition of Week In Review for the Nimiq block
 
 Welcome to the first edition of *Week In Review* for the [Nimiq blockchain project](https://nimiq.com).
 
-> This article is fan-created and has no official connection to the Nimiq developer team or the Nimiq Foundation. As such this article is not able to talk about inner workings of the team, coding in private repositories or plans for the future.
+> This article is fan-created and has no official affiliation with the Nimiq developer team or the Nimiq Foundation. As such this article is not able to talk about inner workings of the team, code in private repositories or plans for the future.
 
 With these *Week In Review* articles I hope to bring regular updates of what is publicly happening in the Nimiq blockchain project to the community. This includes a summary of general news and updates from the team, updates on what is being worked on in the public [Github repository](https://github.com/nimiq-network/core) and information about community projects that are worth pointing out.
 
@@ -60,4 +60,4 @@ Only one project has received updates over the last month, and that is the [Nimi
 
 ---
 
-That's all for today. See you in a week!
+That's all for now. See you next Friday!
