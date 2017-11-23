@@ -2,6 +2,7 @@
 layout: default
 title: "Week In Review #2"
 date: 2017-12-01
+published: false
 ---
 
 # Week In Review #2
