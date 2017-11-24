@@ -8,12 +8,19 @@
 
 function _onConsensusEstablished() {
     document.getElementById('message').innerText = 'Consensus established.';
+    document.getElementById('height').innerText = $.blockchain.height;
+    document.getElementById('address').innerText = $.wallet.address.toUserFriendlyAddress();
 
     // Get current balance and initiate listener.
-    $.accounts.getBalance($.wallet.address)
-        .then(balance => _onBalanceChanged(balance));
-    $.accounts.on($.wallet.address, account => _onBalanceChanged(account.balance));
-    document.getElementById('address').innerText = $.wallet.address.toHex();
+    if (window.clientType !== 'nano') {
+        $.accounts.getBalance($.wallet.address)
+            .then(balance => _onBalanceChanged(balance));
+        $.accounts.on($.wallet.address, account => _onBalanceChanged(account.balance));
+    } else {
+        // nano clients don't have the accounts state and have to request single accounts
+        $.consensus.getAccount($.wallet.address).then(account => _onBalanceChanged(account.balance));
+        $.blockchain.on('head-changed', () => $.consensus.getAccount($.wallet.address).then(account => _onBalanceChanged(account.balance)));
+    }
 
     // If we want to start mining.
     // $.miner.startWork();
@@ -21,7 +28,7 @@ function _onConsensusEstablished() {
 
 function _onBalanceChanged(newBalance) {
     console.log(`New balance of ${$.wallet.address} is ${newBalance}.`);
-    document.getElementById('balance').innerText = newBalance.value.toFixed(2);
+    document.getElementById('balance').innerText = Nimiq.Policy.satoshisToCoins(newBalance.value).toFixed(2);
 }
 
 function _onHeadChanged() {
@@ -35,32 +42,70 @@ function _onPeersChanged() {
     document.getElementById('peers').innerText = $.network.peerCount;
 }
 
-Nimiq.init($ => {
-    document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
+function init(clientType = 'full') {
+    Nimiq.init(async function() {
+        document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
 
-    window.$ = $;
-    $.consensus.on('established', () => _onConsensusEstablished());
-    $.consensus.on('lost', () => console.error('Consensus lost'));
+        const $ = {};
+        window.$ = $;
+        if (clientType === 'full') {
+            $.consensus = await Nimiq.Consensus.full();
+        } else if (clientType === 'light') {
+            $.consensus = await Nimiq.Consensus.light();
+        } else if (clientType === 'nano') {
+            $.consensus = await Nimiq.Consensus.nano();
+        }
 
-    $.blockchain.on('head-changed', _ => _onHeadChanged());
-    $.network.on('peers-changed', () => _onPeersChanged());
+        $.blockchain = $.consensus.blockchain;
+        $.mempool = $.consensus.mempool;
+        $.network = $.consensus.network;
 
-    $.network.connect();
-}, function(error) {
-    console.error(error);
-});
+        $.wallet = await Nimiq.Wallet.getPersistent();
+        if (clientType !== 'nano') {
+            // the nano client does not sync the full account info and can not mine.
+            $.accounts = $.blockchain.accounts;
+            $.miner = new Nimiq.Miner($.blockchain, $.mempool, $.wallet.address);
+        }
+
+        $.consensus.on('established', () => _onConsensusEstablished());
+        $.consensus.on('lost', () => console.error('Consensus lost'));
+
+        $.blockchain.on('head-changed', () => _onHeadChanged());
+        $.network.on('peers-changed', () => _onPeersChanged());
+
+        $.network.connect();
+    }, function(code) {
+        switch (code) {
+            case Nimiq.ERR_WAIT:
+                alert('Error: Already open in another tab or window.');
+                break;
+            case Nimiq.ERR_UNSUPPORTED:
+                alert('Error: Browser not supported');
+                break;
+            default:
+                alert('Error: Nimiq initialization error');
+                break;
+        }
+    });
+}
+
     </script>
 </head>
 <body>
     <h1>Getting started with the Nimiq API</h1>
     This html file demonstrates the most simple way to build web applications on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
     <h2>Most Simple Client</h2>
-    <p><strong><span id="message">Loading Nimiq.</span></strong></p>
-    <p>Account address: <span id="address"><em>loading</em></span>, Balance: <img src="nimiq_white.svg" class="nimiq_currency"> <span id="balance"><em>loading</em></span></p>
-    <p>Current block height: <span id="height"><em>loading</em></span></p>
-    <p>Current number of peers: <span id="peers"><em>loading</em></span></p>
+    <p id="client-selector">Client type: <a href="#" client-type="nano">nano</a> <a href="#" client-type="light">light</a> <a href="#" client-type="full">full</a></p>
+    <div id="client-info" style="display:none">
+        <p>Status: <span id="message">Loading Nimiq.</span></p>
+        <p>Account address: <span id="address"><em>loading</em></span></p>
+        <p>Balance: <img src="nimiq_white.svg" class="nimiq_currency"> <span id="balance"><em>loading</em></span></p>
+        <p>Current block height: <span id="height"><em>loading</em></span></p>
+        <p>Current number of peers: <span id="peers"><em>loading</em></span></p>
+    </div>
+
     <h2>Source Code</h2>
-    <a target="_blank" href="https://github.com/RobinLinus/nimiq-demo/blob/master/index.html">View Source Code on Github.</a>
+    <a target="_blank" href="https://github.com/nimiq-network/nimiq-demo/blob/master/index.html">View Source Code on Github.</a>
     <style>
         body {
             background:teal;
@@ -77,5 +122,18 @@ Nimiq.init($ => {
             height: 12px;
         }
     </style>
+
+    <script>
+        /* UI Stuff */
+        document.querySelectorAll('[client-type]').forEach(el => {
+            el.addEventListener('click', () => {
+                const type = el.getAttribute('client-type');
+                window.clientType = type;
+                document.getElementById('client-selector').textContent = 'Client type: ' + type;
+                document.getElementById('client-info').style.display = 'block';
+                init(type);
+            });
+        });
+    </script>
 </body>
 </html>
