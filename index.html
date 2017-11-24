@@ -569,6 +569,10 @@
             border-right: 1px solid #D9DEE4;
         }
 
+        .blocklist-cell > hash {
+            font-size: 15px;
+        }
+
         .blocklist-loader {
             width: 34px;
             height: 30px;
@@ -623,6 +627,18 @@
             // _buildListOfLatestBlocks();
             blocklistNode.getElementsByClassName('blocklist-cell')[0].removeChild(blocklistNode.getElementsByClassName('blocklist-loader')[0]);
             blocklistNode.getElementsByClassName('blocklist-loader-text')[0].innerHTML = "<strong>Consensus established</strong><br>The list of latest blocks is not yet available for Luna.<br><small>Please check back over the weekend.</small>";
+
+            _getBlockInfo($.blockchain.headHash, function(blockInfo) {
+                if(!blockInfo) {
+                    console.error("Cannot get blockinfo of headHash");
+                    return;
+                }
+
+                blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
+                _addBlockToListOfLatestBlocks(blockInfo);
+
+                blocklistBuilt = true;
+            });
 
             if(!window.onhashchange) {
                 window.onhashchange = _onHashChange;
@@ -817,7 +833,7 @@
             </div>
             <div class="blockinfo-miner">
                 <label>Mined by </label>
-                <hash><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
+                <hash><a href="#{%=o.minerAddr.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
                 <!--
                 <label>Previous Block </label>
                 <hash>{%=o.prevHash%}</hash>
@@ -834,7 +850,7 @@
                 {% for(var i = 0; i < o.transactions.length; i++) { %}
                     <div class="blockinfo-transaction-row">
                         <hash id="{% var elementId = 'sender-address-' + i; _getAndWriteSenderAddressHash(o.transactions[i], elementId); print(elementId); %}"></hash>
-                        <hash><a href="#{%=o.transactions[i].recipientAddr.toUserFriendlyAddress()%}" onclick="_linkClicked(this);">{%=o.transactions[i].recipientAddr.toUserFriendlyAddress()%}</a></hash>
+                        <hash><a href="#{%=o.transactions[i].recipientAddr.toUserFriendlyAddress().replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].recipientAddr.toUserFriendlyAddress()%}</a></hash>
                         <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%}</span>
                     </div>
                 {% } %}
@@ -867,7 +883,7 @@
     </script>
 
     <script type="text/x-tmpl" id="template-blocklist-block">
-        <a href="#{%=o.height%}" class="blocklist-cell" onclick="_linkClicked(this);">
+        <a href="#{%=o.hash%}" class="blocklist-cell" onclick="_linkClicked(this);">
             #{%=o.height%}
         </a>
         <div class="blocklist-cell">
@@ -877,7 +893,7 @@
             {%=o.transactionCount%} {% if(o.transactionCount === 1) print('transaction'); else print('transactions'); %}
         </div>
         <div class="blocklist-cell ellipsis">
-            found by <hash><a href="#{%=o.minerAddr%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
+            found by <hash><a href="#{%=o.minerAddr.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
         </div>
         <div class="blocklist-cell">
             {%=o.serializedSize%} Bytes
@@ -1068,7 +1084,7 @@
 
         function _getAndWriteSenderAddressHash(tx, elementId) {
             tx.getSenderAddr().then(function(address) {
-                document.getElementById(elementId).innerHTML = '<a href="#' + address.toUserFriendlyAddress() + '" onclick="_linkClicked(this);">' + address.toUserFriendlyAddress() + '</a>';
+                document.getElementById(elementId).innerHTML = '<a href="#' + address.toUserFriendlyAddress().replace(/ /g, '+') + '" onclick="_linkClicked(this);">' + address.toUserFriendlyAddress() + '</a>';
             });
         }
 
