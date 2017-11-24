@@ -1146,6 +1146,7 @@
             }
             else {
                 var format = _detectHashFormat(value);
+                document.getElementById('hash-format').innerHTML = format || "<em>none</em>";
 
                 $searchInput.value = value;
 
