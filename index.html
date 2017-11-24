@@ -1119,7 +1119,7 @@
         }
 
         function _onHashChange(e) {
-            var value = window.location.hash;
+            var value = window.location.hash.replace(/\+/g, ' ');
 
             // Remove leading '#'
             if(value[0] === "#") value = value.substring(1);
@@ -1225,7 +1225,7 @@
 
             if(!$.consensus.established) return;
 
-            var value = $searchInput.value;
+            var value = $searchInput.value.trim().replace(/ /g, '+');
 
             if(window.location.hash === "#" + value) {
                 // The hashchange event does not trigger if the hash does not change
@@ -1242,13 +1242,13 @@
                     return;
                 }
                 else {
-                    window.location.hash = self.hash;
+                    window.location.hash = self.hash.replace(/ /g, '+');
                     _onHashChange();
                     return;
                 }
             }
 
-            if(window.location.hash === self.hash) {
+            if(window.location.hash === self.hash.replace(/ /g, '+')) {
                 console.log("_linkClicked triggered");
                 _onHashChange();
             }
