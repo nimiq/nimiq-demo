@@ -407,11 +407,12 @@
             white-space: nowrap;
         }
 
-        .blockinfo-transaction-row:nth-child(2) > * {
-            padding-top: 0.5em;
+        .blockinfo-transaction-row > hash {
+            font-size: 15px;
         }
 
         .blockinfo-transaction-row > span {
+            padding-top: 0.5em;
             padding-right: 0;
             width: 100%;
             text-align: right;
@@ -637,7 +638,7 @@
 
         function _onHeadChanged() {
             var height = $.blockchain.height;
-            $height.innerText = '#' + height;
+            if(height > 1) $height.innerText = ' @ #' + height;
             if(syncStartHeight !== 0 && syncTargetHeight !== 0)
                 $syncPercentage.innerText = " (" + Math.floor((height - syncStartHeight) / (syncTargetHeight - syncStartHeight) * 100) + "%)";
 
@@ -725,15 +726,15 @@
         <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
         <span id="monitor" title="Connected to 0 peers">
             <strong>Status:</strong>
-            <span id="status" class="not-connected">connecting</span> @ <span id="height"><em>loading</em></span><span id="syncPercentage"></span>
+            <span id="status" class="not-connected">connecting</span><span id="height"></span><span id="syncPercentage"></span>
         </span>
     </header>
 
     <div id="searchbox">
-        <h1>Search accounts <strike title="Searching for blocks is not yet supported for Luna.">and blocks</strike>:</h1>
+        <h1>Search accounts and blocks:</h1>
 
         <form action="#search" method="GET" id="search-form">
-            <input type="text" id="search-input" placeholder="account address, HEX block hash or block height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <input type="text" id="search-input" placeholder="Account address or HEX block hash" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             <input type="submit" id="search-submit" value="go" disabled="" title="Consensus not established">
             <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
         </form>
@@ -768,8 +769,9 @@
                 <h3>Height</h3>
                 <span>#{%=o.height%}</span>
                 <div>
-                    <a href="#{%=o.height + 1%}">&#9650;</a>
-                    <a href="#{%=o.height - 1%}">&#9660;</a>
+                    <!--<a href="#{%=o.height + 1%}">&#9650;</a>-->
+                    <!--<a href="#{%=o.height - 1%}">&#9660;</a>-->
+                    <a href="#{%=o.prevHash%}">&#9660;</a>
                 </div>
             </div>
             <div class="hash">
@@ -1035,7 +1037,7 @@
                 hash = Nimiq.Hash.fromHex(hash);
             }
 
-            $.blockchain.getBlock(hash).then(function(block) {
+            $.consensus.getFullBlock(hash).then(function(block) {
                 if(!block) {
                     callback(null);
                     return;
@@ -1161,12 +1163,9 @@
                         });
                         break;
                     case "Block Hash":
-                        alert("Showing block information is not yet supported for Luna, please check back over the weekend.")
-                        return;
-
                         _getBlockInfo(value, function(blockInfo) {
                             if(!blockInfo) {
-                                alert("That block cannot be found. It my be out of reach due to the temporary checkpoint solution. Lowest possible block: " + $.blockchain.path[0].toHex());
+                                alert("That block cannot be found.");
                                 return;
                             }
 
@@ -1175,7 +1174,7 @@
                         });
                         break;
                     case "Block Number":
-                        alert("Showing block information is not yet supported for Luna, please check back over the weekend.")
+                        alert("Searching for blocks by height is not yet supported for Luna, please check back over the weekend.");
                         return;
 
                         var currentHeight = $.blockchain.head.height;
