@@ -17,16 +17,16 @@ With these *Week In Review* articles I hope to bring regular updates of what is 
 Since this is the first of (hopefully) many *Week In Review* editions, and because there has been a lot of activity in the Github repository in the lead up to the Luna testnet launch, this first edition will cover a bit more than just the last week of updates.
 
 ## Nimiq News
-* The next version of the testnet, [Luna](https://medium.com/nimiq-network/introducing-luna-fa0a845fd33e), is set to be released before the end of November
-* The launch date for the mainnet has been quietly pushed back to "Q1 2018", from the previous target date of "December 2017"
-    * Richy explained that the delay is not caused by technical problems, but rather to have enough time for the conversion of NET to NIM after the Christmas and New Year's holidays.
+* The next version of the testnet, [Luna](https://medium.com/nimiq-network/luna-has-landed-1da78170a88f), has been released today! You can start testing it at <https://nimiq.com/miner>.
+* The launch date for the mainnet has been pushed back to "Q1 2018", from the previous target date of "December 2017"
+    * Robin explained that the delay is not caused by technical problems, but rather to have enough time for the conversion of NET to NIM after the Christmas and New Year's holidays.
 * The developer team is currently living and working in Germany, in the lovely town of Saarbrücken (<https://youtu.be/DD2cIUTKBEY?t=4m15s>)
     * At least a part of the team is planned to move back to Costa Rica in December
 * The Nimiq Foundation has been officially signed into existence, based in Zug, Switzerland, also known as *Crypto Valley* (<https://youtu.be/CcO4DewZBDQ?t=4m29s>)
 
 ## Code Updates
-Marvin, Pascal and Philipp have been very active these last weeks preparing the code for the Luna testnet release. Important changes were among others:
-* Enable nano and light clients
+Marvin, Pascal and Philipp have been very active these last weeks preparing the code for the Luna testnet release. Important changes were, in the order they appeared:
+* Enabling of nano and light clients
     * Efficient mini-blockchain scheme (<https://cryptonite.info/files/mbc-scheme-rev3.pdf>)
     * Incremental chain updates and blockchain interlink, powered by a *Non-Interactive Proof-of-Proof-of-Work* implementation (<http://fc16.ifca.ai/bitcoin/papers/KLS16.pdf> and <https://eprint.iacr.org/2017/963.pdf>)
 * New difficulty algorithm based on the block time of the last 120 blocks (~2 hours)
@@ -43,7 +43,7 @@ Marvin, Pascal and Philipp have been very active these last weeks preparing the 
 * Implementing network-adjusted time for all clients to reduce the impact of wrong system clocks
 * Implementing multi-threading for both browser and nodeJS clients
     * Allows mining with more than one thread in parallel, utilizing multi-core CPUs without the hassle of starting multiple browser windows
-    * Allows throttling of the mining process to not use a full CPU core
+    * Allows throttling of the mining process to control CPU usage
     * Allows changing the number of threads during runtime
 * Adding `extraData` field to blocks, enabling the inclusion of custom data into a block by miners (can be used for example for mining pool information)
 * Enabling automatic reconnect in case the connection to the network is lost
@@ -53,10 +53,11 @@ Marvin, Pascal and Philipp have been very active these last weeks preparing the 
 * Various changes to the information displayed in the *Nimiq Cockpit* browser clients from the Github repository
 * Allowing multiple concurrent transactions per sender (full and light clients only)
 * Miners automatically prefer transactions with higher fees
+* Fixing the automatic generation of code documentation
 * Many more general fixes and improvements
 
 ## Community Projects
-Only one project has received updates over the last month, and that is the [Nimiq price website](https://nimiqprice.com). All other community developers are anxiously waiting for the Luna release to adapt their projects to the new testnet. You can look forward to new versions of the Faucet, the Nimiq blockchain explorers and the Nimiq browser extensions.
+Only one project has received updates over the last month, and that is the [Nimiq price website](https://nimiqprice.com). All other community developers are now adapting their projects to the new testnet. You can look forward to new versions of the Faucet, the Nimiq blockchain explorers and the Nimiq browser extensions.
 
 ---
 
