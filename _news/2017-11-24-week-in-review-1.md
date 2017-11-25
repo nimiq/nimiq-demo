@@ -20,7 +20,7 @@ Since this is the first of (hopefully) many *Week In Review* editions, and becau
 * The next version of the testnet, [Luna](https://medium.com/nimiq-network/luna-has-landed-1da78170a88f), has been released today! You can start testing it at <https://nimiq.com/miner>.
 * The launch date for the mainnet has been pushed back to "Q1 2018", from the previous target date of "December 2017"
     * Robin explained that the delay is not caused by technical problems, but rather to have enough time for the conversion of NET to NIM after the Christmas and New Year's holidays.
-* The developer team is currently living and working in Germany, in the lovely town of Saarbrücken (<https://youtu.be/DD2cIUTKBEY?t=4m15s>)
+* The developer team is currently working in the *Nerd Temple 2* in Germany (<https://youtu.be/DD2cIUTKBEY?t=4m15s>)
     * At least a part of the team is planned to move back to Costa Rica in December
 * The Nimiq Foundation has been officially signed into existence, based in Zug, Switzerland, also known as *Crypto Valley* (<https://youtu.be/CcO4DewZBDQ?t=4m29s>)
 
