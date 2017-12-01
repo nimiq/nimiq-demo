@@ -61,4 +61,4 @@ Only one project has received updates over the last month, and that is the [Nimi
 
 ---
 
-That's all for now. See you next Friday!
+That's all for now. See you [next Friday](https://nimiq.watch/news/2017-12-01-week-in-review-2.html)!
