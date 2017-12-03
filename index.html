@@ -616,6 +616,8 @@
     </style>
 
     <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/promise-polyfill"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch"></script>
     <script>
         function _onConsensusEstablished() {
             $syncPercentage.style.display = "none";
@@ -624,21 +626,7 @@
             document.getElementById('search-submit').removeAttribute('disabled');
             document.getElementById('search-submit').removeAttribute('title');
 
-            // _buildListOfLatestBlocks();
-            blocklistNode.getElementsByClassName('blocklist-cell')[0].removeChild(blocklistNode.getElementsByClassName('blocklist-loader')[0]);
-            blocklistNode.getElementsByClassName('blocklist-loader-text')[0].innerHTML = "<strong>Consensus established</strong><br>The list of latest blocks is not yet available for Luna.<br><small>Please check back over the weekend.</small>";
-
-            _getBlockInfo($.blockchain.headHash, function(blockInfo) {
-                if(!blockInfo) {
-                    console.error("Cannot get blockinfo of headHash");
-                    return;
-                }
-
-                blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
-                _addBlockToListOfLatestBlocks(blockInfo);
-
-                blocklistBuilt = true;
-            });
+            _buildListOfLatestBlocks();
 
             if(!window.onhashchange) {
                 window.onhashchange = _onHashChange;
@@ -1095,32 +1083,17 @@
             if(blocklistBuilt !== false) return;
             blocklistBuilt = null;
 
-            var _accumulateBlocks = function(blockInfo) {
-                latestBlocks.push(blockInfo);
+            fetch('https://api.nimiq.watch/latest/20').then(function(data) {
+                blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 
-                if(latestBlocks.length === 20) {
-                    latestBlocks.sort(function(a, b) {
-                        if(a.height < b.height) return -1;
-                        else return 1;
-                    });
+                if(!data) alert("No data received from https://api.nimiq.watch/latest/20!");
 
-                    blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
-
-                    for(var i = 0; i < latestBlocks.length; i++ ) {
-                        _addBlockToListOfLatestBlocks(latestBlocks[i]);
-                    }
-
-                    latestBlocks = null;
-                    blocklistBuilt = true;
+                for(var i = 0; i < data.length; i++ ) {
+                    _addBlockToListOfLatestBlocks(data[i]);
                 }
-            };
 
-            var hashes = $.blockchain.path.slice(-20);
-
-            // Query all blocks' info
-            for(var i = 0; i < hashes.length; i++) {
-                _getBlockInfo(hashes[i], _accumulateBlocks);
-            }
+                blocklistBuilt = true;
+            });
         }
 
         var blocklistNode = document.getElementById('blocklist');
