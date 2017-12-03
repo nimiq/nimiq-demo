@@ -782,7 +782,7 @@
                 <div>
                     <!--<a href="#{%=o.height + 1%}">&#9650;</a>-->
                     <!--<a href="#{%=o.height - 1%}">&#9660;</a>-->
-                    <a href="#{%=o.prevHash%}">&#9660;</a>
+                    <a href="#{%=o.prev_hash%}">&#9660;</a>
                 </div>
             </div>
             <div class="hash">
@@ -794,11 +794,11 @@
             <div class="blockinfo-body-left">
                 <div class="blockinfo-body-row">
                     <label>Transactions </label>
-                    <span>{%=o.transactionCount%}</span>
+                    <span>{%=o.transaction_ount%}</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Transaction Value </label>
-                    <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactionValue))%}</span>
+                    <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.value))%}</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Difficulty </label>
@@ -812,7 +812,7 @@
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Size </label>
-                    <span>{%=o.serializedSize%} Bytes</span>
+                    <span>{%=o.size%} Bytes</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Nonce </label>
@@ -821,15 +821,15 @@
             </div>
             <div class="blockinfo-miner">
                 <label>Mined by </label>
-                <hash><a href="#{%=o.minerAddr.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
+                <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.miner_address%}</a></hash>
                 <!--
                 <label>Previous Block </label>
-                <hash>{%=o.prevHash%}</hash>
+                <hash>{%=o.prev_hash%}</hash>
                 -->
             </div>
         </div>
         <div class="blockinfo-transactions">
-            {% if(o.transactionCount) { %}
+            {% if(o.transaction_count) { %}
                 <div class="blockinfo-transaction-header-row">
                     <h3>Sender</h3>
                     <h3>Receiver</h3>
@@ -878,13 +878,13 @@
             {% var time = new Date(o.timestamp * 1000); print(time.toLocaleTimeString()); %}
         </div>
         <div class="blocklist-cell">
-            {%=o.transactionCount%} {% if(o.transactionCount === 1) print('transaction'); else print('transactions'); %}
+            {%=o.transaction_count%} {% if(o.transaction_count === 1) print('transaction'); else print('transactions'); %}
         </div>
         <div class="blocklist-cell ellipsis">
-            found by <hash><a href="#{%=o.minerAddr.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.minerAddr%}</a></hash>
+            found by <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.miner_address%}</a></hash>
         </div>
         <div class="blocklist-cell">
-            {%=o.serializedSize%} Bytes
+            {%=o.size%} Bytes
         </div>
     </script>
 
@@ -1059,12 +1059,12 @@
                     height:           block.height,
                     timestamp:        block.timestamp,
                     difficulty:       block.difficulty,
-                    serializedSize:   block.serializedSize,
-                    minerAddr:        block.minerAddr.toUserFriendlyAddress(),
-                    transactionCount: block.transactionCount,
+                    size:             block.serializedSize,
+                    miner_address:    block.minerAddr.toUserFriendlyAddress(),
+                    transaction_count:block.transactionCount,
                     transactions:     block.transactions,
-                    transactionValue: block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0),
-                    prevHash:         block.prevHash.toHex(),
+                    value:            block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0),
+                    prev_hash:        block.prevHash.toHex(),
                     nonce:            block.nonce
                 });
             });
