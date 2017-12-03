@@ -1083,16 +1083,18 @@
             if(blocklistBuilt !== false) return;
             blocklistBuilt = null;
 
-            fetch('https://api.nimiq.watch/latest/20').then(function(data) {
-                blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
+            fetch('https://api.nimiq.watch/latest/20').then(function(response) {
+                response.json().then(function(data) {
+                    blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 
-                if(!data) alert("No data received from https://api.nimiq.watch/latest/20!");
+                    if(!data) alert("No data received from https://api.nimiq.watch/latest/20!");
 
-                for(var i = 0; i < data.length; i++ ) {
-                    _addBlockToListOfLatestBlocks(data[i]);
-                }
+                    for(var i = 0; i < data.length; i++ ) {
+                        _addBlockToListOfLatestBlocks(data[i]);
+                    }
 
-                blocklistBuilt = true;
+                    blocklistBuilt = true;
+                });
             });
         }
 
