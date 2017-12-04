@@ -373,7 +373,7 @@
         .blockinfo-miner {
             clear: both;
             border-top: 1px solid #D9DEE4;
-            padding: 1em;
+            padding: 0.25em 1em;
             overflow: auto;
         }
 
@@ -820,8 +820,16 @@
                 </div>
             </div>
             <div class="blockinfo-miner">
-                <label>Mined by </label>
-                <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.miner_address%}</a></hash>
+                <div class="blockinfo-body-row">
+                    <label>Mined by </label>
+                    <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.miner_address%}</a></hash>
+                </div>
+                {% if(o.extra_data) { %}
+                    <div class="blockinfo-body-row">
+                        <label>Extra Data </label>
+                        <span>{%=o.extra_data%}</span>
+                    </div>
+                {% } %}
                 <!--
                 <label>Previous Block </label>
                 <hash>{%=o.prev_hash%}</hash>
@@ -1065,7 +1073,8 @@
                     transactions:     block.transactions,
                     value:            block.transactions.reduce(function(acc, tx) { return tx.value + acc; }, 0),
                     prev_hash:        block.prevHash.toHex(),
-                    nonce:            block.nonce
+                    nonce:            block.nonce,
+                    extra_data:       (block.body.extraData.length > 0 && block.body.extraData.every(function(c) {return c >= 32 && c <= 126;}) && Nimiq.BufferUtils.toAscii(block.body.extraData)) || Nimiq.BufferUtils.toBase64(block.body.extraData)
                 });
             });
         }
