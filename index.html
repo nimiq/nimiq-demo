@@ -407,6 +407,39 @@
             color: #AAA;
         }
 
+        .event-item {
+            overflow: auto;
+            background: #F0F0F0;
+            padding: 1em;
+            border-radius: 4px;
+            margin-bottom: 0.5em;
+        }
+
+        .event-amount {
+            float: right;
+        }
+
+        .event-amount.green {
+            color: green;
+        }
+
+        .event-amount.red {
+            color: red;
+        }
+
+        .event-name {
+            font-weight: 600;
+        }
+
+        .event-height {
+            opacity: 0.6;
+        }
+
+        .event-address a {
+            font-size: 15px;
+            color: #888;
+        }
+
         #infobox .charts-wrapper {
             background: white;
             width: 400px;
@@ -794,14 +827,31 @@
             <div class="blockinfo-body">
                 <div class="blockinfo-body-row">
                     <label>Balance </label>
-                    <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%}</span>
+                    <span><!--<img src="icons/nimiq_blue.svg"> -->{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Nonce </label>
                     <span>{%=o.nonce%}</span>
                 </div>
             </div>
-        </div>
+
+            <h3>Latest transactions</h3>
+            {% if(o.transactions.length > 0) { %}
+                {% for(var i = o.transactions.length - 1; i >= 0; i--) { %}
+                    {% o.transactions[i].isReceiver = o.transactions[i].receiver_address === o.address; %}
+                    {% o.transactions[i].otherAddress = o.transactions[i].isReceiver && o.transactions[i].sender_address || o.transactions[i].receiver_address; %}
+                    <div class="event-item">
+                        <span class="event-amount {% if(o.transactions[i].isReceiver) print('green'); else print('red'); %}">{% if(o.transactions[i].isReceiver) print('+'); else print('-'); %}{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%} NIM&#8203;</span>
+                        <span class="event-name">{% if(o.transactions[i].isReceiver) print('Received'); else print('Sent'); %} transaction</span><br>
+                        <span class="event-datetime">{% var date = new Date(o.transactions[i].timestamp * 1000); print(date.toLocaleString()); %}</span>
+                        <span class="event-height">(<a href="#{%=o.transactions[i].block_height%}" onclick="_linkClicked(this);">#{%=o.transactions[i].block_height%}</a>)</span><br>
+                        {% if(o.transactions[i].isReceiver) print('&larr;', true); else print('&rarr;', true); %}
+                        <hash class="event-address"><a href="#{%=o.transactions[i].otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].otherAddress%}</a></hash>
+                    </div>
+                {% } %}
+            {% } else { %}
+                <div class="no-transactions">No transactions</div>
+            {% } %}
     </script>
 
     <script type="text/x-tmpl" id="template-blocklist-block">
