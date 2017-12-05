@@ -845,7 +845,8 @@
                         <span class="event-name">{% if(o.transactions[i].isReceiver) print('Received'); else print('Sent'); %} transaction</span><br>
                         <span class="event-datetime">{% var date = new Date(o.transactions[i].timestamp * 1000); print(date.toLocaleString()); %}</span>
                         <span class="event-height">(<a href="#{%=o.transactions[i].block_height%}" onclick="_linkClicked(this);">#{%=o.transactions[i].block_height%}</a>)</span><br>
-                        &larr; <hash class="event-address"><a href="#{%=o.transactions[i].otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].otherAddress%}</a></hash>
+                        {% if(o.transactions[i].isReceiver) print('&larr;', true); else print('&rarr;', true); %}
+                        <hash class="event-address"><a href="#{%=o.transactions[i].otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].otherAddress%}</a></hash>
                     </div>
                 {% } %}
             {% } else { %}
