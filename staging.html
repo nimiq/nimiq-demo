@@ -1066,6 +1066,15 @@
                 response.json().then(function(data) {
                     if(!data) alert("No data received from https://api.nimiq.watch/block/" + identifier + "!");
 
+                    if(data.extra_data) {
+                        var buf = Nimiq.BufferUtils.fromBase64(data.extra_data);
+
+                        // Check if we can convert the extraData into ASCII
+                        if(buf.every(function(c) {return c >= 32 && c <= 126;})) {
+                            data.extra_data = Nimiq.BufferUtils.toAscii(buf);
+                        }
+                    }
+
                     callback(data);
                 });
             });
