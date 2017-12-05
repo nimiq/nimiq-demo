@@ -838,20 +838,26 @@
             <h3>Latest transactions</h3>
             {% if(o.transactions.length > 0) { %}
                 {% for(var i = o.transactions.length - 1; i >= 0; i--) { %}
-                    {% o.transactions[i].isReceiver = o.transactions[i].receiver_address === o.address; %}
-                    {% o.transactions[i].otherAddress = o.transactions[i].isReceiver && o.transactions[i].sender_address || o.transactions[i].receiver_address; %}
-                    <div class="event-item">
-                        <span class="event-amount {% if(o.transactions[i].isReceiver) print('green'); else print('red'); %}">{% if(o.transactions[i].isReceiver) print('+'); else print('-'); %}{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%} NIM&#8203;</span>
-                        <span class="event-name">{% if(o.transactions[i].isReceiver) print('Received'); else print('Sent'); %} transaction</span><br>
-                        <span class="event-datetime">{% var date = new Date(o.transactions[i].timestamp * 1000); print(date.toLocaleString()); %}</span>
-                        <span class="event-height">(<a href="#{%=o.transactions[i].block_height%}" onclick="_linkClicked(this);">#{%=o.transactions[i].block_height%}</a>)</span><br>
-                        {% if(o.transactions[i].isReceiver) print('&larr;', true); else print('&rarr;', true); %}
-                        <hash class="event-address"><a href="#{%=o.transactions[i].otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].otherAddress%}</a></hash>
-                    </div>
+                    {%#o.accountTransaction(o.transactions[i])%}
                 {% } %}
             {% } else { %}
                 <div class="no-transactions">No transactions</div>
             {% } %}
+    </script>
+
+    <script type="text/x-tmpl" id="template-account-transaction">
+        {% o.isReceiver = o.receiver_address === o.address; %}
+        {% o.otherAddress = o.isReceiver && o.sender_address || o.receiver_address; %}
+        <div class="event-item">
+            <span class="event-amount {% if(o.isReceiver) print('green'); else print('red'); %}">
+                {% if(o.isReceiver) print('+'); else print('-'); %}{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.value))%} NIM&#8203;
+            </span>
+            <span class="event-name">{% if(o.isReceiver) print('Received'); else print('Sent'); %} transaction</span><br>
+            <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
+            <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span><br>
+            {% if(o.isReceiver) print('&larr;', true); else print('&rarr;', true); %}
+            <hash class="event-address"><a href="#{%=o.otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.otherAddress%}</a></hash>
+        </div>
     </script>
 
     <script type="text/x-tmpl" id="template-blocklist-block">
@@ -985,6 +991,7 @@
             blocklistBlock:            tmpl('template-blocklist-block'),
             blockInfo:                 tmpl('template-block-info'),
             accountInfo:               tmpl('template-account-info'),
+            accountTransaction:        tmpl('template-account-transaction'),
             about:                     tmpl('template-about'),
             charts:                    tmpl('template-charts'),
             wealthDistributionChart:   tmpl('template-wealth-distribution-chart'),
@@ -1131,6 +1138,8 @@
                                 alert("That account cannot be found.");
                                 return;
                             }
+
+                            accountInfo.accountTransaction = tmpl.accountTransaction;
 
                             $infobox.innerHTML = tmpl.accountInfo(accountInfo);
                             window.scrollTo(0, $infobox.offsetTop - 100);
