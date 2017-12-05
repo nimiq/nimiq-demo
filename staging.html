@@ -619,12 +619,21 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/promise-polyfill"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch"></script>
     <script>
+        // Dummy object to prevent JS errors
+        window.$ = {
+            consensus: {
+                established: false
+            }
+        };
+
         function _onConsensusEstablished() {
             $syncPercentage.style.display = "none";
             $status.innerText = 'connected';
             $status.classList.add('consensus-established');
             document.getElementById('search-submit').removeAttribute('disabled');
             document.getElementById('search-submit').removeAttribute('title');
+
+            $.consensus.established = true;
 
             _buildListOfLatestBlocks();
 
@@ -701,13 +710,6 @@
         //             break;
         //     }
         // });
-        //
-        // // Dummy object to prevent JS errors
-        // window.$ = {
-        //     consensus: {
-        //         established: false
-        //     }
-        // };
     </script>
     <script src="vendor/tmpl.min.js"></script>
 </head>
@@ -805,8 +807,8 @@
                     <span><!--<img src="icons/nimiq_blue.svg"> -->{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.value))%} NIM</span>
                 </div>
                 <div class="blockinfo-body-row">
-                    <label>Reward </label>
-                    <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.reward + o.fees))%} NIM</span>
+                    <label>Block Reward </label>
+                    <span style="cursor: help;" title="Block reward: {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.reward))%} NIM, fees: {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.fees))%} NIM">{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.reward + o.fees))%} NIM</span>
                 </div>
             </div>
             <div class="blockinfo-body-right">
@@ -825,7 +827,7 @@
             </div>
             <div class="blockinfo-miner">
                 <div class="blockinfo-body-row">
-                    <label>Mined by </label>
+                    <label>Miner </label>
                     <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.miner_address%}</a></hash>
                 </div>
                 {% if(o.extra_data) { %}
