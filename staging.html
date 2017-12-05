@@ -837,7 +837,7 @@
 
             <h3>Latest transactions</h3>
             {% if(o.transactions.length > 0) { %}
-                {% for(var i = 0; i < o.transactions.length; i++) { %}
+                {% for(var i = o.transactions.length - 1; i >= 0; i--) { %}
                     {% o.transactions[i].isReceiver = o.transactions[i].receiver_address === o.address; %}
                     {% o.transactions[i].otherAddress = o.transactions[i].isReceiver && o.transactions[i].sender_address || o.transactions[i].receiver_address; %}
                     <div class="event-item">
