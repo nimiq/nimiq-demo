@@ -28,7 +28,8 @@ Some users reported some issues with the miner in the new testnet, so the develo
 * Marvin is working on adding an `extraData` field to blocks, to store information about future mining pools
 * The docker container script got fixed, so you should be able again to run the nodejs client from docker
 * Lots of work regarding the sorting, including and calculating transactions during mining, which should fix the *invalid block* errors
-    * These changes are not yet in the release build, but should be available soon
+    * ~~These changes are not yet in the release build, but should be available soon~~
+    * UPDATE: These changes are now released (<https://medium.com/nimiq-network/luna-protocol-update-1-91f16db62f57>)
 
 ## Community Projects
 * <https://nimiq.watch> got updated to be able to search for blocks and accounts again with Luna. A further update, including searching for blocks by height and viewing account history are planned to be added soon.
