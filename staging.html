@@ -836,13 +836,19 @@
             </div>
 
             <h3>Latest transactions</h3>
-            {% if(o.transactions.length > 0) { %}
-                {% for(var i = o.transactions.length - 1; i >= 0; i--) { %}
-                    {%#o.accountTransaction(o.transactions[i])%}
+            <div class="accountinfo-transactions">
+                {% if(o.transactions.length > 0) { %}
+                    {% for(var i = o.transactions.length - 1; i >= 0; i--) { %}
+                        {%#o.accountTransaction(o.transactions[i])%}
+                    {% } %}
+
+                    {% if(o.transactions.length === 10) { %}
+                        <button class="event-loadmore account-transactions" onclick="loadMoreTransactions({%=o.address%}, 2)">load more</button>
+                    {% } %}
+                {% } else { %}
+                    <div class="no-transactions">No transactions</div>
                 {% } %}
-            {% } else { %}
-                <div class="no-transactions">No transactions</div>
-            {% } %}
+            </div>
         </div>
     </script>
 
