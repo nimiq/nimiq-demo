@@ -407,6 +407,39 @@
             color: #AAA;
         }
 
+        .event-item {
+            overflow: auto;
+            background: #F0F0F0;
+            padding: 1em;
+            border-radius: 4px;
+            margin-bottom: 0.5em;
+        }
+
+        .event-amount {
+            float: right;
+        }
+
+        .event-amount.green {
+            color: green;
+        }
+
+        .event-amount.red {
+            color: red;
+        }
+
+        .event-name {
+            font-weight: 600;
+        }
+
+        .event-height {
+            opacity: 0.6;
+        }
+
+        .event-address a {
+            font-size: 15px;
+            color: #888;
+        }
+
         #infobox .charts-wrapper {
             background: white;
             width: 400px;
@@ -794,7 +827,7 @@
             <div class="blockinfo-body">
                 <div class="blockinfo-body-row">
                     <label>Balance </label>
-                    <span><img src="icons/nimiq_blue.svg"> {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%}</span>
+                    <span><!--<img src="icons/nimiq_blue.svg"> -->{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Nonce </label>
@@ -803,17 +836,17 @@
             </div>
 
             <h3>Latest transactions</h3>
-            <div class="blockinfo-header">
-                <strong>Received transaction</strong>
-                <span class="received-tx">+25.00 NIM</span>
+            <div class="event-item">
+                <span class="event-amount green">+25.00 NIM&#8203;</span>
+                <span class="event-name">Received transaction</span><br>
+                <span class="event-datetime">04/12/2017, 12:45:34</span> <span class="event-height">(#21024)</span><br>
+                &larr; <hash class="event-address"><a href="#NQ55 51CP EF00 NNFE BVBU 2R47 BB60 GEE5 N4TV" onclick="_linkClicked(this);">NQ55 51CP EF00 NNFE BVBU 2R47 BB60 GEE5 N4TV</a></hash>
             </div>
-            <div class="blockinfo-body">
-                <div class="blockinfo-body-row">
-                    04/12/2017, 12:45:34 (#21024)
-                </div>
-                <div class="blockinfo-body-row">
-                    &larr; <hash>NQ55 51CP EF00 NNFE BVBU 2R47 BB60 GEE5 N4TV</hash>
-                </div>
+            <div class="event-item">
+                <span class="event-amount red">-10.00 NIM&#8203;</span>
+                <span class="event-name">Sent transaction</span><br>
+                <span class="event-datetime">03/12/2017, 18:23:12</span> <span class="event-height">(#20945)</span><br>
+                &rarr; <hash class="event-address"><a href="#NQ55 51CP EF00 NNFE BVBU 2R47 BB60 GEE5 N4TV" onclick="_linkClicked(this);">NQ55 51CP EF00 NNFE BVBU 2R47 BB60 GEE5 N4TV</a></hash>
             </div>
         </div>
     </script>
