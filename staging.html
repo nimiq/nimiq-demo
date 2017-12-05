@@ -836,19 +836,21 @@
             </div>
 
             <h3>Latest transactions</h3>
-            <div class="event-item">
-                <span class="event-amount green">+25.00 NIM&#8203;</span>
-                <span class="event-name">Received transaction</span><br>
-                <span class="event-datetime">04/12/2017, 12:45:34</span> <span class="event-height">(#21024)</span><br>
-                &larr; <hash class="event-address"><a href="#NQ55 51CP EF00 NNFE BVBU 2R47 BB60 GEE5 N4TV" onclick="_linkClicked(this);">NQ55 51CP EF00 NNFE BVBU 2R47 BB60 GEE5 N4TV</a></hash>
-            </div>
-            <div class="event-item">
-                <span class="event-amount red">-10.00 NIM&#8203;</span>
-                <span class="event-name">Sent transaction</span><br>
-                <span class="event-datetime">03/12/2017, 18:23:12</span> <span class="event-height">(#20945)</span><br>
-                &rarr; <hash class="event-address"><a href="#NQ55 51CP EF00 NNFE BVBU 2R47 BB60 GEE5 N4TV" onclick="_linkClicked(this);">NQ55 51CP EF00 NNFE BVBU 2R47 BB60 GEE5 N4TV</a></hash>
-            </div>
-        </div>
+            {% if(o.transactions.length > 0) { %}
+                {% for(var i = 0; i < o.transactions.length; i++) { %}
+                    {% o.transactions[i].isReceiver = o.transactions[i].receiver_address === o.address; %}
+                    {% o.transactions[i].otherAddress = o.transactions[i].isReceiver && o.transactions[i].sender_address || o.transactions[i].receiver_address; %}
+                    <div class="event-item">
+                        <span class="event-amount {% if(o.transactions[i].isReceiver) print('green'); else print('red'); %}">{% if(o.transactions[i].isReceiver) print('+'); else print('-'); %}{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%} NIM&#8203;</span>
+                        <span class="event-name">{% if(o.transactions[i].isReceiver) print('Received'); else print('Sent'); %} transaction</span><br>
+                        <span class="event-datetime">{% var date = new Date(o.transactions[i].timestamp * 1000); print(date.toLocaleString()); %}</span>
+                        <span class="event-height">(<a href="#{%=o.transactions[i].block_height%}" onclick="_linkClicked(this);">#{%=o.transactions[i].block_height%}</a>)</span><br>
+                        &larr; <hash class="event-address"><a href="#{%=o.transactions[i].otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].otherAddress%}</a></hash>
+                    </div>
+                {% } %}
+            {% } else { %}
+                <div class="no-transactions">No transactions</div>
+            {% } %}
     </script>
 
     <script type="text/x-tmpl" id="template-blocklist-block">
