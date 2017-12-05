@@ -1063,6 +1063,17 @@
             else return value;
         }
 
+        function _getAccountInfo(address, callback) {
+            address = address.replace(/ /g, '+');
+            fetch('https://api.nimiq.watch/account/' + address).then(function(response) {
+                response.json().then(function(data) {
+                    if(!data) alert("No data received from https://api.nimiq.watch/account/" + address + "!");
+
+                    callback(data);
+                });
+            });
+        }
+
         function _getBlockInfo(identifier, callback) {
             fetch('https://api.nimiq.watch/block/' + identifier).then(function(response) {
                 response.json().then(function(data) {
@@ -1079,12 +1090,6 @@
 
                     callback(data);
                 });
-            });
-        }
-
-        function _getAndWriteSenderAddressHash(tx, elementId) {
-            tx.getSenderAddr().then(function(address) {
-                document.getElementById(elementId).innerHTML = '<a href="#' + address.toUserFriendlyAddress().replace(/ /g, '+') + '" onclick="_linkClicked(this);">' + address.toUserFriendlyAddress() + '</a>';
             });
         }
 
@@ -1162,12 +1167,11 @@
 
                 switch(format) {
                     case "Account Address":
-                        $.consensus.getAccount(Nimiq.Address.fromUserFriendlyAddress(value)).then(function(account) {
-                            var accountInfo = {
-                                hash: value,
-                                balance: account.balance.value,
-                                nonce: account.balance.nonce
-                            };
+                        _getAccountInfo(value, function(accountInfo) {
+                            if(!accountInfo) {
+                                alert("That account cannot be found.");
+                                return;
+                            }
 
                             $infobox.innerHTML = tmpl.accountInfo(accountInfo);
                             window.scrollTo(0, $infobox.offsetTop - 100);
@@ -1212,7 +1216,7 @@
         });
 
         function _linkClicked(self) {
-            if(window.location.hash === self.hash.replace(/ /g, '+')) {
+            if(window.location.hash === self.hash) {
                 // The browser does not do anything, if the hash is already in the URL
                 // Thus we need to trigger the link manually
                 _onHashChange();
