@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="vendor/source-sans-pro/source-sans-pro.css">
     <link rel="stylesheet" href="vendor/fira/fira.css">
 
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/css-toggle-switch@latest/dist/toggle-switch.css" />
+
     <style>
         body {
             background: snow;
@@ -242,6 +244,31 @@
         .accountinfo-wrapper {
             width: 450px;
             margin: auto;
+        }
+
+        #infobox .accountinfo-wrapper > h3 {
+            margin-bottom: 0.5em;
+            color: #042146;
+            font-size: 22px;
+            font-weight: normal;
+        }
+
+        .switch-toggle.switch-candy {
+            font-size: 16px;
+            margin-bottom: 0.5em;
+            background-color: #DDDDDD;
+            box-shadow: none;
+            text-transform: uppercase;
+        }
+
+        .switch-toggle.switch-candy > label {
+            font-weight: normal;
+            text-shadow: none !important;
+            color: #666666;
+        }
+
+        .switch-toggle.switch-candy > a {
+            background-color: #BBBBBB;
         }
 
         .about-wrapper {
@@ -847,7 +874,18 @@
                 </div>
             </div>
 
-            <h3>Latest transactions</h3>
+            <h3>History</h3>
+
+            <label class="switch-toggle switch-candy" onclick="console.log(this, 'clicked');">
+                <input id="latest-transactions-radio" name="latest" value="transactions" type="radio" checked="checked">
+                <label for="latest-transactions-radio" onclick="">Transactions</label>
+
+                <input id="latest-blocks-radio" name="latest" value="blocks" type="radio">
+                <label for="latest-blocks-radio" onclick="">Blocks</label>
+
+                <a></a>
+            </label>
+
             <div class="accountinfo-transactions">
                 {% if(o.transactions.length > 0) { %}
                     {% for(var i = o.transactions.length - 1; i >= 0; i--) { %}
