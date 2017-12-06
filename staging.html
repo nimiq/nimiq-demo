@@ -440,6 +440,18 @@
             color: #888;
         }
 
+        .event-loadmore {
+            border: 1px solid #042146;
+            padding: 0.6em 1.2em;
+            border-radius: 3px;
+            text-align: center;
+            background: #DDDDDD;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: block;
+            margin: auto;
+        }
+
         #infobox .charts-wrapper {
             background: white;
             width: 400px;
@@ -844,7 +856,7 @@
                     {% } %}
 
                     {% if(o.transactions.length === 10) { %}
-                        <button class="event-loadmore account-transactions" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">load more</button>
+                        <button class="event-loadmore" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">Load more</button>
                     {% } %}
                 {% } else { %}
                     <div class="no-transactions">No transactions</div>
