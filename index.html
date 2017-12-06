@@ -1100,6 +1100,10 @@
         default_colors = default_colors.concat(default_colors, default_colors);
 
         function _detectHashFormat(value) {
+            if(value.substr(0,2) === 'NQ') {
+                value = value.replace(/[\+ ]/g, '').match(/.{4}/g).join(' ');
+            }
+
             if(accountHashRegExp.test(value)) {
                 return "Account Address";
             }
@@ -1278,10 +1282,14 @@
         }
 
         function _onHashChange(e) {
-            var value = window.location.hash.replace(/\+/g, ' ');
+            var value = window.location.hash;
 
             // Remove leading '#'
             if(value[0] === "#") value = value.substring(1);
+
+            if(value.substr(0,2) === 'NQ') {
+                value = value.replace(/[\+ ]/g, '').match(/.{4}/g).join(' ');
+            }
 
             if(value === "" || value === "search") {
                 // Display homepage
