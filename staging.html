@@ -839,6 +839,7 @@
             <div class="accountinfo-transactions">
                 {% if(o.transactions.length > 0) { %}
                     {% for(var i = o.transactions.length - 1; i >= 0; i--) { %}
+                        {% o.transactions[i].isReceiver = o.transactions[i].receiver_address === o.address; %}
                         {%#o.accountTransaction(o.transactions[i])%}
                     {% } %}
 
@@ -853,7 +854,6 @@
     </script>
 
     <script type="text/x-tmpl" id="template-account-transaction">
-        {% o.isReceiver = o.receiver_address === o.address; %}
         {% o.otherAddress = o.isReceiver && o.sender_address || o.receiver_address; %}
         <div class="event-item">
             <span class="event-amount {% if(o.isReceiver) print('green'); else print('red'); %}">
@@ -1048,21 +1048,35 @@
         }
 
         function loadMoreTransactions(self, address) {
-            address = address.replace(/ /g, '+');
-            const limit = 10;
-            const page = parseInt(self.getAttribute('data-page'));
-            const skip  = (page - 1) * limit;
+            urlAddress = address.replace(/ /g, '+');
+            var limit = 10;
+            var page  = parseInt(self.getAttribute('data-page'));
+            var skip  = (page - 1) * limit;
 
-            fetch('https://api.nimiq.watch/account-transactions/' + address + '/' + skip + '/' + limit).then(function(response) {
-                response.json().then(function(data) {
-                    if(!data) alert('https://api.nimiq.watch/account-transactions/' + address + '/' + skip + '/' + limit + '!');
+            fetch('https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + skip + '/' + limit).then(function(response) {
+                response.json().then(function(transactions) {
+                    if(!transactions) alert('No data from https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + skip + '/' + limit + '!');
 
-                    const list = document.createDocumentFragment();
+                    var list = document.createDocumentFragment();
+                    var item;
 
-                    list.innerHTML = tmpl.accountTransactions(data);
+                    for(var i = transactions.length - 1; i >= 0; i--) {
+                        transactions[i].isReceiver = transactions[i].receiver_address === address;
 
-                    this.parentNode.appendChild(list);
-                    this.parentNode.removeChild(this);
+                        item = document.createElement('div');
+                        item.innerHTML = tmpl.accountTransaction(transactions[i]);
+
+                        list.appendChild(item.getElementsByClassName('event-item')[0]);
+                    }
+
+                    self.parentNode.insertBefore(list, self);
+
+                    if(transactions.length === limit) {
+                        self.setAttribute('data-page', parseInt(self.getAttribute('data-page')) + 1 );
+                    }
+                    else {
+                        self.parentNode.removeChild(self);
+                    }
                 });
             });
         }
