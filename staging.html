@@ -857,6 +857,8 @@
 
                     {% if(o.transactions.length === 10) { %}
                         <button class="event-loadmore" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">Load more</button>
+                    {% } else { %}
+                        <div class="no-transactions">No earlier transactions</div>
                     {% } %}
                 {% } else { %}
                     <div class="no-transactions">No transactions</div>
@@ -1079,6 +1081,13 @@
                         item.innerHTML = tmpl.accountTransaction(transactions[i]);
 
                         list.appendChild(item.getElementsByClassName('event-item')[0]);
+                    }
+
+                    if(transactions.length < limit) {
+                        var notice = document.createElement('div');
+                        notice.classList.add('no-transactions');
+                        notice.innerText = 'No earlier transactions';
+                        list.appendChild(notice);
                     }
 
                     self.parentNode.insertBefore(list, self);
