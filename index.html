@@ -880,15 +880,15 @@
 
             <h3>History</h3>
 
-            <span class="switch-toggle switch-candy">
-                <input id="latest-transactions-radio" name="account-history-radio" type="radio" checked="checked">
-                <label for="latest-transactions-radio" onclick="switchAccountHistory('transactions')">Transactions</label>
+            <div class="switch-toggle switch-candy">
+                <input id="latest-transactions-radio" name="account-history-radio" type="radio" checked="checked" onclick="switchAccountHistory(this)">
+                <label for="latest-transactions-radio" onclick="">Transactions</label>
 
-                <input id="latest-blocks-radio" name="account-history-radio" type="radio">
-                <label for="latest-blocks-radio" onclick="switchAccountHistory('blocks')">Blocks</label>
+                <input id="latest-blocks-radio" name="account-history-radio" type="radio" onclick="switchAccountHistory(this)">
+                <label for="latest-blocks-radio" onclick="">Blocks</label>
 
                 <a></a>
-            </span>
+            </div>
 
             <div class="accountinfo-transactions">
                 {% if(o.transactions.length > 0) { %}
@@ -1211,11 +1211,11 @@
             });
         }
 
-        function switchAccountHistory(tab) {
+        function switchAccountHistory(self) {
             var $transactions = document.getElementById('infobox').getElementsByClassName('accountinfo-transactions')[0];
             var $blocks       = document.getElementById('infobox').getElementsByClassName('accountinfo-blocks')[0];
 
-            if(tab === 'transactions') {
+            if(self.getAttribute('id') === 'latest-transactions-radio') {
                 $transactions.classList.remove('hidden');
                 $blocks.classList.add('hidden');
             }
