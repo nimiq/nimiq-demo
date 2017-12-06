@@ -440,6 +440,18 @@
             color: #888;
         }
 
+        .event-loadmore {
+            border: 1px solid #042146;
+            padding: 0.6em 1.2em;
+            border-radius: 3px;
+            text-align: center;
+            background: #DDDDDD;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: block;
+            margin: auto;
+        }
+
         #infobox .charts-wrapper {
             background: white;
             width: 400px;
@@ -836,22 +848,37 @@
             </div>
 
             <h3>Latest transactions</h3>
-            {% if(o.transactions.length > 0) { %}
-                {% for(var i = o.transactions.length - 1; i >= 0; i--) { %}
-                    {% o.transactions[i].isReceiver = o.transactions[i].receiver_address === o.address; %}
-                    {% o.transactions[i].otherAddress = o.transactions[i].isReceiver && o.transactions[i].sender_address || o.transactions[i].receiver_address; %}
-                    <div class="event-item">
-                        <span class="event-amount {% if(o.transactions[i].isReceiver) print('green'); else print('red'); %}">{% if(o.transactions[i].isReceiver) print('+'); else print('-'); %}{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%} NIM&#8203;</span>
-                        <span class="event-name">{% if(o.transactions[i].isReceiver) print('Received'); else print('Sent'); %} transaction</span><br>
-                        <span class="event-datetime">{% var date = new Date(o.transactions[i].timestamp * 1000); print(date.toLocaleString()); %}</span>
-                        <span class="event-height">(<a href="#{%=o.transactions[i].block_height%}" onclick="_linkClicked(this);">#{%=o.transactions[i].block_height%}</a>)</span><br>
-                        {% if(o.transactions[i].isReceiver) print('&larr;', true); else print('&rarr;', true); %}
-                        <hash class="event-address"><a href="#{%=o.transactions[i].otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].otherAddress%}</a></hash>
-                    </div>
+            <div class="accountinfo-transactions">
+                {% if(o.transactions.length > 0) { %}
+                    {% for(var i = o.transactions.length - 1; i >= 0; i--) { %}
+                        {% o.transactions[i].isReceiver = o.transactions[i].receiver_address === o.address; %}
+                        {%#o.accountTransaction(o.transactions[i])%}
+                    {% } %}
+
+                    {% if(o.transactions.length === 10) { %}
+                        <button class="event-loadmore" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">Load more</button>
+                    {% } else { %}
+                        <div class="no-transactions">No earlier transactions</div>
+                    {% } %}
+                {% } else { %}
+                    <div class="no-transactions">No transactions</div>
                 {% } %}
-            {% } else { %}
-                <div class="no-transactions">No transactions</div>
-            {% } %}
+            </div>
+        </div>
+    </script>
+
+    <script type="text/x-tmpl" id="template-account-transaction">
+        {% o.otherAddress = o.isReceiver && o.sender_address || o.receiver_address; %}
+        <div class="event-item">
+            <span class="event-amount {% if(o.isReceiver) print('green'); else print('red'); %}">
+                {% if(o.isReceiver) print('+'); else print('-'); %}{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.value))%} NIM&#8203;
+            </span>
+            <span class="event-name">{% if(o.isReceiver) print('Received'); else print('Sent'); %} transaction</span><br>
+            <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
+            <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span><br>
+            {% if(o.isReceiver) print('&larr;', true); else print('&rarr;', true); %}
+            <hash class="event-address"><a href="#{%=o.otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.otherAddress%}</a></hash>
+        </div>
     </script>
 
     <script type="text/x-tmpl" id="template-blocklist-block">
@@ -985,6 +1012,7 @@
             blocklistBlock:            tmpl('template-blocklist-block'),
             blockInfo:                 tmpl('template-block-info'),
             accountInfo:               tmpl('template-account-info'),
+            accountTransaction:        tmpl('template-account-transaction'),
             about:                     tmpl('template-about'),
             charts:                    tmpl('template-charts'),
             wealthDistributionChart:   tmpl('template-wealth-distribution-chart'),
@@ -1026,9 +1054,50 @@
             address = address.replace(/ /g, '+');
             fetch('https://api.nimiq.watch/account/' + address).then(function(response) {
                 response.json().then(function(data) {
-                    if(!data) alert("No data received from https://api.nimiq.watch/account/" + address + "!");
+                    if(!data) alert('No data received from https://api.nimiq.watch/account/' + address + '!');
 
                     callback(data);
+                });
+            });
+        }
+
+        function loadMoreTransactions(self, address) {
+            urlAddress = address.replace(/ /g, '+');
+            var limit = 10;
+            var page  = parseInt(self.getAttribute('data-page'));
+            var skip  = (page - 1) * limit;
+
+            fetch('https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + skip + '/' + limit).then(function(response) {
+                response.json().then(function(transactions) {
+                    if(!transactions) alert('No data from https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + skip + '/' + limit + '!');
+
+                    var list = document.createDocumentFragment();
+                    var item;
+
+                    for(var i = transactions.length - 1; i >= 0; i--) {
+                        transactions[i].isReceiver = transactions[i].receiver_address === address;
+
+                        item = document.createElement('div');
+                        item.innerHTML = tmpl.accountTransaction(transactions[i]);
+
+                        list.appendChild(item.getElementsByClassName('event-item')[0]);
+                    }
+
+                    if(transactions.length < limit) {
+                        var notice = document.createElement('div');
+                        notice.classList.add('no-transactions');
+                        notice.innerText = 'No earlier transactions';
+                        list.appendChild(notice);
+                    }
+
+                    self.parentNode.insertBefore(list, self);
+
+                    if(transactions.length === limit) {
+                        self.setAttribute('data-page', parseInt(self.getAttribute('data-page')) + 1 );
+                    }
+                    else {
+                        self.parentNode.removeChild(self);
+                    }
                 });
             });
         }
@@ -1036,7 +1105,7 @@
         function _getBlockInfo(identifier, callback) {
             fetch('https://api.nimiq.watch/block/' + identifier).then(function(response) {
                 response.json().then(function(data) {
-                    if(!data) alert("No data received from https://api.nimiq.watch/block/" + identifier + "!");
+                    if(!data) alert('No data received from https://api.nimiq.watch/block/' + identifier + '!');
 
                     if(data.extra_data) {
                         var buf = Nimiq.BufferUtils.fromBase64(data.extra_data);
@@ -1131,6 +1200,8 @@
                                 alert("That account cannot be found.");
                                 return;
                             }
+
+                            accountInfo.accountTransaction = tmpl.accountTransaction;
 
                             $infobox.innerHTML = tmpl.accountInfo(accountInfo);
                             window.scrollTo(0, $infobox.offsetTop - 100);
