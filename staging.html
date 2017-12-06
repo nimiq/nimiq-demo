@@ -241,6 +241,10 @@
             height: 12px;
         }
 
+        #infobox .hidden {
+            display: none;
+        }
+
         .accountinfo-wrapper {
             width: 450px;
             margin: auto;
@@ -876,15 +880,15 @@
 
             <h3>History</h3>
 
-            <label class="switch-toggle switch-candy" onclick="console.log(this, 'clicked');">
-                <input id="latest-transactions-radio" name="latest" value="transactions" type="radio" checked="checked">
-                <label for="latest-transactions-radio" onclick="">Transactions</label>
+            <span class="switch-toggle switch-candy">
+                <input id="latest-transactions-radio" name="account-history-radio" type="radio" checked="checked">
+                <label for="latest-transactions-radio" onclick="switchAccountHistory('transactions')">Transactions</label>
 
-                <input id="latest-blocks-radio" name="latest" value="blocks" type="radio">
-                <label for="latest-blocks-radio" onclick="">Blocks</label>
+                <input id="latest-blocks-radio" name="account-history-radio" type="radio">
+                <label for="latest-blocks-radio" onclick="switchAccountHistory('blocks')">Blocks</label>
 
                 <a></a>
-            </label>
+            </span>
 
             <div class="accountinfo-transactions">
                 {% if(o.transactions.length > 0) { %}
@@ -902,6 +906,22 @@
                     <div class="no-transactions">No transactions</div>
                 {% } %}
             </div>
+
+            <div class="accountinfo-blocks hidden">
+                {% if(o.blocks.length > 0) { %}
+                    {% for(var i = o.blocks.length - 1; i >= 0; i--) { %}
+                        {%#o.accountBlock(o.blocks[i])%}
+                    {% } %}
+
+                    {% if(o.blocks.length === 10) { %}
+                        <button class="event-loadmore" onclick="loadMoreBlocks(this, '{%=o.address%}')" data-page="2">Load more</button>
+                    {% } else { %}
+                        <div class="no-transactions">No earlier blocks</div>
+                    {% } %}
+                {% } else { %}
+                    <div class="no-transactions">No blocks mined</div>
+                {% } %}
+            </div>
         </div>
     </script>
 
@@ -916,6 +936,17 @@
             <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span><br>
             {% if(o.isReceiver) print('&larr;', true); else print('&rarr;', true); %}
             <hash class="event-address"><a href="#{%=o.otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.otherAddress%}</a></hash>
+        </div>
+    </script>
+
+    <script type="text/x-tmpl" id="template-account-block">
+        <div class="event-item">
+            <span class="event-amount green" title="Block reward: {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.reward))%} NIM, fees: {%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.fees))%} NIM">
+                +{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.reward + o.fees))%} NIM&#8203;
+            </span>
+            <span class="event-name">Mined block</span><br>
+            <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
+            <span class="event-height">(<a href="#{%=o.height%}" onclick="_linkClicked(this);">#{%=o.height%}</a>)</span>
         </div>
     </script>
 
@@ -1051,6 +1082,7 @@
             blockInfo:                 tmpl('template-block-info'),
             accountInfo:               tmpl('template-account-info'),
             accountTransaction:        tmpl('template-account-transaction'),
+            accountBlock:              tmpl('template-account-block'),
             about:                     tmpl('template-about'),
             charts:                    tmpl('template-charts'),
             wealthDistributionChart:   tmpl('template-wealth-distribution-chart'),
@@ -1138,6 +1170,59 @@
                     }
                 });
             });
+        }
+
+        function loadMoreBlocks(self, address) {
+            urlAddress = address.replace(/ /g, '+');
+            var limit = 10;
+            var page  = parseInt(self.getAttribute('data-page'));
+            var skip  = (page - 1) * limit;
+
+            fetch('https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + skip + '/' + limit).then(function(response) {
+                response.json().then(function(blocks) {
+                    if(!blocks) alert('No data from https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + skip + '/' + limit + '!');
+
+                    var list = document.createDocumentFragment();
+                    var item;
+
+                    for(var i = blocks.length - 1; i >= 0; i--) {
+                        item = document.createElement('div');
+                        item.innerHTML = tmpl.accountBlock(blocks[i]);
+
+                        list.appendChild(item.getElementsByClassName('event-item')[0]);
+                    }
+
+                    if(blocks.length < limit) {
+                        var notice = document.createElement('div');
+                        notice.classList.add('no-transactions');
+                        notice.innerText = 'No earlier blocks';
+                        list.appendChild(notice);
+                    }
+
+                    self.parentNode.insertBefore(list, self);
+
+                    if(blocks.length === limit) {
+                        self.setAttribute('data-page', parseInt(self.getAttribute('data-page')) + 1 );
+                    }
+                    else {
+                        self.parentNode.removeChild(self);
+                    }
+                });
+            });
+        }
+
+        function switchAccountHistory(tab) {
+            var $transactions = document.getElementById('infobox').getElementsByClassName('accountinfo-transactions')[0];
+            var $blocks       = document.getElementById('infobox').getElementsByClassName('accountinfo-blocks')[0];
+
+            if(tab === 'transactions') {
+                $transactions.classList.remove('hidden');
+                $blocks.classList.add('hidden');
+            }
+            else {
+                $transactions.classList.add('hidden');
+                $blocks.classList.remove('hidden');
+            }
         }
 
         function _getBlockInfo(identifier, callback) {
@@ -1240,6 +1325,7 @@
                             }
 
                             accountInfo.accountTransaction = tmpl.accountTransaction;
+                            accountInfo.accountBlock       = tmpl.accountBlock;
 
                             $infobox.innerHTML = tmpl.accountInfo(accountInfo);
                             window.scrollTo(0, $infobox.offsetTop - 100);
