@@ -37,6 +37,6 @@ Some users reported some issues with the miner in the new testnet, so the develo
 
 ---
 
-That's all for today. Until next week!
+That's all for today. Until [next week](https://nimiq.watch/news/2017-12-08-week-in-review-3.html)!
 
 [Last week's news roundup can be found here.](https://nimiq.watch/news/2017-11-24-week-in-review-1.html)
