@@ -13,6 +13,7 @@ Welcome to the third edition of *Week In Review* for the [Nimiq blockchain proje
 ## Nimiq News
 * The Luna testnet was updated with bug fixes and new features - Robin detailed the changes here: [Luna Protocol Update 1](https://medium.com/nimiq-network/luna-protocol-update-1-91f16db62f57)
 * A vlog of the team arriving back in Costa Rica was posted to the Youtube channel: [Around The World & Back, CR HQ - Vlog 38](https://www.youtube.com/watch?v=fE17LVmHehY)
+![A group selfie of the Nimiq team](2017-December-Nimiq-Team-Selfie.jpg) *Photo by Richy on Telegram*
 * Robin posted a blog article explaining their choice of identicon for the Nimiq addresses: [Design Blog 2: Identicons](https://medium.com/nimiq-network/devblog-2-identicons-be50dca91d55)
 
 ## Code Updates
@@ -27,7 +28,7 @@ The first testnet update fixed a lot of problems with including and ordering tra
 
 ---
 
-That's all for today. Until next week!
+That's all for now. See you next week!
 
 ### *About this newsletter*
 
@@ -35,4 +36,4 @@ With these *Week In Review* articles I hope to bring regular updates of what is 
 
 > This article is fan-created and has no official affiliation with the Nimiq developer team or the Nimiq Foundation. As such this article is not able to talk about inner workings of the team, code in private repositories or plans for the future.
 
-[Last week's news roundup can be found here.](https://nimiq.watch/news/2017-11-24-week-in-review-1.html)
+[Last week's news roundup can be found here.](https://nimiq.watch/news/2017-12-01-week-in-review-2.html)
