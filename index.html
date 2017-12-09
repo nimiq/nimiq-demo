@@ -717,16 +717,16 @@
             </a>
         </h1>
         <a href="#search" onclick="_linkClicked(this, true);" id="search">Search</a>
-        <!--<div class="submenu-container">
+        <div class="submenu-container">
             <a href="#charts" onclick="_linkClicked(this, true);" id="charts">Charts</a>
 
             <div class="submenu">
-                <a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>
+                <!---<a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>-->
                 <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
-                <a href="#chart-transactions-per-block" onclick="_linkClicked(this);">Transactions</a>
-                <a href="#chart-hashing-distribution" onclick="_linkClicked(this);">Hashing Distribution</a>
+                <!---<a href="#chart-transactions-per-block" onclick="_linkClicked(this);">Transactions</a>-->
+                <!---<a href="#chart-hashing-distribution" onclick="_linkClicked(this);">Hashing Distribution</a>-->
             </div>
-        </div>-->
+        </div>
         <div class="submenu-container">
             <a href="https://nimiq.watch/news" target="_blank">News</a>
 
@@ -999,10 +999,10 @@
         <div class="charts-wrapper">
             <h2>Charts</h2>
             <p>
-                <a href="#chart-wealth-distribution">Wealth Distribution</a>
+                <!--<a href="#chart-wealth-distribution">Wealth Distribution</a>-->
                 <a href="#chart-global-hashrate">Global Hashrate</a>
-                <a href="#chart-transactions-per-block">Transactions</a>
-                <a href="#chart-hashing-distribution">Hashing Distribution</a>
+                <!--<a href="#chart-transactions-per-block">Transactions</a>-->
+                <!--<a href="#chart-hashing-distribution">Hashing Distribution</a>-->
             </p>
         </div>
     </script>
@@ -1029,15 +1029,14 @@
 
     <script type="text/x-tmpl" id="template-global-hashrate-chart">
         <h2>Global Hashrate</h2>
-        <small>During the last 24 hours</small>
+        <small>During the last 7 days</small>
         <canvas class="chart"></canvas>
         <div class="blocklist-loader over-canvas">
             <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
         </div>
         <div class="chart-valid-info"></div>
-        <p><small><strong>Disclaimer:</strong> The global hashrate is estimated every 10 blocks by how fast the last 10 blocks have been mined.
-        This time is measured from the timestamps of the blocks. Since the betanet does not yet include time synchronization, each block is timestamped with
-        the local system time of the miner. These times can be different from the real time, thus skewing the global hashrate estimation.</small></p>
+        <p><small><strong>Disclaimer:</strong> For this graph, the global hashrate is calculated every 60 blocks (~1 hour) by how fast the last 120 blocks have been mined.
+        This time is measured from the timestamps of the blocks.</small></p>
     </script>
 
     <script type="text/x-tmpl" id="template-transactions-per-block-chart">
@@ -1552,105 +1551,96 @@
             }
         }
     </script>
+-->
     <script>
-        async function _globalHashrate() {
+        function _globalHashrate() {
             $infobox.innerHTML = tmpl.globalHashrateChart();
             window.scrollTo(0, $infobox.offsetTop - 100);
 
-            // Analyze available path from the beginning, check when difficulty changes
-            var difficulty = [];
-            var timestamp  = [];
+            fetch('https://api.nimiq.watch/statistics/difficulty').then(function(response) {
+                response.json().then(function(data) {
+                    var difficulty = data.map(function(block) { return block['difficulty']; });
+                    var timestamp  = data.map(function(block) { return block['timestamp']; });
 
-            // Set start time to 24h ago
-            var startTime = Math.round(Date.now() / 1000) - 60 * 60 * 24;
+                    var months = [null, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-            for(var i = 0; i < $.blockchain.path.length; i += Nimiq.Policy.DIFFICULTY_ADJUSTMENT_BLOCKS) {
-                const block = await $.blockchain.getBlock($.blockchain.path[i]);
+                    // Calculate hashrate from difficulty
+                    var hashrate  = difficulty.map(function(diff) { return Math.round(diff * Math.pow(2, 16) / Nimiq.Policy.BLOCK_TIME); });
+                    var timelabel = timestamp.map(function(time) {
+                        var date = new Date(time * 1000);
+                        return date.getDate() + ". " + months[date.getMonth()] + " " + date.toTimeString().slice(0, 5);
+                    });
 
-                if(block.timestamp >= startTime) {
-                    difficulty.push(block.difficulty);
-                    timestamp.push(block.timestamp);
-                }
-            }
-
-            // const months = [null, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-            // Calculate hashrate from difficulty
-            var hashrate  = difficulty.map(diff => Math.round(diff * Math.pow(2, 16) / Nimiq.Policy.BLOCK_TIME));
-            var timelabel = timestamp.map(time => {
-                let date = new Date(time * 1000);
-                return /*date.getDate() + ". " + months[date.getMonth()] + " " + */date.toTimeString().slice(0, 5);
-            });
-
-            var _renderGlobalHashrateChart = function() {
-                try {
-                    $infobox.removeChild($infobox.getElementsByClassName('blocklist-loader')[0]);
-                }
-                catch(e) {}
-
-                var time = new Date($.blockchain.head.timestamp * 1000);
-                $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created at block #" + $.blockchain.head.height + " - " + time.toLocaleString()
-
-                if(window.chart) window.chart.destroy();
-                if(window.chart2) window.chart2.destroy();
-                if(window.chart3) window.chart3.destroy();
-                if(window.chart4) window.chart4.destroy();
-
-                var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
-
-                window.chart = new Chart(ctx, {
-                    // The type of chart we want to create
-                    type: 'line',
-
-                    // The data for our dataset
-                    data: {
-                        labels: timelabel,
-                        datasets: [{
-                            label: "Global hashrate",
-                            pointBackgroundColor: '#042146',
-                            borderColor: '#042146',
-                            data: hashrate,
-                            steppedLine: 'after'
-                        }]
-                    },
-
-                    // Configuration options go here
-                    options: {
-                        legend: {
-                            display: false
-                        },
-                        scales: {
-                            yAxes: [{
-                                ticks: {
-                                    callback: _humanReadableHashesPerSecond
-                                },
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: "Hashrate",
-                                    fontFamily: "'Source Sans Pro', sans-serif",
-                                    fontSize: 16
-                                }
-                            }]
-                        },
-                        tooltips: {
-                            callbacks: {
-                                label: _humanReadableHashesPerSecond
-                            }
+                    var _renderGlobalHashrateChart = function() {
+                        try {
+                            $infobox.removeChild($infobox.getElementsByClassName('blocklist-loader')[0]);
                         }
+                        catch(e) {}
+
+                        $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created " + (new Date()).toLocaleString()
+
+                        if(window.chart) window.chart.destroy();
+                        if(window.chart2) window.chart2.destroy();
+                        if(window.chart3) window.chart3.destroy();
+                        if(window.chart4) window.chart4.destroy();
+
+                        var ctx = $infobox.getElementsByTagName('canvas')[0].getContext('2d');
+
+                        window.chart = new Chart(ctx, {
+                            // The type of chart we want to create
+                            type: 'line',
+
+                            // The data for our dataset
+                            data: {
+                                labels: timelabel,
+                                datasets: [{
+                                    label: "Global hashrate",
+                                    pointBackgroundColor: '#042146',
+                                    borderColor: '#042146',
+                                    data: hashrate
+                                }]
+                            },
+
+                            // Configuration options go here
+                            options: {
+                                legend: {
+                                    display: false
+                                },
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: true,
+                                            callback: _humanReadableHashesPerSecond
+                                        },
+                                        scaleLabel: {
+                                            display: true,
+                                            labelString: "Hashrate",
+                                            fontFamily: "'Source Sans Pro', sans-serif",
+                                            fontSize: 16
+                                        }
+                                    }]
+                                },
+                                tooltips: {
+                                    callbacks: {
+                                        label: _humanReadableHashesPerSecond
+                                    }
+                                }
+                            }
+                        });
+                    };
+
+                    if(document.getElementById('chart-js-script')) {
+                        _renderGlobalHashrateChart();
+                    }
+                    else {
+                        var scriptTag = document.createElement('script');
+                        scriptTag.id = "chart-js-script";
+                        scriptTag.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js";
+                        scriptTag.onload = _renderGlobalHashrateChart;
+                        document.body.appendChild(scriptTag);
                     }
                 });
-            };
-
-            if(document.getElementById('chart-js-script')) {
-                _renderGlobalHashrateChart();
-            }
-            else {
-                var scriptTag = document.createElement('script');
-                scriptTag.id = "chart-js-script";
-                scriptTag.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js";
-                scriptTag.onload = _renderGlobalHashrateChart;
-                document.body.appendChild(scriptTag);
-            }
+            });
         }
 
         function _humanReadableHashesPerSecond(arg1, arg2) {
@@ -1666,13 +1656,13 @@
                 resultValue = value;
             }
             else {
-                let kilo = value / 1000;
+                var kilo = value / 1000;
                 if(kilo < 1000) {
                     resultValue = kilo;
                     resultUnit = "kH/s";
                 }
                 else {
-                    let mega = kilo / 1000;
+                    var mega = kilo / 1000;
                     if(mega < 1000) {
                         resultValue = mega;
                         resultUnit = "MH/s";
@@ -1691,6 +1681,7 @@
             return resultValue + " " + resultUnit;
         }
     </script>
+<!--
     <script>
         async function _transactionsPerBlock() {
             $infobox.innerHTML = tmpl.transactionsPerBlockChart();
