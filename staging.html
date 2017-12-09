@@ -1561,7 +1561,7 @@
                     var difficulty = data.map(function(block) { return block['difficulty']; });
                     var timestamp  = data.map(function(block) { return block['timestamp']; });
 
-                    var months = [null, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
                     // Calculate hashrate from difficulty
                     var hashrate  = difficulty.map(function(diff) { return Math.round(diff * Math.pow(2, 16) / Nimiq.Policy.BLOCK_TIME); });
