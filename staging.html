@@ -527,6 +527,11 @@
             height: 400px !important;
         }
 
+        #infobox .global-hashrate-range-switch {
+            float: right;
+            width: 50%;
+        }
+
         #infobox .axis-type-switch {
             float: right;
             font-size: 16px;
@@ -882,10 +887,10 @@
             <h3>History</h3>
 
             <div class="switch-toggle switch-candy">
-                <input id="latest-transactions-radio" name="account-history-radio" type="radio" checked="checked" onclick="switchAccountHistory(this)">
+                <input id="latest-transactions-radio" name="account-history-radio" type="radio" checked="checked" onclick="switchAccountHistory('transactions')">
                 <label for="latest-transactions-radio" onclick="">Transactions</label>
 
-                <input id="latest-blocks-radio" name="account-history-radio" type="radio" onclick="switchAccountHistory(this)">
+                <input id="latest-blocks-radio" name="account-history-radio" type="radio" onclick="switchAccountHistory('blocks')">
                 <label for="latest-blocks-radio" onclick="">Blocks</label>
 
                 <a></a>
@@ -1007,87 +1012,18 @@
         </div>
     </script>
 
-    <script type="text/x-tmpl" id="template-wealth-distribution-chart">
-        <div class="axis-type-switch">
-            <label class="switch-light switch-candy" onclick="">
-                <input type="checkbox" onchange="_wealthDistributionSwitchScale(this);" disabled="">
-                <span>
-                    <span>Linear</span>
-                    <span>Logarithmic</span>
-                    <a></a>
-                </span>
-            </label>
-        </div>
-        <h2>Wealth Distribution</h2>
-        <small>Among non-zero accounts</small>
-        <canvas class="chart"></canvas>
-        <div class="blocklist-loader over-canvas">
-            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
-        </div>
-        <div class="chart-valid-info"></div>
-    </script>
-
-    <script type="text/x-tmpl" id="template-global-hashrate-chart">
-        <h2>Global Hashrate</h2>
-        <small>During the last 7 days</small>
-        <canvas class="chart"></canvas>
-        <div class="blocklist-loader over-canvas">
-            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
-        </div>
-        <div class="chart-valid-info"></div>
-        <p><small><strong>Disclaimer:</strong> The graph shows the average global hashrate per hour. The global hashrate for each block is estimated by its difficutly, which is based on the time it took for the last 120 blocks to be mined.</small></p>
-    </script>
-
-    <script type="text/x-tmpl" id="template-transactions-per-block-chart">
-        <h2>Transactions</h2>
-        <small>During the last 24 hours</small>
-        <canvas class="chart"></canvas>
-        <div class="blocklist-loader over-canvas">
-            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
-        </div>
-        <div class="chart-valid-info"></div>
-    </script>
-
-    <script type="text/x-tmpl" id="template-hashing-distribution-chart">
-        <h2>Hashing Distribution</h2>
-        <div class="hashing-distribution-chart-wrapper">
-            <canvas class="chart"></canvas>
-            <div class="blocklist-loader over-canvas">
-                <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
-            </div>
-        </div>
-
-        <div class="hashing-distribution-chart-wrapper">
-            <canvas class="chart"></canvas>
-        </div>
-
-        <div class="hashing-distribution-chart-wrapper" style="clear: left;">
-            <canvas class="chart"></canvas>
-        </div>
-
-        <div class="hashing-distribution-chart-wrapper">
-            <canvas class="chart"></canvas>
-        </div>
-
-        <div class="chart-valid-info"></div>
-    </script>
-
     <script>
         var accountHashRegExp = new RegExp('^NQ[A-Z0-9 ]{42}'),
             blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
 
-        var tmpl = {
+        var template = {
             blocklistBlock:            tmpl('template-blocklist-block'),
             blockInfo:                 tmpl('template-block-info'),
             accountInfo:               tmpl('template-account-info'),
             accountTransaction:        tmpl('template-account-transaction'),
             accountBlock:              tmpl('template-account-block'),
             about:                     tmpl('template-about'),
-            charts:                    tmpl('template-charts'),
-            wealthDistributionChart:   tmpl('template-wealth-distribution-chart'),
-            globalHashrateChart:       tmpl('template-global-hashrate-chart'),
-            transactionsPerBlockChart: tmpl('template-transactions-per-block-chart'),
-            hashingDistributionChart:  tmpl('template-hashing-distribution-chart')
+            charts:                    tmpl('template-charts')
         };
 
         var $infobox        = document.getElementById('infobox'),
@@ -1151,7 +1087,7 @@
                         transactions[i].isReceiver = transactions[i].receiver_address === address;
 
                         item = document.createElement('div');
-                        item.innerHTML = tmpl.accountTransaction(transactions[i]);
+                        item.innerHTML = template.accountTransaction(transactions[i]);
 
                         list.appendChild(item.getElementsByClassName('event-item')[0]);
                     }
@@ -1190,7 +1126,7 @@
 
                     for(var i = blocks.length - 1; i >= 0; i--) {
                         item = document.createElement('div');
-                        item.innerHTML = tmpl.accountBlock(blocks[i]);
+                        item.innerHTML = template.accountBlock(blocks[i]);
 
                         list.appendChild(item.getElementsByClassName('event-item')[0]);
                     }
@@ -1214,11 +1150,11 @@
             });
         }
 
-        function switchAccountHistory(self) {
+        function switchAccountHistory(selection) {
             var $transactions = document.getElementById('infobox').getElementsByClassName('accountinfo-transactions')[0];
             var $blocks       = document.getElementById('infobox').getElementsByClassName('accountinfo-blocks')[0];
 
-            if(self.getAttribute('id') === 'latest-transactions-radio') {
+            if(selection === 'transactions') {
                 $transactions.classList.remove('hidden');
                 $blocks.classList.add('hidden');
             }
@@ -1275,7 +1211,7 @@
             var item = document.createElement('div');
             item.classList.add('blocklist-block');
 
-            item.innerHTML = tmpl.blocklistBlock(blockInfo);
+            item.innerHTML = template.blocklistBlock(blockInfo);
 
             blocklistNode.insertBefore(item, blocklistNode.firstChild);
         }
@@ -1298,11 +1234,11 @@
                 window.scrollTo(0, 0);
             }
             else if(value === "about") {
-                $infobox.innerHTML = tmpl.about();
+                $infobox.innerHTML = template.about();
                 window.scrollTo(0, $infobox.offsetTop - 100);
             }
             else if(value === "charts") {
-                $infobox.innerHTML = tmpl.charts();
+                $infobox.innerHTML = template.charts();
                 window.scrollTo(0, $infobox.offsetTop - 100);
             }
             else if(value === "chart-wealth-distribution") {
@@ -1331,10 +1267,10 @@
                                 return;
                             }
 
-                            accountInfo.accountTransaction = tmpl.accountTransaction;
-                            accountInfo.accountBlock       = tmpl.accountBlock;
+                            accountInfo.accountTransaction = template.accountTransaction;
+                            accountInfo.accountBlock       = template.accountBlock;
 
-                            $infobox.innerHTML = tmpl.accountInfo(accountInfo);
+                            $infobox.innerHTML = template.accountInfo(accountInfo);
                             window.scrollTo(0, $infobox.offsetTop - 100);
                         });
                         break;
@@ -1346,7 +1282,7 @@
                                 return;
                             }
 
-                            $infobox.innerHTML = tmpl.blockInfo(blockInfo);
+                            $infobox.innerHTML = template.blockInfo(blockInfo);
                             window.scrollTo(0, $infobox.offsetTop - 100);
                         });
                         break;
@@ -1397,7 +1333,29 @@
         ga('send', 'pageview');
     </script>
 <!--
+    <script type="text/x-tmpl" id="template-wealth-distribution-chart">
+        <div class="axis-type-switch">
+            <label class="switch-light switch-candy" onclick="">
+                <input type="checkbox" onchange="_wealthDistributionSwitchScale(this);" disabled="">
+                <span>
+                    <span>Linear</span>
+                    <span>Logarithmic</span>
+                    <a></a>
+                </span>
+            </label>
+        </div>
+        <h2>Wealth Distribution</h2>
+        <small>Among non-zero accounts</small>
+        <canvas class="chart"></canvas>
+        <div class="blocklist-loader over-canvas">
+            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+        </div>
+        <div class="chart-valid-info"></div>
+    </script>
+
     <script>
+        template.wealthDistributionChart = tmpl('template-wealth-distribution-chart');
+
         async function _wealthDistribution(axisType = "linear", skipRender = false) {
             if(!document.getElementById('toggle-switch-css-link')) {
                 if(document.createStyleSheet) {
@@ -1414,7 +1372,7 @@
 
             if(!skipRender) {
                 // Only replace infobox contents when not coming from the scale toggle
-                $infobox.innerHTML = tmpl.wealthDistributionChart();
+                $infobox.innerHTML = template.wealthDistributionChart();
                 window.scrollTo(0, $infobox.offsetTop - 100);
             }
 
@@ -1551,9 +1509,40 @@
         }
     </script>
 -->
+    <script type="text/x-tmpl" id="template-global-hashrate-chart">
+        <div class="switch-toggle switch-candy global-hashrate-range-switch">
+            <input id="global-hashrate-range-day" name="global-hashrate-range" type="radio" onclick="switchGlobalHashrateRange('day')">
+            <label for="global-hashrate-range-day" onclick="">1 day</label>
+
+            <input id="global-hashrate-range-week" name="global-hashrate-range" type="radio" checked="checked" onclick="switchGlobalHashrateRange('week')">
+            <label for="global-hashrate-range-week" onclick="">7 days</label>
+
+            <input id="global-hashrate-range-month" name="global-hashrate-range" type="radio" onclick="switchGlobalHashrateRange('month')">
+            <label for="global-hashrate-range-month" onclick="">30 days</label>
+
+            <input id="global-hashrate-range-year" name="global-hashrate-range" type="radio" onclick="switchGlobalHashrateRange('year')">
+            <label for="global-hashrate-range-year" onclick="">1 year</label>
+
+            <input id="global-hashrate-range-all" name="global-hashrate-range" type="radio" onclick="switchGlobalHashrateRange('all')">
+            <label for="global-hashrate-range-all" onclick="">all</label>
+
+            <a></a>
+        </div>
+        <h2>Global Hashrate</h2>
+        <small>During the last 7 days</small>
+        <canvas class="chart"></canvas>
+        <div class="blocklist-loader over-canvas">
+            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+        </div>
+        <div class="chart-valid-info"></div>
+        <p><small><strong>Disclaimer:</strong> The graph shows the average global hashrate per hour. The global hashrate for each block is estimated by its difficutly, which is based on the time it took for the last 120 blocks to be mined.</small></p>
+    </script>
+
     <script>
+        template.globalHashrateChart = tmpl('template-global-hashrate-chart');
+
         function _globalHashrate() {
-            $infobox.innerHTML = tmpl.globalHashrateChart();
+            $infobox.innerHTML = template.globalHashrateChart();
             window.scrollTo(0, $infobox.offsetTop - 100);
 
             fetch('https://api.nimiq.watch/statistics/difficulty').then(function(response) {
@@ -1679,11 +1668,27 @@
 
             return resultValue + " " + resultUnit;
         }
+
+        function switchGlobalHashrateRange(range) {
+            console.log(range);
+        }
     </script>
 <!--
+    <script type="text/x-tmpl" id="template-transactions-per-block-chart">
+        <h2>Transactions</h2>
+        <small>During the last 24 hours</small>
+        <canvas class="chart"></canvas>
+        <div class="blocklist-loader over-canvas">
+            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+        </div>
+        <div class="chart-valid-info"></div>
+    </script>
+
     <script>
+        template.transactionsPerBlockChart = tmpl('template-transactions-per-block-chart');
+
         async function _transactionsPerBlock() {
-            $infobox.innerHTML = tmpl.transactionsPerBlockChart();
+            $infobox.innerHTML = template.transactionsPerBlockChart();
             window.scrollTo(0, $infobox.offsetTop - 100);
 
             var transactionCount = [],
@@ -1820,9 +1825,36 @@
             }
         }
     </script>
+
+    <script type="text/x-tmpl" id="template-hashing-distribution-chart">
+        <h2>Hashing Distribution</h2>
+        <div class="hashing-distribution-chart-wrapper">
+            <canvas class="chart"></canvas>
+            <div class="blocklist-loader over-canvas">
+                <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+            </div>
+        </div>
+
+        <div class="hashing-distribution-chart-wrapper">
+            <canvas class="chart"></canvas>
+        </div>
+
+        <div class="hashing-distribution-chart-wrapper" style="clear: left;">
+            <canvas class="chart"></canvas>
+        </div>
+
+        <div class="hashing-distribution-chart-wrapper">
+            <canvas class="chart"></canvas>
+        </div>
+
+        <div class="chart-valid-info"></div>
+    </script>
+
     <script>
+        template.hashingDistributionChart = tmpl('template-hashing-distribution-chart');
+
         async function _hashingDistribution() {
-            $infobox.innerHTML = tmpl.hashingDistributionChart();
+            $infobox.innerHTML = template.hashingDistributionChart();
             window.scrollTo(0, $infobox.offsetTop - 100);
 
             var blocksMined24 = {},
