@@ -1357,19 +1357,6 @@
         template.wealthDistributionChart = tmpl('template-wealth-distribution-chart');
 
         async function _wealthDistribution(axisType = "linear", skipRender = false) {
-            if(!document.getElementById('toggle-switch-css-link')) {
-                if(document.createStyleSheet) {
-                    document.createStyleSheet("https://cdn.jsdelivr.net/css-toggle-switch/latest/toggle-switch.css");
-                }
-                else {
-                    var linkTag = document.createElement('link');
-                    linkTag.rel = "stylesheet";
-                    linkTag.href = "https://cdn.jsdelivr.net/css-toggle-switch/latest/toggle-switch.css";
-                    linkTag.id = "toggle-switch-css-link";
-                    document.head.appendChild(linkTag);
-                }
-            }
-
             if(!skipRender) {
                 // Only replace infobox contents when not coming from the scale toggle
                 $infobox.innerHTML = template.wealthDistributionChart();
@@ -1541,11 +1528,17 @@
     <script>
         template.globalHashrateChart = tmpl('template-global-hashrate-chart');
 
-        function _globalHashrate() {
-            $infobox.innerHTML = template.globalHashrateChart();
-            window.scrollTo(0, $infobox.offsetTop - 100);
+        function _globalHashrate(range, skipRender) {
+            range      = range || 'week';
+            skipRender = skipRender || false;
 
-            fetch('https://api.nimiq.watch/statistics/difficulty').then(function(response) {
+            if(!skipRender) {
+                // Only replace infobox contents when not coming from the range toggle
+                $infobox.innerHTML = template.globalHashrateChart();
+                window.scrollTo(0, $infobox.offsetTop - 100);
+            }
+
+            fetch('https://api.nimiq.watch/statistics/difficulty/' + range).then(function(response) {
                 response.json().then(function(data) {
                     var difficulty = data.map(function(block) { return block['difficulty']; });
                     var timestamp  = data.map(function(block) { return block['timestamp']; });
@@ -1670,7 +1663,7 @@
         }
 
         function switchGlobalHashrateRange(range) {
-            console.log(range);
+            _globalHashrate(range, true);
         }
     </script>
 <!--
