@@ -1499,30 +1499,32 @@
     <script type="text/x-tmpl" id="template-global-hashrate-chart">
         <div class="switch-toggle switch-candy global-hashrate-range-switch">
             <input id="global-hashrate-range-day" name="global-hashrate-range" type="radio" onclick="switchGlobalHashrateRange('day')">
-            <label for="global-hashrate-range-day" onclick="">1 day</label>
+            <label for="global-hashrate-range-day" onclick="">Day</label>
 
             <input id="global-hashrate-range-week" name="global-hashrate-range" type="radio" checked="checked" onclick="switchGlobalHashrateRange('week')">
-            <label for="global-hashrate-range-week" onclick="">7 days</label>
+            <label for="global-hashrate-range-week" onclick="">Week</label>
 
             <input id="global-hashrate-range-month" name="global-hashrate-range" type="radio" onclick="switchGlobalHashrateRange('month')">
-            <label for="global-hashrate-range-month" onclick="">30 days</label>
+            <label for="global-hashrate-range-month" onclick="">Month</label>
 
             <input id="global-hashrate-range-year" name="global-hashrate-range" type="radio" onclick="switchGlobalHashrateRange('year')">
-            <label for="global-hashrate-range-year" onclick="">1 year</label>
+            <label for="global-hashrate-range-year" onclick="">Year</label>
 
+            <!--
             <input id="global-hashrate-range-all" name="global-hashrate-range" type="radio" onclick="switchGlobalHashrateRange('all')">
             <label for="global-hashrate-range-all" onclick="">all</label>
+            -->
 
             <a></a>
         </div>
         <h2>Global Hashrate</h2>
-        <small>During the last 7 days</small>
+        <small>Estimated from mining difficulty</small>
         <canvas class="chart"></canvas>
         <div class="blocklist-loader over-canvas">
             <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
         </div>
         <div class="chart-valid-info"></div>
-        <p><small><strong>Disclaimer:</strong> The graph shows the average global hashrate per hour. The global hashrate for each block is estimated by its difficutly, which is based on the time it took for the last 120 blocks to be mined.</small></p>
+        <p><small><strong>Disclaimer:</strong> The graph shows the averaged global hashrate for the respective intervals. The global hashrate for each block is estimated from its difficutly, which is based on the time it took for the last 120 blocks to be mined.</small></p>
     </script>
 
     <script>
