@@ -718,7 +718,7 @@
                 NIMIQ.WATCH
             </a>
         </h1>
-        <a href="#search" onclick="_linkClicked(this, true);" id="search">Search</a>
+        <a href="#" onclick="_linkClicked(this, true);" id="search">Search</a>
         <div class="submenu-container">
             <a href="#charts" onclick="_linkClicked(this, true);" id="charts">Charts</a>
 
@@ -744,7 +744,7 @@
     <div id="searchbox">
         <h1>Search accounts and blocks:</h1>
 
-        <form action="#search" method="GET" id="search-form">
+        <form action="#" method="GET" id="search-form">
             <input type="text" id="search-input" placeholder="Address, block hash or height" onfocus="this.select();" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             <input type="submit" id="search-submit" value="go" disabled="" title="Initializing, please wait">
             <span class="detection">Format detected: <span id="hash-format"><em>none</em></span></span>
@@ -1026,7 +1026,7 @@
         var $infobox        = document.getElementById('infobox'),
             $searchInput    = document.getElementById('search-input');
 
-        var directNavigationTargets = ['#search', '#charts', '#about'];
+        var directNavigationTargets = ['#charts', '#about'];
 
         var default_colors = ['#3366CC','#DC3912','#FF9900','#109618','#990099','#3B3EAC','#0099C6','#DD4477','#66AA00','#B82E2E','#316395','#994499','#22AA99','#AAAA11','#6633CC','#E67300','#8B0707','#329262','#5574A6','#3B3EAC'];
         default_colors = default_colors.concat(default_colors, default_colors);
@@ -1214,6 +1214,9 @@
         }
 
         function _onHashChange(e) {
+            ga('set', 'page', location.pathname + location.search + location.hash);
+            ga('send', 'pageview');
+
             var value = window.location.hash;
 
             // Remove leading '#'
@@ -1327,7 +1330,7 @@
         })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
         ga('create', 'UA-101611099-1', 'auto');
-        ga('send', 'pageview');
+        // ga('send', 'pageview'); // Done instead in the _onHashChange function
     </script>
 <!--
     <script type="text/x-tmpl" id="template-wealth-distribution-chart">
