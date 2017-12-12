@@ -153,8 +153,21 @@
             background: #F0F0F0;
         }
 
-        img.nimiq_currency {
-            height: 12px;
+        #monitor {
+            float: right;
+            line-height: 2.7em;
+        }
+
+        #status.not-connected {
+            color: red;
+        }
+
+        #status.synchronizing {
+            color: gold;
+        }
+
+        #status.consensus-established {
+            color: limegreen;
         }
 
         #searchbox {
@@ -681,17 +694,14 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch"></script>
     <script>
         // Dummy object to prevent JS errors
-        window.$ = {
-            consensus: {
-                established: false
-            }
-        };
+        var nimiqLoaded = false;
+        var latestBlockHeight = 0;
 
-        function _onConsensusEstablished() {
+        function _onNimiqLoaded() {
             document.getElementById('search-submit').removeAttribute('disabled');
             document.getElementById('search-submit').removeAttribute('title');
 
-            $.consensus.established = true;
+            nimiqLoaded = true;
 
             _buildListOfLatestBlocks();
 
@@ -701,9 +711,69 @@
             }
         }
 
+        function _onConsensusEstablished() {
+            $status.innerText = 'connected';
+            $status.classList.add('consensus-established');
+        }
+
+        function _onConsensusLost() {
+            console.error('Consensus lost');
+            $status.innerText = 'consensus lost';
+            $status.classList.remove('consensus-established', 'synchronizing');
+        }
+
+        function _onHeadChanged(head) {
+            var height = head.height;
+            if(height > 1) $height.innerText = ' @ #' + height;
+
+            if(blocklistBuilt && height > latestBlockHeight) {
+                _getBlockListInfoFromBlockchain(head, function(blockInfo) {
+                    _addBlockToListOfLatestBlocks(blockInfo);
+                });
+            }
+        }
+
+        function _onPeersChanged() {
+            document.getElementById('monitor').setAttribute('title', 'Connected to ' + $.network.peerCount + ' peers');
+        }
+
         Nimiq.init(function() {
-            // INIT
-            _onConsensusEstablished();
+            _onNimiqLoaded();
+
+            $status.innerText = 'synchronizing';
+            $status.classList.add('synchronizing');
+
+            Nimiq.Consensus.nano().then(function(nanoConsensus) {
+                var $ = {};
+                window.$ = $;
+
+                $.consensus = nanoConsensus;
+
+                $.blockchain = $.consensus.blockchain;
+                $.network    = $.consensus.network;
+
+                $.consensus.on('established', _onConsensusEstablished);
+                $.consensus.on('lost', _onConsensusLost);
+
+                $.blockchain.on('head-changed', _onHeadChanged);
+                _onHeadChanged($.blockchain.head);
+
+                $.network.on('peers-changed', _onPeersChanged);
+
+                $.network.connect();
+            });
+        }, function(code) {
+            switch (code) {
+                case Nimiq.ERR_WAIT:
+                    alert('Error: Already open in another tab or window.');
+                    break;
+                case Nimiq.ERR_UNSUPPORTED:
+                    alert('Error: Browser not supported');
+                    break;
+                default:
+                    alert('Error: Nimiq initialization error');
+                    break;
+            }
         });
     </script>
     <script src="vendor/tmpl.min.js"></script>
@@ -739,6 +809,11 @@
             </div>
         </div>
         <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
+
+        <span id="monitor" title="Connected to 0 peers">
+            <strong>Status:</strong>
+            <span id="status" class="not-connected">connecting</span><span id="height"></span></span>
+        </span>
     </header>
 
     <div id="searchbox">
@@ -797,7 +872,7 @@
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Transaction Value </label>
-                    <span><!--<img src="icons/nimiq_blue.svg"> -->{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.value))%} NIM</span>
+                    <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.value))%} NIM</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Block Reward </label>
@@ -852,7 +927,7 @@
                     <div class="blockinfo-transaction-row">
                         <hash><a href="#{%=o.transactions[i].sender_address.replace(/ /g, '+')%}"   onclick="_linkClicked(this);">{%=o.transactions[i].sender_address  %}</a></hash>
                         <hash><a href="#{%=o.transactions[i].receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].receiver_address%}</a></hash>
-                        <span><!--<img src="icons/nimiq_blue.svg"> -->{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%} NIM</span>
+                        <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%} NIM</span>
                     </div>
                 {% } %}
             {% } else { %}
@@ -873,7 +948,7 @@
             <div class="blockinfo-body">
                 <div class="blockinfo-body-row">
                     <label>Balance </label>
-                    <span><!--<img src="icons/nimiq_blue.svg"> -->{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
+                    <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Nonce </label>
@@ -1024,7 +1099,9 @@
         };
 
         var $infobox        = document.getElementById('infobox'),
-            $searchInput    = document.getElementById('search-input');
+            $searchInput    = document.getElementById('search-input'),
+            $status         = document.getElementById('status'),
+            $height         = document.getElementById('height');
 
         var directNavigationTargets = ['#charts', '#about'];
 
@@ -1180,6 +1257,25 @@
             });
         }
 
+        function _getBlockListInfoFromBlockchain(head, callback) {
+            head.hash().then(function(hash) {
+                $.consensus.getFullBlock(hash).then(function(block) {
+                    if(!block) {
+                        callback(null);
+                        return;
+                    }
+
+                    callback({
+                        height:            block.height,
+                        timestamp:         block.timestamp,
+                        size:              block.serializedSize,
+                        miner_address:     block.minerAddr.toUserFriendlyAddress(),
+                        transaction_count: block.transactionCount
+                    });
+                });
+            });
+        }
+
         var blocklistBuilt = false;
         var latestBlocks = [];
 
@@ -1193,6 +1289,8 @@
 
                     if(!data) alert("No data received from https://api.nimiq.watch/latest/20!");
 
+                    latestBlockHeight = data[data.length - 1].height;
+
                     for(var i = 0; i < data.length; i++ ) {
                         _addBlockToListOfLatestBlocks(data[i]);
                     }
@@ -1205,6 +1303,8 @@
         var blocklistNode = document.getElementById('blocklist');
 
         function _addBlockToListOfLatestBlocks(blockInfo) {
+            if(!blockInfo) return;
+
             var item = document.createElement('div');
             item.classList.add('blocklist-block');
 
@@ -1299,7 +1399,7 @@
         document.getElementById('search-form').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            if(!$.consensus.established) return;
+            if(!nimiqLoaded) return;
 
             var value = $searchInput.value.trim().replace(/ /g, '+');
 
