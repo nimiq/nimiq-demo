@@ -11,24 +11,30 @@ function _onConsensusEstablished() {
     document.getElementById('height').innerText = $.blockchain.height;
     document.getElementById('address').innerText = $.wallet.address.toUserFriendlyAddress();
 
-    // Get current balance and initiate listener.
-    if (window.clientType !== 'nano') {
-        $.accounts.getBalance($.wallet.address)
-            .then(balance => _onBalanceChanged(balance));
-        $.accounts.on($.wallet.address, account => _onBalanceChanged(account.balance));
-    } else {
-        // nano clients don't have the accounts state and have to request single accounts
-        $.consensus.getAccount($.wallet.address).then(account => _onBalanceChanged(account.balance));
-        $.blockchain.on('head-changed', () => $.consensus.getAccount($.wallet.address).then(account => _onBalanceChanged(account.balance)));
-    }
+    _updateBalance();
+    // recheck balance on potential balance change
+    $.blockchain.on('head-changed', _updateBalance);
 
     // If we want to start mining.
     // $.miner.startWork();
 }
 
-function _onBalanceChanged(newBalance) {
-    console.log(`New balance of ${$.wallet.address} is ${newBalance}.`);
-    document.getElementById('balance').innerText = Nimiq.Policy.satoshisToCoins(newBalance.value).toFixed(2);
+function _updateBalance() {
+    // Get current balance
+    if (window.clientType !== 'nano') {
+        $.accounts.get($.wallet.address)
+            .then(account => _onBalanceChanged(account));
+    } else {
+        // nano clients don't have the whole accounts state and have to request single accounts from their peers
+        $.consensus.getAccount($.wallet.address)
+            .then(account => _onBalanceChanged(account));
+    }
+}
+
+function _onBalanceChanged(account) {
+    account = account || Nimiq.BasicAccount.INITIAL;
+    console.log(`New balance of ${$.wallet.address} is ${account.balance}.`);
+    document.getElementById('balance').innerText = Nimiq.Policy.satoshisToCoins(account.balance).toFixed(2);
 }
 
 function _onHeadChanged() {
