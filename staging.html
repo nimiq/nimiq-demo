@@ -1525,8 +1525,6 @@
                                             return value;
                                         }
                                         else if(axisType === "logarithmic") {
-                                            // let blockRewardInNim = Nimiq.Policy.BLOCK_REWARD / Nimiq.Policy.SATOSHIS_PER_COIN;
-
                                             let label = Math.round(parseFloat(value) * Nimiq.Policy.SATOSHIS_PER_COIN) / Nimiq.Policy.SATOSHIS_PER_COIN;
 
                                             if(label.toString()[0] !== "1" && label.toString().slice(-1) !== "1") return null;
