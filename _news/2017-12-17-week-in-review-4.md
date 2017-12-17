@@ -15,7 +15,7 @@ Welcome to the forth edition of *Week In Review* for the [Nimiq blockchain proje
 
 
 ## Code Updates
-Lunas v3 was released with these headline additions:
+Luna v3 was released with these headline additions:
 
 * Advanced account types
     * The team implemented a new account base class, from which new account types can be inherited, for example vesting accounts and multi-signature accounts (also hashed time-locked accounts in the feature for off-chain payment channels).
@@ -35,7 +35,7 @@ Other notable changes in the github repo include:
 	* A bug was fixed that prevented the miner from including transaction from a sender, if that sender had more waiting transactions than would fit into the next block. The miner now properly splits waiting transactions by the same sender.
 	* More mitigations against low-fee transaction spam are currently being developed by Pascal.
 * Marvin started to implement HTLCs (hashed time-locked contracts), but they are not merged into the main code yet.
-* A feature is now in development to allow locking of the private key in the browser. Since the private key is only required for signing transactions, but not for mining (only to start mining), it can be encrypted and locked so that other 3rd-party JavaScript cannot read it. 
+* A feature is now in development to allow locking of the private key in the browser. Since the private key is only required for signing transactions, but not for mining ~~(only to start mining)~~(correction: if the public wallet address is known, the private key is not needed for mining at all), it can be encrypted and locked so that other 3rd-party JavaScript cannot read it. 
 * Reduced logging output (in the browser console and for the nodejs client) for multiple non-significant events.
 * Jeff is working on behind-the-scenes network configuration improvements to make working with those configurations easier and more in line with the rest of the code base.
 * The maximum amount of data stored in a block's `extraData` field is now limited to 255 bytes (255 ASCII characters).
