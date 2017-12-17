@@ -28,7 +28,7 @@ The first testnet update fixed a lot of problems with including and ordering tra
 
 ---
 
-That's all for now. See you next week!
+That's all for now. See you [next week](https://nimiq.watch/news/2017-12-17-week-in-review-4.html)!
 
 ### *About this newsletter*
 
