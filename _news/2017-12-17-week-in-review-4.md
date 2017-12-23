@@ -47,7 +47,7 @@ Other notable changes in the github repo include:
 
 ---
 
-Thank you for reading! Until next week, for the latest update just before christmas.
+Thank you for reading! Until [next week](https://nimiq.watch/news/2017-12-23-week-in-review-5.html), for the latest update just before christmas.
 
 [Last week's news roundup can be found here.](https://nimiq.watch/news/2017-12-08-week-in-review-3.html)
 
