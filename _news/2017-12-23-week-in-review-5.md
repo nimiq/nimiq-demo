@@ -15,14 +15,13 @@ Welcome to the fifth edition of *Week In Review* for the [Nimiq blockchain proje
 * Richy posted an interesting comment in Telegram:
     > I verified about LN and we are actually trying to be swift and quick with the deployment of the mainnet. So right now we are moving into a core network hardening phase and then launch of the Mainnet. We are currently working in Off-chain transaction but they won't delay the deployment of the core Mainnet.
 
-    Richy clarified that his comment does not make a statement about the release schedule, but rather means that the payment channels (Lighting Network) may not be included in the first mainnet release, but added later.
-
+    Richy clarified that his comment does not make a statement about the release schedule, but rather means that the payment channels (Lightning Network) may not be included in the first mainnet release, but added later.
 * The team is taking their well-deserved christmas holiday with their families and will arrive back in Costa Rica towards the end of the third week of January.
 
 ## Code Updates
 * Low-fee transaction spam protection features are now released. Only 10 transactions from the same sender with a fee *lower than 1 satoshi/byte* are now accepted by the network. Low-fee transactions are also forwarded slower between peers.
 * Pascal improved the security of multi-signature wallets to prevent related-key attacks.
-* More tests where added to improve code test-converage (currently 56.38%).
+* More tests where added to improve code test-converage ([currently 56.38%](https://codecov.io/gh/nimiq-network/core/branch/master)).
 
 ## Community Projects
 Richy launched the [nimiq.community](http://nimiq.community/blog/welcome-to-nimiq-community/) website with contributing guidelines, a benchmark section and the new [NodeJS miner tutorial](http://nimiq.community/blog/setting-up-nodejs_miner/).
