@@ -392,6 +392,7 @@
         .blockinfo-body-row {
             margin: 0.75em 0;
             overflow: auto;
+            min-height: 1.4em;
         }
 
         .blockinfo-body-row label,
@@ -401,6 +402,7 @@
         }
 
         .blockinfo-body-row > span,
+        .blockinfo-body-row > hash,
         .blockinfo-miner hash {
             float: right;
         }
@@ -958,19 +960,19 @@
             <div class="blockinfo-body">
                 <div class="blockinfo-body-row">
                     <label>Sender </label>
-                    <span>
+                    <hash>
                         <a href="#{%=o.sender_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.sender_address%}</a>
-                    </span>
+                    </hash>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Recipient </label>
-                    <span>
+                    <hash>
                         <a href="#{%=o.receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.receiver_address%}</a>
-                    </span>
+                    </hash>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Date </label>
-                    <span style="overflow: hidden;">
+                    <span>
                         <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
                         <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span>
                     </span>
