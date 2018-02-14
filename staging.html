@@ -1284,7 +1284,7 @@
         function _getBlockInfo(identifier, callback) {
             fetch('https://api.nimiq.watch/block/' + identifier).then(function(response) {
                 response.json().then(function(data) {
-                    if(data.error) alert('Error: ' + data.error);
+                    if(data.error !== 'Block not found') alert('Error: ' + data.error);
                     if(!data) alert('No data received from https://api.nimiq.watch/block/' + identifier + '!');
 
                     if(data.extra_data) {
@@ -1304,7 +1304,7 @@
         function _getTransactionInfo(identifier, callback) {
             fetch('https://api.nimiq.watch/transaction/' + identifier).then(function(response) {
                 response.json().then(function(data) {
-                    if(data.error) alert('Error: ' + data.error);
+                    if(data.error !== 'Transaction not found') alert('Error: ' + data.error);
                     if(!data) alert('No data received from https://api.nimiq.watch/transaction/' + identifier + '!');
 
                     if(data.extra_data) {
@@ -1441,9 +1441,9 @@
                     case "Block or Tx Hash":
                     case "Block Number":
                         _getBlockInfo(value, function(blockInfo) {
-                            if(!blockInfo) {
+                            if(!blockInfo || blockInfo.error) {
                                 _getTransactionInfo(value, function(txInfo) {
-                                    if(!txInfo) {
+                                    if(!txInfo || txInfo.error) {
                                         alert("That block or tx hash cannot be found.");
                                         return;
                                     }
