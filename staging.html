@@ -258,12 +258,18 @@
             display: none;
         }
 
+        .txinfo-wrapper {
+            width: 620px;
+            margin: auto;
+        }
+
         .accountinfo-wrapper {
             width: 450px;
             margin: auto;
         }
 
-        #infobox .accountinfo-wrapper > h3 {
+        #infobox .accountinfo-wrapper > h3,
+        #infobox .txinfo-wrapper > h3 {
             margin-bottom: 0.5em;
             color: #042146;
             font-size: 22px;
@@ -313,7 +319,8 @@
             background: #F0F0F0;
         }
 
-        .accountinfo-wrapper .blockinfo-header {
+        .accountinfo-wrapper .blockinfo-header,
+        .txinfo-wrapper .blockinfo-header {
             padding: 2px 1em 1em 1em;
         }
 
@@ -362,7 +369,8 @@
             background: white;
         }
 
-        .accountinfo-wrapper .blockinfo-body {
+        .accountinfo-wrapper .blockinfo-body,
+        .txinfo-wrapper .blockinfo-body {
             padding: 0.25em 1em;
             border-bottom: 1px solid #D9DEE4;
             border-bottom-left-radius: 5px;
@@ -392,7 +400,7 @@
             color: #888;
         }
 
-        .blockinfo-body-row span,
+        .blockinfo-body-row > span,
         .blockinfo-miner hash {
             float: right;
         }
@@ -939,7 +947,7 @@
     </script>
 
     <script type="text/x-tmpl" id="template-tx-info">
-        <div class="accountinfo-wrapper">
+        <div class="txinfo-wrapper">
             <h2>Transaction Info</h2>
             <div class="blockinfo-header">
                 <div class="hash">
@@ -958,8 +966,10 @@
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Date </label>
-                    <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
-                    <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span>
+                    <span style="overflow: hidden;">
+                        <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
+                        <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span>
+                    </span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Value </label>
@@ -1284,7 +1294,7 @@
         function _getBlockInfo(identifier, callback) {
             fetch('https://api.nimiq.watch/block/' + identifier).then(function(response) {
                 response.json().then(function(data) {
-                    if(data.error !== 'Block not found') alert('Error: ' + data.error);
+                    if(data.error && data.error !== 'Block not found') alert('Error: ' + data.error);
                     if(!data) alert('No data received from https://api.nimiq.watch/block/' + identifier + '!');
 
                     if(data.extra_data) {
@@ -1304,7 +1314,7 @@
         function _getTransactionInfo(identifier, callback) {
             fetch('https://api.nimiq.watch/transaction/' + identifier).then(function(response) {
                 response.json().then(function(data) {
-                    if(data.error !== 'Transaction not found') alert('Error: ' + data.error);
+                    if(data.error && data.error !== 'Transaction not found') alert('Error: ' + data.error);
                     if(!data) alert('No data received from https://api.nimiq.watch/transaction/' + identifier + '!');
 
                     if(data.extra_data) {
