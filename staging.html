@@ -259,7 +259,7 @@
         }
 
         .txinfo-wrapper {
-            width: 620px;
+            width: 650px;
             margin: auto;
         }
 
@@ -958,11 +958,15 @@
             <div class="blockinfo-body">
                 <div class="blockinfo-body-row">
                     <label>Sender </label>
-                    <span>{%=o.sender_address%}</span>
+                    <span>
+                        <a href="#{%=o.sender_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.sender_address%}</a>
+                    </span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Recipient </label>
-                    <span>{%=o.receiver_address%}</span>
+                    <span>
+                        <a href="#{%=o.receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.receiver_address%}</a>
+                    </span>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Date </label>
