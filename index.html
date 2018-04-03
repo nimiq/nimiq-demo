@@ -65,12 +65,14 @@
         }
 
         Nimiq.init(function() {
+            Nimiq.GenesisConfig.test();
+
             _onNimiqLoaded();
 
             $status.innerText = 'synchronizing';
             $status.classList.add('synchronizing');
 
-            Nimiq.Consensus.nano().then(function(nanoConsensus) {
+            Nimiq.Consensus.volatileNano().then(function(nanoConsensus) {
                 var $ = {};
                 window.$ = $;
 
