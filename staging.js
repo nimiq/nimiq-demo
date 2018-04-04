@@ -220,8 +220,7 @@ function _buildListOfLatestBlocks(self) {
         blocklistBuilt = null;
     }
     else {
-        var page  = parseInt(self.getAttribute('data-page'));
-        skip  = (page - 1) * limit;
+        skip = blocklistNode.getElementsByClassName('blocklist-block').length;
     }
 
 
@@ -240,26 +239,19 @@ function _buildListOfLatestBlocks(self) {
             }
 
             if(data.length < limit) {
+                self && self.parentNode.removeChild(self);
+
                 var notice = document.createElement('div');
                 notice.classList.add('no-more');
                 notice.innerText = 'No earlier blocks';
                 blocklistNode.appendChild(notice);
             }
 
-            if(self) {
-                if(data.length === limit) {
-                    self.setAttribute('data-page', parseInt(self.getAttribute('data-page')) + 1 );
-                }
-                else {
-                    self.parentNode.removeChild(self);
-                }
-            }
-            else {
+            if(!self) {
                 // <button class="event-loadmore" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">Load more</button>
                 var button = document.createElement('button');
                 button.classList.add('event-loadmore');
                 button.setAttribute('onclick', '_buildListOfLatestBlocks(this)');
-                button.setAttribute('data-page', 2);
                 button.textContent = 'Load more';
                 blocklistNode.appendChild(button);
             }
