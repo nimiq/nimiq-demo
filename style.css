@@ -593,13 +593,13 @@ hash {
 }
 
 #blocklist {
+    display: table;
     border-spacing: 0 8px;
     width: 100%;
 }
 
 .blocklist-block {
     display: table-row;
-    width: 100%;
     background: #D6D6D6;
     background: #F0F0F0;
 }

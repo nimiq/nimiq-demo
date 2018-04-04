@@ -253,7 +253,7 @@ function _buildListOfLatestBlocks(self) {
                 button.classList.add('event-loadmore');
                 button.setAttribute('onclick', '_buildListOfLatestBlocks(this)');
                 button.textContent = 'Load more';
-                blocklistNode.parent.appendChild(button);
+                blocklistNode.parentNode.appendChild(button);
             }
 
             blocklistBuilt = true;
