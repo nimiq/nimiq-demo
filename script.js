@@ -83,7 +83,7 @@ function loadMoreTransactions(self, address) {
 
             if(transactions.length < limit) {
                 var notice = document.createElement('div');
-                notice.classList.add('no-transactions');
+                notice.classList.add('no-more');
                 notice.innerText = 'No earlier transactions';
                 list.appendChild(notice);
             }
@@ -122,7 +122,7 @@ function loadMoreBlocks(self, address) {
 
             if(blocks.length < limit) {
                 var notice = document.createElement('div');
-                notice.classList.add('no-transactions');
+                notice.classList.add('no-more');
                 notice.innerText = 'No earlier blocks';
                 list.appendChild(notice);
             }
