@@ -211,22 +211,49 @@ function _getBlockListInfo(head, callback) {
 var blocklistBuilt = false;
 var latestBlocks = [];
 
-function _buildListOfLatestBlocks() {
-    if(blocklistBuilt !== false) return;
-    blocklistBuilt = null;
+function _buildListOfLatestBlocks(self) {
     var limit = 20;
     var skip = 0;
 
+    if(!self) {
+        if(blocklistBuilt !== false) return;
+        blocklistBuilt = null;
+    }
+    else {
+        skip = blocklistNode.getElementsByClassName('blocklist-block').length;
+    }
+
+
     fetch('https://api.nimiq.watch/latest/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(data) {
-            blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
+            if(!blocklistBuilt) blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 
-            if(!data) alert("No data received from https://api.nimiq.watch/latest/20!");
+            if(!data) alert('No data received from https://api.nimiq.watch/latest/' + limit + '/' + skip + '!');
 
-            latestBlockHeight = data[data.length - 1].height;
+            latestBlockHeight = Math.max(latestBlockHeight, data[data.length - 1].height);
+
+            if(self) data.reverse();
 
             for(var i = 0; i < data.length; i++ ) {
-                _addBlockToListOfLatestBlocks(data[i]);
+                _addBlockToListOfLatestBlocks(data[i], self);
+            }
+
+            if(data.length < limit) {
+                self && self.parentNode.removeChild(self);
+
+                var notice = document.createElement('div');
+                notice.classList.add('no-more');
+                notice.innerText = 'No earlier blocks';
+                blocklistNode.appendChild(notice);
+            }
+
+            if(!self) {
+                // <button class="event-loadmore" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">Load more</button>
+                var button = document.createElement('button');
+                button.classList.add('event-loadmore');
+                button.setAttribute('onclick', '_buildListOfLatestBlocks(this)');
+                button.textContent = 'Load more';
+                blocklistNode.appendChild(button);
             }
 
             blocklistBuilt = true;
@@ -236,7 +263,7 @@ function _buildListOfLatestBlocks() {
 
 var blocklistNode = document.getElementById('blocklist');
 
-function _addBlockToListOfLatestBlocks(blockInfo) {
+function _addBlockToListOfLatestBlocks(blockInfo, insertBeforeNode) {
     if(!blockInfo) return;
 
     var item = document.createElement('div');
@@ -244,7 +271,7 @@ function _addBlockToListOfLatestBlocks(blockInfo) {
 
     item.innerHTML = template.blocklistBlock(blockInfo);
 
-    blocklistNode.insertBefore(item, blocklistNode.firstChild);
+    blocklistNode.insertBefore(item, insertBeforeNode || blocklistNode.firstChild);
 }
 
 function _onHashChange(e) {
