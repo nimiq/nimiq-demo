@@ -235,7 +235,7 @@ function _buildListOfLatestBlocks(self) {
             if(self) data.reverse();
 
             for(var i = 0; i < data.length; i++ ) {
-                _addBlockToListOfLatestBlocks(data[i], self);
+                _addBlockToListOfLatestBlocks(data[i], !!self);
             }
 
             if(data.length < limit) {
@@ -253,7 +253,7 @@ function _buildListOfLatestBlocks(self) {
                 button.classList.add('event-loadmore');
                 button.setAttribute('onclick', '_buildListOfLatestBlocks(this)');
                 button.textContent = 'Load more';
-                blocklistNode.appendChild(button);
+                blocklistNode.parent.appendChild(button);
             }
 
             blocklistBuilt = true;
@@ -263,7 +263,7 @@ function _buildListOfLatestBlocks(self) {
 
 var blocklistNode = document.getElementById('blocklist');
 
-function _addBlockToListOfLatestBlocks(blockInfo, insertBeforeNode) {
+function _addBlockToListOfLatestBlocks(blockInfo, append) {
     if(!blockInfo) return;
 
     var item = document.createElement('div');
@@ -271,7 +271,7 @@ function _addBlockToListOfLatestBlocks(blockInfo, insertBeforeNode) {
 
     item.innerHTML = template.blocklistBlock(blockInfo);
 
-    blocklistNode.insertBefore(item, insertBeforeNode || blocklistNode.firstChild);
+    append && blocklistNode.appendChild(item) || blocklistNode.insertBefore(item, blocklistNode.firstChild);
 }
 
 function _onHashChange(e) {
