@@ -65,9 +65,9 @@ function loadMoreTransactions(self, address) {
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
 
-    fetch('https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + skip + '/' + limit).then(function(response) {
+    fetch('https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(transactions) {
-            if(!transactions) alert('No data from https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + skip + '/' + limit + '!');
+            if(!transactions) alert('No data from https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + limit + '/' + skip + '!');
 
             var list = document.createDocumentFragment();
             var item;
@@ -83,7 +83,7 @@ function loadMoreTransactions(self, address) {
 
             if(transactions.length < limit) {
                 var notice = document.createElement('div');
-                notice.classList.add('no-transactions');
+                notice.classList.add('no-more');
                 notice.innerText = 'No earlier transactions';
                 list.appendChild(notice);
             }
@@ -106,9 +106,9 @@ function loadMoreBlocks(self, address) {
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
 
-    fetch('https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + skip + '/' + limit).then(function(response) {
+    fetch('https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(blocks) {
-            if(!blocks) alert('No data from https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + skip + '/' + limit + '!');
+            if(!blocks) alert('No data from https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + limit + '/' + skip + '!');
 
             var list = document.createDocumentFragment();
             var item;
@@ -122,7 +122,7 @@ function loadMoreBlocks(self, address) {
 
             if(blocks.length < limit) {
                 var notice = document.createElement('div');
-                notice.classList.add('no-transactions');
+                notice.classList.add('no-more');
                 notice.innerText = 'No earlier blocks';
                 list.appendChild(notice);
             }
@@ -201,30 +201,65 @@ function _getTransactionInfo(identifier, callback) {
     });
 }
 
-function _getBlockListInfoFromBlockchain(head, callback) {
+function _getBlockListInfo(head, callback) {
     _getBlockInfo(head.height, callback, function(data) {
         // On error, retry after 2 seconds
-        setTimeout(_getBlockListInfoFromBlockchain, 2000, head, callback);
+        setTimeout(_getBlockListInfo, 2000, head, callback);
     });
 }
 
 var blocklistBuilt = false;
 var latestBlocks = [];
 
-function _buildListOfLatestBlocks() {
-    if(blocklistBuilt !== false) return;
-    blocklistBuilt = null;
+function _buildListOfLatestBlocks(self) {
+    var limit = 20;
+    var skip = 0;
 
-    fetch('https://api.nimiq.watch/latest/20').then(function(response) {
+    if(!self) {
+        if(blocklistBuilt !== false) return;
+        blocklistBuilt = null;
+    }
+    else {
+        var page  = parseInt(self.getAttribute('data-page'));
+        skip  = (page - 1) * limit;
+    }
+
+
+    fetch('https://api.nimiq.watch/latest/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(data) {
             blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 
             if(!data) alert("No data received from https://api.nimiq.watch/latest/20!");
 
-            latestBlockHeight = data[data.length - 1].height;
+            latestBlockHeight = Math.max(latestBlockHeight, data[data.length - 1].height);
 
             for(var i = 0; i < data.length; i++ ) {
-                _addBlockToListOfLatestBlocks(data[i]);
+                _addBlockToListOfLatestBlocks(data[i], self);
+            }
+
+            if(data.length < limit) {
+                var notice = document.createElement('div');
+                notice.classList.add('no-more');
+                notice.innerText = 'No earlier blocks';
+                blocklistNode.appendChild(notice);
+            }
+
+            if(self) {
+                if(data.length === limit) {
+                    self.setAttribute('data-page', parseInt(self.getAttribute('data-page')) + 1 );
+                }
+                else {
+                    self.parentNode.removeChild(self);
+                }
+            }
+            else {
+                // <button class="event-loadmore" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">Load more</button>
+                var button = document.createElement('button');
+                button.classList.add('event-loadmore');
+                button.setAttribute('onclick', '_buildListOfLatestBlocks(this)');
+                button.setAttribute('data-page', 2);
+                button.textContent = 'Load more';
+                blocklistNode.appendChild(button);
             }
 
             blocklistBuilt = true;
@@ -234,7 +269,7 @@ function _buildListOfLatestBlocks() {
 
 var blocklistNode = document.getElementById('blocklist');
 
-function _addBlockToListOfLatestBlocks(blockInfo) {
+function _addBlockToListOfLatestBlocks(blockInfo, insertBeforeNode) {
     if(!blockInfo) return;
 
     var item = document.createElement('div');
@@ -242,7 +277,7 @@ function _addBlockToListOfLatestBlocks(blockInfo) {
 
     item.innerHTML = template.blocklistBlock(blockInfo);
 
-    blocklistNode.insertBefore(item, blocklistNode.firstChild);
+    blocklistNode.insertBefore(item, insertBeforeNode || blocklistNode.firstChild);
 }
 
 function _onHashChange(e) {
