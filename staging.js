@@ -229,9 +229,11 @@ function _buildListOfLatestBlocks(self) {
         response.json().then(function(data) {
             blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 
-            if(!data) alert("No data received from https://api.nimiq.watch/latest/20!");
+            if(!data) alert('No data received from https://api.nimiq.watch/latest/' + limit + '/' + skip + '!');
 
             latestBlockHeight = Math.max(latestBlockHeight, data[data.length - 1].height);
+
+            if(self) data.reverse();
 
             for(var i = 0; i < data.length; i++ ) {
                 _addBlockToListOfLatestBlocks(data[i], self);
