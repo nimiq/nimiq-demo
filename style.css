@@ -599,6 +599,7 @@ hash {
 
 .blocklist-block {
     display: table-row;
+    width: 100%;
     background: #D6D6D6;
     background: #F0F0F0;
 }
