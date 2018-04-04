@@ -426,10 +426,6 @@
                 This website is a blockchain explorer for the new <a href="https://nimiq.com" target="_blank">Nimiq blockchain project</a>.
             </p>
             <p>
-                Because the Nimiq blockchain lives in your browser, this website works without a server. All necessary information is
-                present in the blockchain, loaded in this browser.
-            </p>
-            <p>
                 The source code for this website is open source and available at
                 <a href="https://github.com/sisou/nimiq-watch" target="_blank">https://github.com/sisou/nimiq-watch</a>.
             </p>
@@ -468,28 +464,7 @@
         ga('create', 'UA-101611099-1', 'auto');
         // ga('send', 'pageview'); // Done instead in the _onHashChange function
     </script>
-<!--
-    <script type="text/x-tmpl" id="template-wealth-distribution-chart">
-        <div class="axis-type-switch">
-            <label class="switch-light switch-candy" onclick="">
-                <input type="checkbox" onchange="_wealthDistributionSwitchScale(this);" disabled="">
-                <span>
-                    <span>Linear</span>
-                    <span>Logarithmic</span>
-                    <a></a>
-                </span>
-            </label>
-        </div>
-        <h2>Wealth Distribution</h2>
-        <small>Among non-zero accounts</small>
-        <canvas class="chart"></canvas>
-        <div class="blocklist-loader over-canvas">
-            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
-        </div>
-        <div class="chart-valid-info"></div>
-    </script>
-    <script src="./script-chart-wealth-distribution.js"></script>
--->
+
     <script type="text/x-tmpl" id="template-global-hashrate-chart">
         <div class="switch-toggle switch-candy global-hashrate-range-switch">
             <input id="global-hashrate-range-day" name="global-hashrate-range" type="radio" onclick="switchGlobalHashrateRange('day')">
@@ -521,18 +496,7 @@
         <p><small><strong>Disclaimer:</strong> The graph shows the averaged global hashrate for the respective intervals. The global hashrate for each block is estimated from its difficutly, which is based on the time it took for the last 120 blocks to be mined.</small></p>
     </script>
     <script src="./script-chart-global-hashrate.js"></script>
-<!--
-    <script type="text/x-tmpl" id="template-transactions-per-block-chart">
-        <h2>Transactions</h2>
-        <small>During the last 24 hours</small>
-        <canvas class="chart"></canvas>
-        <div class="blocklist-loader over-canvas">
-            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
-        </div>
-        <div class="chart-valid-info"></div>
-    </script>
-    <script src="./script-chart-transactions-per-block"></script>
--->
+
     <script type="text/x-tmpl" id="template-hashing-distribution-chart">
         <div class="switch-toggle switch-candy hashing-distribution-range-switch">
             <input id="hashing-distribution-range-1hour" name="hashing-distribution-range" type="radio" onclick="switchHashingDistributionRange(1)">
@@ -560,5 +524,41 @@
         </div>
     </script>
     <script src="./script-chart-hashing-distribution.js"></script>
+
+    <!--
+    <script type="text/x-tmpl" id="template-wealth-distribution-chart">
+        <div class="axis-type-switch">
+            <label class="switch-light switch-candy" onclick="">
+                <input type="checkbox" onchange="_wealthDistributionSwitchScale(this);" disabled="">
+                <span>
+                    <span>Linear</span>
+                    <span>Logarithmic</span>
+                    <a></a>
+                </span>
+            </label>
+        </div>
+        <h2>Wealth Distribution</h2>
+        <small>Among non-zero accounts</small>
+        <canvas class="chart"></canvas>
+        <div class="blocklist-loader over-canvas">
+            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+        </div>
+        <div class="chart-valid-info"></div>
+    </script>
+    <script src="./script-chart-wealth-distribution.js"></script>
+    -->
+
+    <!--
+    <script type="text/x-tmpl" id="template-transactions-per-block-chart">
+        <h2>Transactions</h2>
+        <small>During the last 24 hours</small>
+        <canvas class="chart"></canvas>
+        <div class="blocklist-loader over-canvas">
+            <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
+        </div>
+        <div class="chart-valid-info"></div>
+    </script>
+    <script src="./script-chart-transactions-per-block"></script>
+    -->
 </body>
 </html>
