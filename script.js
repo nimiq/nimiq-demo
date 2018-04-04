@@ -153,12 +153,18 @@ function switchAccountHistory(selection) {
     }
 }
 
-function _getBlockInfo(identifier, callback) {
+function _getBlockInfo(identifier, callback, errback) {
     identifier = encodeURIComponent(identifier);
     fetch('https://api.nimiq.watch/block/' + identifier).then(function(response) {
         response.json().then(function(data) {
-            if(data.error && data.error !== 'Block not found') alert('Error: ' + data.error);
-            if(!data) alert('No data received from https://api.nimiq.watch/block/' + identifier + '!');
+            if(data.error) {
+                if(errback) errback(data);
+                else if(data.error !== 'Block not found') alert('Error: ' + data.error);
+            }
+            if(!data) {
+                if(errback) errback(null);
+                else alert('No data received from https://api.nimiq.watch/block/' + identifier + '!');
+            }
 
             if(data.extra_data) {
                 var buf = Nimiq.BufferUtils.fromBase64(data.extra_data);
@@ -195,21 +201,10 @@ function _getTransactionInfo(identifier, callback) {
     });
 }
 
-function _getBlockListInfoFromBlockchain(head, callback) {
-    var hash = head.hash();
-    $.consensus.getFullBlock(hash).then(function(block) {
-        if(!block) {
-            callback(null);
-            return;
-        }
-
-        callback({
-            height:            block.height,
-            timestamp:         block.timestamp,
-            size:              block.serializedSize,
-            miner_address:     block.minerAddr.toUserFriendlyAddress(),
-            transaction_count: block.transactionCount
-        });
+function _getBlockListInfo(head, callback) {
+    _getBlockInfo(head.height, callback, function(data) {
+        // On error, retry after 2 seconds
+        setTimeout(_getBlockListInfo, 2000, head, callback);
     });
 }
 

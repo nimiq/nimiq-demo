@@ -55,7 +55,7 @@
             if(height > 1) $height.innerText = ' @ #' + height;
 
             if(blocklistBuilt && height > latestBlockHeight) {
-                _getBlockListInfoFromBlockchain(head, function(blockInfo) {
+                _getBlockListInfo(head, function(blockInfo) {
                     _addBlockToListOfLatestBlocks(blockInfo);
                 });
             }
