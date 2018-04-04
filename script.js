@@ -65,9 +65,9 @@ function loadMoreTransactions(self, address) {
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
 
-    fetch('https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + skip + '/' + limit).then(function(response) {
+    fetch('https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(transactions) {
-            if(!transactions) alert('No data from https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + skip + '/' + limit + '!');
+            if(!transactions) alert('No data from https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + limit + '/' + skip + '!');
 
             var list = document.createDocumentFragment();
             var item;
@@ -106,9 +106,9 @@ function loadMoreBlocks(self, address) {
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
 
-    fetch('https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + skip + '/' + limit).then(function(response) {
+    fetch('https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(blocks) {
-            if(!blocks) alert('No data from https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + skip + '/' + limit + '!');
+            if(!blocks) alert('No data from https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + limit + '/' + skip + '!');
 
             var list = document.createDocumentFragment();
             var item;
@@ -214,8 +214,10 @@ var latestBlocks = [];
 function _buildListOfLatestBlocks() {
     if(blocklistBuilt !== false) return;
     blocklistBuilt = null;
+    var limit = 20;
+    var skip = 0;
 
-    fetch('https://api.nimiq.watch/latest/20').then(function(response) {
+    fetch('https://api.nimiq.watch/latest/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(data) {
             blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 
