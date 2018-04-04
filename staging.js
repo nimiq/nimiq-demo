@@ -226,7 +226,7 @@ function _buildListOfLatestBlocks(self) {
 
     fetch('https://api.nimiq.watch/latest/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(data) {
-            blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
+            if(!blocklistBuilt) blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 
             if(!data) alert('No data received from https://api.nimiq.watch/latest/' + limit + '/' + skip + '!');
 
