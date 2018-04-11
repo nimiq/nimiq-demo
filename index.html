@@ -263,7 +263,7 @@
                     </div>
                 {% } %}
             {% } else { %}
-                <div class="no-transactions">No transactions</div>
+                <div class="no-more">No transactions</div>
             {% } %}
         </div>
     </script>
@@ -351,10 +351,10 @@
                     {% if(o.transactions.length === 10) { %}
                         <button class="event-loadmore" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">Load more</button>
                     {% } else { %}
-                        <div class="no-transactions">No earlier transactions</div>
+                        <div class="no-more">No earlier transactions</div>
                     {% } %}
                 {% } else { %}
-                    <div class="no-transactions">No transactions</div>
+                    <div class="no-more">No transactions</div>
                 {% } %}
             </div>
 
@@ -367,10 +367,10 @@
                     {% if(o.blocks.length === 10) { %}
                         <button class="event-loadmore" onclick="loadMoreBlocks(this, '{%=o.address%}')" data-page="2">Load more</button>
                     {% } else { %}
-                        <div class="no-transactions">No earlier blocks</div>
+                        <div class="no-more">No earlier blocks</div>
                     {% } %}
                 {% } else { %}
-                    <div class="no-transactions">No blocks mined</div>
+                    <div class="no-more">No blocks mined</div>
                 {% } %}
             </div>
         </div>
