@@ -264,7 +264,7 @@ function _buildListOfLatestBlocks(self) {
 var blocklistNode = document.getElementById('blocklist');
 
 function _addBlockToListOfLatestBlocks(blockInfo, append) {
-    if(!blockInfo) return;
+    if(!blockInfo || blockInfo.error) return;
 
     var item = document.createElement('div');
     item.classList.add('blocklist-block');
