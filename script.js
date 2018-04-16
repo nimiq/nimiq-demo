@@ -167,11 +167,25 @@ function _getBlockInfo(identifier, callback, errback) {
             }
 
             if(data.extra_data) {
-                var buf = Nimiq.BufferUtils.fromBase64(data.extra_data);
+                var extra_data = Nimiq.BufferUtils.fromBase64(data.extra_data);
 
-                // Check if we can convert the extraData into ASCII
+                var buf;
+                var nullByteIndex = extra_data.indexOf(0);
+
+                if(nullByteIndex > 0) {
+                    buf = extra_data.slice(0, nullByteIndex);
+                } else {
+                    buf = extra_data;
+                }
+
+                // Check if we can convert the buffer into ASCII
                 if(buf.every(function(c) {return c >= 32 && c <= 126;})) {
                     data.extra_data = Nimiq.BufferUtils.toAscii(buf);
+
+                    if(nullByteIndex > 0) {
+                        // Append rest of extra data as base64
+                        data.extra_data += ' ' + Nimiq.BufferUtils.toBase64(extra_data.slice(nullByteIndex + 1));
+                    }
                 }
             }
 
