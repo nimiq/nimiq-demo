@@ -3,7 +3,7 @@
 <head>
     <meta charset=utf-8 />
     <title>Nimiq Demo</title>
-    <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
+    <script type="text/javascript" src="https://cdn.nimiq.com/nimiq.js"></script>
     <script>
 
 function _onConsensusEstablished() {
@@ -50,6 +50,7 @@ function _onPeersChanged() {
 
 function init(clientType = 'full') {
     Nimiq.init(async function() {
+        Nimiq.GenesisConfig.main();
         document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
 
         const $ = {};
@@ -66,11 +67,13 @@ function init(clientType = 'full') {
         $.mempool = $.consensus.mempool;
         $.network = $.consensus.network;
 
-        $.wallet = await Nimiq.Wallet.getPersistent();
+        $.walletStore = await new Nimiq.WalletStore();
+        $.wallet = await $.walletStore.getDefault();
+
         if (clientType !== 'nano') {
             // the nano client does not sync the full account info and can not mine.
             $.accounts = $.blockchain.accounts;
-            $.miner = new Nimiq.Miner($.blockchain, $.mempool, $.wallet.address);
+            $.miner = new Nimiq.Miner($.blockchain, $.accounts, $.mempool, $.network.time, $.wallet.address);
         }
 
         $.consensus.on('established', () => _onConsensusEstablished());
