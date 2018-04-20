@@ -94,34 +94,24 @@ function _globalHashrate(range, skipRender) {
 }
 
 function _humanReadableHashesPerSecond(arg1, arg2) {
+    var value;
     if(typeof arg1 === "number")
         value = arg1;
     else
         value = arg1.yLabel;
 
     var resultValue = 0;
-    var resultUnit = "H/s";
+    var resultUnit = "";
 
-    if(value < 1000) {
-        resultValue = value;
-    }
-    else {
-        var kilo = value / 1000;
-        if(kilo < 1000) {
-            resultValue = kilo;
-            resultUnit = "kH/s";
+    const unit_prefix = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z'];
+
+    for (let i = 0; i < unit_prefix.length - 1; i++) {
+        if (value < 1000) {
+            resultValue = value;
+            resultUnit = unit_prefix[i] + "H/s";
+            break;
         }
-        else {
-            var mega = kilo / 1000;
-            if(mega < 1000) {
-                resultValue = mega;
-                resultUnit = "MH/s";
-            }
-            else {
-                resultValue = mega / 1000;
-                resultUnit = "GH/s";
-            }
-        }
+        value = value / 1000;
     }
 
     if(arg2) {
