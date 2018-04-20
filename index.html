@@ -222,7 +222,7 @@
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Size </label>
-                    <span>{%=o.size%} Bytes</span>
+                    <span>{%=_formatSize(o.size)%}</span>
                 </div>
             </div>
             <div class="blockinfo-miner">
@@ -415,7 +415,7 @@
             found by <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.miner_address%}</a></hash>
         </div>
         <div class="blocklist-cell">
-            {%=o.size%} Bytes
+            {%=_formatSize(o.size)%}
         </div>
     </script>
 

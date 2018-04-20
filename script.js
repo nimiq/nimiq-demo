@@ -47,6 +47,16 @@ function _formatBalance(value) {
     else return value;
 }
 
+function _formatSize(size) {
+    // kilo, mega, giga, tera, peta, exa, zetta
+    const unit_prefix = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z'];
+
+    for (let i = 0; i < unit_prefix.length - 1; i++) {
+        if (size < 1000) return (Math.round(size * 100) / 100) + " " + unit_prefix[i] + "B";
+        size = size / 1000;
+    }
+}
+
 function _getAccountInfo(address, callback) {
     address = address.replace(/ /g, '+');
     fetch('https://api.nimiq.watch/account/' + address).then(function(response) {
