@@ -3,7 +3,7 @@
 <head>
     <meta charset=utf-8 />
     <title>Nimiq Demo</title>
-    <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
+    <script type="text/javascript" src="https://cdn.nimiq.com/nimiq.js"></script>
     <script>
 
 function _onConsensusEstablished() {
@@ -12,7 +12,8 @@ function _onConsensusEstablished() {
     document.getElementById('address').innerText = $.wallet.address.toUserFriendlyAddress();
 
     _updateBalance();
-    // recheck balance on potential balance change
+
+    // Recheck balance on every head change.
     $.blockchain.on('head-changed', _updateBalance);
 
     // If we want to start mining.
@@ -33,7 +34,7 @@ function _updateBalance() {
 
 function _onBalanceChanged(account) {
     account = account || Nimiq.BasicAccount.INITIAL;
-    console.log(`New balance of ${$.wallet.address} is ${account.balance}.`);
+    console.log(`New balance of ${$.wallet.address.toUserFriendlyAddress()} is ${account.balance}.`);
     document.getElementById('balance').innerText = Nimiq.Policy.satoshisToCoins(account.balance).toFixed(2);
 }
 
@@ -52,11 +53,12 @@ function init(clientType = 'full') {
     Nimiq.init(async function() {
         document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
 
+        // Connect to the testnet.
+        Nimiq.GenesisConfig.test();
+
         const $ = {};
         window.$ = $;
-        if (clientType === 'full') {
-            $.consensus = await Nimiq.Consensus.full();
-        } else if (clientType === 'light') {
+        if (clientType === 'light') {
             $.consensus = await Nimiq.Consensus.light();
         } else if (clientType === 'nano') {
             $.consensus = await Nimiq.Consensus.nano();
@@ -66,11 +68,13 @@ function init(clientType = 'full') {
         $.mempool = $.consensus.mempool;
         $.network = $.consensus.network;
 
-        $.wallet = await Nimiq.Wallet.getPersistent();
+        // Generate a temporary wallet.
+        $.wallet = await Nimiq.Wallet.generate();
+
+        // The nano client does not sync the full account info and cannot mine.
         if (clientType !== 'nano') {
-            // the nano client does not sync the full account info and can not mine.
             $.accounts = $.blockchain.accounts;
-            $.miner = new Nimiq.Miner($.blockchain, $.mempool, $.wallet.address);
+            $.miner = new Nimiq.Miner($.blockchain, $.accounts, $.mempool, $.network.time, $.wallet.address);
         }
 
         $.consensus.on('established', () => _onConsensusEstablished());
@@ -101,7 +105,7 @@ function init(clientType = 'full') {
     <h1>Getting started with the Nimiq API</h1>
     This html file demonstrates the most simple way to build web applications on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
     <h2>Most Simple Client</h2>
-    <p id="client-selector">Client type: <a href="#" client-type="nano">nano</a> <a href="#" client-type="light">light</a> <a href="#" client-type="full">full</a></p>
+    <p id="client-selector">Client type: <a href="#" client-type="nano">nano</a> <a href="#" client-type="light">light</a></p>
     <div id="client-info" style="display:none">
         <p>Status: <span id="message">Loading Nimiq.</span></p>
         <p>Account address: <span id="address"><em>loading</em></span></p>
