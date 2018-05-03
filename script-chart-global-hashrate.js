@@ -10,7 +10,7 @@ function _globalHashrate(range, skipRender) {
         window.scrollTo(0, $infobox.offsetTop - 100);
     }
 
-    fetch('https://api.nimiq.watch/statistics/difficulty/' + range).then(function(response) {
+    fetch(apiUrl + '/statistics/difficulty/' + range).then(function(response) {
         response.json().then(function(data) {
             var difficulty = data.map(function(block) { return block['difficulty']; });
             var timestamp  = data.map(function(block) { return block['timestamp']; });

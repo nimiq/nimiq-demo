@@ -59,7 +59,7 @@ function _formatSize(size) {
 
 function _getAccountInfo(address, callback) {
     address = address.replace(/ /g, '+');
-    fetch('https://api.nimiq.watch/account/' + address).then(function(response) {
+    fetch(apiUrl + '/account/' + address).then(function(response) {
         response.json().then(function(data) {
             if(data.error) alert('Error: ' + data.error);
             if(!data) alert('No data received from https://api.nimiq.watch/account/' + address + '!');
@@ -75,7 +75,7 @@ function loadMoreTransactions(self, address) {
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
 
-    fetch('https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
+    fetch(apiUrl + '/account-transactions/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(transactions) {
             if(!transactions) alert('No data from https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + limit + '/' + skip + '!');
 
@@ -116,7 +116,7 @@ function loadMoreBlocks(self, address) {
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
 
-    fetch('https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
+    fetch(apiUrl + '/account-blocks/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(blocks) {
             if(!blocks) alert('No data from https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + limit + '/' + skip + '!');
 
@@ -165,7 +165,7 @@ function switchAccountHistory(selection) {
 
 function _getBlockInfo(identifier, callback, errback) {
     identifier = encodeURIComponent(identifier);
-    fetch('https://api.nimiq.watch/block/' + identifier).then(function(response) {
+    fetch(apiUrl + '/block/' + identifier).then(function(response) {
         response.json().then(function(data) {
             if(data.error) {
                 if(errback) errback(data);
@@ -206,7 +206,7 @@ function _getBlockInfo(identifier, callback, errback) {
 
 function _getTransactionInfo(identifier, callback) {
     identifier = encodeURIComponent(identifier);
-    fetch('https://api.nimiq.watch/transaction/' + identifier).then(function(response) {
+    fetch(apiUrl + '/transaction/' + identifier).then(function(response) {
         response.json().then(function(data) {
             if(data.error && data.error !== 'Transaction not found') alert('Error: ' + data.error);
             if(!data) alert('No data received from https://api.nimiq.watch/transaction/' + identifier + '!');
@@ -248,7 +248,7 @@ function _buildListOfLatestBlocks(self) {
     }
 
 
-    fetch('https://api.nimiq.watch/latest/' + limit + '/' + skip).then(function(response) {
+    fetch(apiUrl + '/latest/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(data) {
             if(!blocklistBuilt) blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 

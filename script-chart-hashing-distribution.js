@@ -14,7 +14,7 @@ async function _hashingDistribution(range, skipRender) {
     var blocksMinedSum   = 0;
 
     // Collect data
-    fetch('https://api.nimiq.watch/statistics/miners/' + range).then(function(response) {
+    fetch(apiUrl + '/statistics/miners/' + range).then(function(response) {
         response.json().then(function(data) {
 
             // Converting into label and data arrays

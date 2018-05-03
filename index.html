@@ -21,6 +21,11 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/promise-polyfill@7/dist/polyfill.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch"></script>
     <script>
+        var isTestnet = location.hostname === 'test.nimiq.watch';
+
+        var apiUrl = 'https://api.nimiq.watch';
+        if(isTestnet) apiUrl = 'https://test-api.nimiq.watch';
+
         // Dummy object to prevent JS errors
         var nimiqLoaded = false;
         var latestBlockHeight = 0;
@@ -66,7 +71,8 @@
         }
 
         Nimiq.init(function() {
-            Nimiq.GenesisConfig.main();
+            if(isTestnet) Nimiq.GenesisConfig.test();
+            else Nimiq.GenesisConfig.main();
 
             _onNimiqLoaded();
 
