@@ -14,13 +14,18 @@
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/css-toggle-switch@latest/dist/toggle-switch.css" />
 
-    <link rel="stylesheet" type="text/css" href="./style.css">
+    <link rel="stylesheet" type="text/css" href="./staging.css">
 
-    <script type="text/javascript" src="https://cdn.nimiq-testnet.com/nimiq.js"></script>
+    <script type="text/javascript" src="https://cdn.nimiq.com/nimiq.js"></script>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/promise-polyfill@7/dist/polyfill.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch"></script>
     <script>
+        var isTestnet = location.hostname === 'test.nimiq.watch';
+
+        var apiUrl = 'https://api.nimiq.watch';
+        if(isTestnet) apiUrl = 'https://test-api.nimiq.watch';
+
         // Dummy object to prevent JS errors
         var nimiqLoaded = false;
         var latestBlockHeight = 0;
@@ -66,7 +71,8 @@
         }
 
         Nimiq.init(function() {
-            Nimiq.GenesisConfig.test();
+            if(isTestnet) Nimiq.GenesisConfig.test();
+            else Nimiq.GenesisConfig.main();
 
             _onNimiqLoaded();
 
@@ -115,7 +121,7 @@
                 <span class="nimiq-logo">
                     <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
                 </span>
-                NIMIQ.WATCH
+                <span id="page-name">NIMIQ.WATCH</span>
             </a>
         </h1>
         <a href="#" onclick="_linkClicked(this, true);" id="search">Search</a>
@@ -140,6 +146,7 @@
                 <a href="https://nimiq.watch/news/2017-12-23-week-in-review-5.html" target="_blank">23 Dec 2017 | Week In Review #5</a>
             </div>
         </div>-->
+        <a href="https://pool.nimiq.watch:8443" target="_blank">Pool</a>
         <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
 
         <span id="monitor" title="Connected to 0 peers">
@@ -222,7 +229,7 @@
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Size </label>
-                    <span>{%=o.size%} Bytes</span>
+                    <span>{%=_formatSize(o.size)%}</span>
                 </div>
             </div>
             <div class="blockinfo-miner">
@@ -263,7 +270,7 @@
                     </div>
                 {% } %}
             {% } else { %}
-                <div class="no-transactions">No transactions</div>
+                <div class="no-more">No transactions</div>
             {% } %}
         </div>
     </script>
@@ -351,10 +358,10 @@
                     {% if(o.transactions.length === 10) { %}
                         <button class="event-loadmore" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">Load more</button>
                     {% } else { %}
-                        <div class="no-transactions">No earlier transactions</div>
+                        <div class="no-more">No earlier transactions</div>
                     {% } %}
                 {% } else { %}
-                    <div class="no-transactions">No transactions</div>
+                    <div class="no-more">No transactions</div>
                 {% } %}
             </div>
 
@@ -367,10 +374,10 @@
                     {% if(o.blocks.length === 10) { %}
                         <button class="event-loadmore" onclick="loadMoreBlocks(this, '{%=o.address%}')" data-page="2">Load more</button>
                     {% } else { %}
-                        <div class="no-transactions">No earlier blocks</div>
+                        <div class="no-more">No earlier blocks</div>
                     {% } %}
                 {% } else { %}
-                    <div class="no-transactions">No blocks mined</div>
+                    <div class="no-more">No blocks mined</div>
                 {% } %}
             </div>
         </div>
@@ -415,7 +422,7 @@
             found by <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.miner_address%}</a></hash>
         </div>
         <div class="blocklist-cell">
-            {%=o.size%} Bytes
+            {%=_formatSize(o.size)%}
         </div>
     </script>
 
@@ -454,6 +461,12 @@
     </script>
 
     <script src="./staging.js"></script>
+    <script>
+        if(isTestnet) {
+            document.head.querySelector('title').textContent = 'TESTNET.WATCH';
+            document.querySelector('#page-name').textContent = 'TESTNET.WATCH';
+        }
+    </script>
 
     <script>
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

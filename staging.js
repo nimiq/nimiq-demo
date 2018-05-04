@@ -47,9 +47,19 @@ function _formatBalance(value) {
     else return value;
 }
 
+function _formatSize(size) {
+    // kilo, mega, giga, tera, peta, exa, zetta
+    const unit_prefix = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z'];
+
+    for (let i = 0; i < unit_prefix.length - 1; i++) {
+        if (size < 1000) return (Math.round(size * 100) / 100) + " " + unit_prefix[i] + "B";
+        size = size / 1000;
+    }
+}
+
 function _getAccountInfo(address, callback) {
     address = address.replace(/ /g, '+');
-    fetch('https://api.nimiq.watch/account/' + address).then(function(response) {
+    fetch(apiUrl + '/account/' + address).then(function(response) {
         response.json().then(function(data) {
             if(data.error) alert('Error: ' + data.error);
             if(!data) alert('No data received from https://api.nimiq.watch/account/' + address + '!');
@@ -65,7 +75,7 @@ function loadMoreTransactions(self, address) {
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
 
-    fetch('https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
+    fetch(apiUrl + '/account-transactions/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(transactions) {
             if(!transactions) alert('No data from https://api.nimiq.watch/account-transactions/' + urlAddress + '/' + limit + '/' + skip + '!');
 
@@ -106,7 +116,7 @@ function loadMoreBlocks(self, address) {
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
 
-    fetch('https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
+    fetch(apiUrl + '/account-blocks/' + urlAddress + '/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(blocks) {
             if(!blocks) alert('No data from https://api.nimiq.watch/account-blocks/' + urlAddress + '/' + limit + '/' + skip + '!');
 
@@ -155,7 +165,7 @@ function switchAccountHistory(selection) {
 
 function _getBlockInfo(identifier, callback, errback) {
     identifier = encodeURIComponent(identifier);
-    fetch('https://api.nimiq.watch/block/' + identifier).then(function(response) {
+    fetch(apiUrl + '/block/' + identifier).then(function(response) {
         response.json().then(function(data) {
             if(data.error) {
                 if(errback) errback(data);
@@ -167,11 +177,25 @@ function _getBlockInfo(identifier, callback, errback) {
             }
 
             if(data.extra_data) {
-                var buf = Nimiq.BufferUtils.fromBase64(data.extra_data);
+                var extra_data = Nimiq.BufferUtils.fromBase64(data.extra_data);
 
-                // Check if we can convert the extraData into ASCII
+                var buf;
+                var nullByteIndex = extra_data.indexOf(0);
+
+                if(nullByteIndex > 0) {
+                    buf = extra_data.slice(0, nullByteIndex);
+                } else {
+                    buf = extra_data;
+                }
+
+                // Check if we can convert the buffer into ASCII
                 if(buf.every(function(c) {return c >= 32 && c <= 126;})) {
                     data.extra_data = Nimiq.BufferUtils.toAscii(buf);
+
+                    if(nullByteIndex > 0) {
+                        // Append rest of extra data as base64
+                        data.extra_data += ' ' + Nimiq.BufferUtils.toBase64(extra_data.slice(nullByteIndex + 1));
+                    }
                 }
             }
 
@@ -182,7 +206,7 @@ function _getBlockInfo(identifier, callback, errback) {
 
 function _getTransactionInfo(identifier, callback) {
     identifier = encodeURIComponent(identifier);
-    fetch('https://api.nimiq.watch/transaction/' + identifier).then(function(response) {
+    fetch(apiUrl + '/transaction/' + identifier).then(function(response) {
         response.json().then(function(data) {
             if(data.error && data.error !== 'Transaction not found') alert('Error: ' + data.error);
             if(!data) alert('No data received from https://api.nimiq.watch/transaction/' + identifier + '!');
@@ -224,7 +248,7 @@ function _buildListOfLatestBlocks(self) {
     }
 
 
-    fetch('https://api.nimiq.watch/latest/' + limit + '/' + skip).then(function(response) {
+    fetch(apiUrl + '/latest/' + limit + '/' + skip).then(function(response) {
         response.json().then(function(data) {
             if(!blocklistBuilt) blocklistNode.removeChild(blocklistNode.getElementsByTagName('div')[0]);
 
@@ -235,7 +259,7 @@ function _buildListOfLatestBlocks(self) {
             if(self) data.reverse();
 
             for(var i = 0; i < data.length; i++ ) {
-                _addBlockToListOfLatestBlocks(data[i], self);
+                _addBlockToListOfLatestBlocks(data[i], !!self);
             }
 
             if(data.length < limit) {
@@ -253,7 +277,7 @@ function _buildListOfLatestBlocks(self) {
                 button.classList.add('event-loadmore');
                 button.setAttribute('onclick', '_buildListOfLatestBlocks(this)');
                 button.textContent = 'Load more';
-                blocklistNode.appendChild(button);
+                blocklistNode.parentNode.appendChild(button);
             }
 
             blocklistBuilt = true;
@@ -263,15 +287,15 @@ function _buildListOfLatestBlocks(self) {
 
 var blocklistNode = document.getElementById('blocklist');
 
-function _addBlockToListOfLatestBlocks(blockInfo, insertBeforeNode) {
-    if(!blockInfo) return;
+function _addBlockToListOfLatestBlocks(blockInfo, append) {
+    if(!blockInfo || blockInfo.error) return;
 
     var item = document.createElement('div');
     item.classList.add('blocklist-block');
 
     item.innerHTML = template.blocklistBlock(blockInfo);
 
-    blocklistNode.insertBefore(item, insertBeforeNode || blocklistNode.firstChild);
+    append && blocklistNode.appendChild(item) || blocklistNode.insertBefore(item, blocklistNode.firstChild);
 }
 
 function _onHashChange(e) {
