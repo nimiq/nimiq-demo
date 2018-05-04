@@ -1,6 +1,6 @@
  body {
-    background: snow;
-    color: #042146;
+    background: #fafafa;
+    color: #3b3b3b;
     font-family: "Source Sans Pro", sans-serif;
     font-size: 18px;
     letter-spacing: 0.02em;
@@ -9,7 +9,7 @@
 }
 
 a {
-    color: #042146;
+    color: #3b3b3b;
     text-decoration: none;
     border-bottom: 1px dotted;
     position: relative;
@@ -21,7 +21,7 @@ a:focus {
 }
 
 header {
-    background: #042146;
+    background: linear-gradient(90deg, #536dfe, #a553fe);
     color: white;
     padding: 0.5em 0.8em;
     overflow: visible;
@@ -79,7 +79,7 @@ header > a:target,
 header .submenu-container > a:focus,
 header .submenu-container > a:target {
     background: white;
-    color: #042146;
+    color: #3b3b3b;
 }
 
 header .submenu-container {
@@ -102,7 +102,7 @@ header .submenu {
 
 header .submenu-container:hover > a {
     background: white;
-    color: #042146;
+    color: #3b3b3b;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
@@ -133,7 +133,7 @@ header .submenu a:last-child {
 }
 
 header .submenu a:hover {
-    background: #F0F0F0;
+    background: #fafafa;
 }
 
 #monitor {
@@ -170,7 +170,7 @@ header .submenu a:hover {
     font-family: "Fira Mono", monospace;
     padding: 1em;
     border-radius: 3px;
-    border: 1px solid #042146;
+    border: 1px solid #3b3b3b;
 }
 
 #search-input {
@@ -600,8 +600,7 @@ hash {
 
 .blocklist-block {
     display: table-row;
-    background: #D6D6D6;
-    background: #F0F0F0;
+    background: white;
 }
 
 a.blocklist-cell::after {
