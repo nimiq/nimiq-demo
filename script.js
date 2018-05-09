@@ -299,8 +299,10 @@ function _addBlockToListOfLatestBlocks(blockInfo, append) {
 }
 
 function _onHashChange(e) {
-    ga('set', 'page', location.pathname + location.search + location.hash);
-    ga('send', 'pageview');
+    try {
+        ga('set', 'page', location.pathname + location.search + location.hash);
+        ga('send', 'pageview');
+    } catch(e) {}
 
     var value = window.location.hash;
 
