@@ -316,7 +316,7 @@
                 {% if(o.data.length > 0) { %}
                     <div class="blockinfo-body-row">
                         <label>Reference </label>
-                        <span>{%=o.data%}</span>
+                        <span>{%=_formatTxData(Nimiq.BufferUtils.fromBase64(o.data))%}</span>
                     </div>
                 {% } %}
                 <div class="blockinfo-body-row">

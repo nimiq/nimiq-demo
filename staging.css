@@ -438,6 +438,11 @@ hash {
     text-align: right;
 }
 
+
+.blockinfo-transaction-row > span:last-child {
+    padding-left: 0.5em;
+}
+
 .no-more {
     text-align: center;
     text-transform: uppercase;
