@@ -267,6 +267,7 @@
                         <hash><a href="#{%=o.transactions[i].sender_address.replace(/ /g, '+')%}"   onclick="_linkClicked(this);">{%=o.transactions[i].sender_address  %}</a></hash>
                         <hash><a href="#{%=o.transactions[i].receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].receiver_address%}</a></hash>
                         <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%} NIM</span>
+                        <span><a href="#{%=o.transactions[i].hash%}" onclick="_linkClicked(this);">i</a></span>
                     </div>
                 {% } %}
             {% } else { %}
@@ -312,6 +313,12 @@
                     <label>Fee </label>
                     <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.fee))%} NIM</span>
                 </div>
+                {% if(o.data.length > 0) { %}
+                    <div class="blockinfo-body-row">
+                        <label>Reference </label>
+                        <span>{%=o.data%}</span>
+                    </div>
+                {% } %}
                 <div class="blockinfo-body-row">
                     <label>Validity Start Height </label>
                     <span>{%=o.validity_start_height%}</span>
