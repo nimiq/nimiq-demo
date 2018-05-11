@@ -39,12 +39,28 @@ function _detectHashFormat(value) {
 }
 
 function _formatBalance(value) {
-    // If the value has no decimal places below 0.01, display 0 decimals
+    var valueStr = '';
+
+    // If the value has no decimal places below 0.01, display 2 decimals
     if(parseFloat(value.toFixed(2)) === value) {
-        return value.toFixed(2);
+        valueStr = value.toFixed(2);
     }
     // Otherwise, all required decimals will be displayed automatically
-    else return value;
+    else valueStr = value.toString();
+
+    var ints = _formatThousands(valueStr.split('.')[0]);
+    var decs = valueStr.split('.')[1];
+
+    return ints + '.' + decs;
+}
+
+function _formatThousands(number, separator) {
+    separator = separator || ' ';
+    let reversed = number.split('').reverse();
+    for(let i = 3; i < reversed.length; i += 4) {
+        reversed.splice(i, 0, separator);
+    }
+    return reversed.reverse().join('');
 }
 
 function _formatSize(size) {
@@ -55,6 +71,35 @@ function _formatSize(size) {
         if (size < 1000) return (Math.round(size * 100) / 100) + " " + unit_prefix[i] + "B";
         size = size / 1000;
     }
+}
+
+// From https://github.com/nimiq/secure-utils/utf8-tools/utf8-tools.js
+function _formatTxData(bytes) {
+    // TODO: Use native implementations if/when available
+    var out = [], pos = 0, c = 0;
+    while (pos < bytes.length) {
+        var c1 = bytes[pos++];
+        if (c1 < 128) {
+            out[c++] = String.fromCharCode(c1);
+        } else if (c1 > 191 && c1 < 224) {
+            var c2 = bytes[pos++];
+            out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
+        } else if (c1 > 239 && c1 < 365) {
+            // Surrogate Pair
+            var c2 = bytes[pos++];
+            var c3 = bytes[pos++];
+            var c4 = bytes[pos++];
+            var u = ((c1 & 7) << 18 | (c2 & 63) << 12 | (c3 & 63) << 6 | c4 & 63) - 0x10000;
+            out[c++] = String.fromCharCode(0xD800 + (u >> 10));
+            out[c++] = String.fromCharCode(0xDC00 + (u & 1023));
+        } else {
+            var c2 = bytes[pos++];
+            var c3 = bytes[pos++];
+            out[c++] =
+            String.fromCharCode((c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+        }
+    }
+    return out.join('');
 }
 
 function _getAccountInfo(address, callback) {

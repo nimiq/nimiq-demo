@@ -1,6 +1,6 @@
- body {
-    background: snow;
-    color: #042146;
+body {
+    background: #fafafa;
+    color: #3b3b3b;
     font-family: "Source Sans Pro", sans-serif;
     font-size: 18px;
     letter-spacing: 0.02em;
@@ -9,7 +9,7 @@
 }
 
 a {
-    color: #042146;
+    color: #3b3b3b;
     text-decoration: none;
     border-bottom: 1px dotted;
     position: relative;
@@ -21,22 +21,26 @@ a:focus {
 }
 
 header {
-    background: #042146;
+    background: #fafafa;
     color: white;
-    padding: 0.5em 0.8em;
+    color: #3b3b3b;
+    /* padding: 0.5em 0.8em; */
+    padding-top: 0.5em;
     overflow: visible;
     position: fixed;
     top: 0;
     left: 0;
     box-sizing: border-box;
     width: 100%;
-    box-shadow: 0 0 10px 0 black;
+    box-shadow: 0 0 10px 0 darkgray;
     z-index: 1000;
 }
 
 header h1 {
     margin: 0.1em 0;
+    margin-left: 16px;
     margin-right: 1em;
+    margin-bottom: 16px;
     float: left;
     font-size: 1.5em;
     letter-spacing: 0.05em;
@@ -57,8 +61,9 @@ header .submenu-container,
 header .submenu-container > a {
     line-height: 2.7em;
     color: white;
+    color: #3b3b3b;
     float: left;
-    border: none;
+    /* border: none; */
     padding: 0 0.75em;
     margin-right: 0.5em;
     position: relative;
@@ -70,16 +75,19 @@ header .submenu-container > a {
 header a,
 header a:hover,
 header a:focus {
-    border: none;
+    /* border: none; */
+    border: 1px solid transparent;
 }
 
 header > a:hover,
 header > a:focus,
 header > a:target,
+header .submenu-container > a:hover,
 header .submenu-container > a:focus,
 header .submenu-container > a:target {
     background: white;
-    color: #042146;
+    color: #3b3b3b;
+    border-color: #3b3b3b;
 }
 
 header .submenu-container {
@@ -95,16 +103,18 @@ header .submenu {
     display: none;
     position: absolute;
     top: 100%;
-    left: -1px;
+    left: 0px;
     z-index: 1500;
     border-radius: 3px;
 }
 
 header .submenu-container:hover > a {
     background: white;
-    color: #042146;
+    color: #3b3b3b;
+    border-color: #3b3b3b;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
+    border-bottom: 0;
 }
 
 header .submenu-container:hover .submenu {
@@ -133,11 +143,19 @@ header .submenu a:last-child {
 }
 
 header .submenu a:hover {
-    background: #F0F0F0;
+    background: #fafafa;
+}
+
+header .color-strip {
+    width: 100%;
+    height: 3px;
+    clear: both;
+    background: linear-gradient(90deg, #536dfe, #a553fe);
 }
 
 #monitor {
     float: right;
+    margin-right: 16px;
     line-height: 2.7em;
 }
 
@@ -170,7 +188,7 @@ header .submenu a:hover {
     font-family: "Fira Mono", monospace;
     padding: 1em;
     border-radius: 3px;
-    border: 1px solid #042146;
+    border: 1px solid #3b3b3b;
 }
 
 #search-input {
@@ -429,6 +447,7 @@ hash {
 
 .blockinfo-transaction-row > hash {
     font-size: 14px;
+    word-spacing: -2px;
 }
 
 .blockinfo-transaction-row > span {
@@ -436,6 +455,30 @@ hash {
     padding-right: 0;
     width: 100%;
     text-align: right;
+}
+
+
+.blockinfo-transaction-row > span:last-child {
+    padding-left: 0.5em;
+}
+
+a.info-icon {
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    margin-bottom: -2px;
+    background-image: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 50%;
+    border-bottom: none;
+    opacity: 0.7;
+}
+
+a.info-icon:hover,
+a.info-icon:focus,
+a.info-icon:active {
+    opacity: 0.9;
 }
 
 .no-more {
@@ -450,6 +493,10 @@ hash {
     padding: 1em;
     border-radius: 4px;
     margin-bottom: 0.5em;
+}
+
+.event-item a.info-icon {
+    margin-left: 4px;
 }
 
 .event-amount {
@@ -600,8 +647,7 @@ hash {
 
 .blocklist-block {
     display: table-row;
-    background: #D6D6D6;
-    background: #F0F0F0;
+    background: white;
 }
 
 a.blocklist-cell::after {

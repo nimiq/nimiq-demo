@@ -55,7 +55,7 @@ function _formatBalance(value) {
 }
 
 function _formatThousands(number, separator) {
-    separator = separator || '\'';
+    separator = separator || ' ';
     let reversed = number.split('').reverse();
     for(let i = 3; i < reversed.length; i += 4) {
         reversed.splice(i, 0, separator);
@@ -344,8 +344,10 @@ function _addBlockToListOfLatestBlocks(blockInfo, append) {
 }
 
 function _onHashChange(e) {
-    ga('set', 'page', location.pathname + location.search + location.hash);
-    ga('send', 'pageview');
+    try {
+        ga('set', 'page', location.pathname + location.search + location.hash);
+        ga('send', 'pageview');
+    } catch(e) {}
 
     var value = window.location.hash;
 
