@@ -103,7 +103,7 @@ header .submenu {
     display: none;
     position: absolute;
     top: 100%;
-    left: -1px;
+    left: 0px;
     z-index: 1500;
     border-radius: 3px;
 }
@@ -148,7 +148,7 @@ header .submenu a:hover {
 
 header .color-strip {
     width: 100%;
-    height: 4px;
+    height: 3px;
     clear: both;
     background: linear-gradient(90deg, #536dfe, #a553fe);
 }
@@ -459,6 +459,17 @@ hash {
 
 .blockinfo-transaction-row > span:last-child {
     padding-left: 0.5em;
+}
+
+a.info-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-bottom: -3px;
+    background-image: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>');
+    background-repeat: no-repeat;
+    background-size: contain;
+    border-bottom: none;
 }
 
 .no-more {
