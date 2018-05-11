@@ -464,9 +464,9 @@ hash {
 
 a.info-icon {
     display: inline-block;
-    width: 1em;
-    height: 1em;
-    margin-bottom: -3px;
+    width: 0.9em;
+    height: 0.9em;
+    margin-bottom: -2px;
     background-image: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>');
     background-repeat: no-repeat;
     background-position: center;
@@ -493,6 +493,10 @@ a.info-icon:active {
     padding: 1em;
     border-radius: 4px;
     margin-bottom: 0.5em;
+}
+
+.event-item a.info-icon {
+    margin-left: 4px;
 }
 
 .event-amount {
