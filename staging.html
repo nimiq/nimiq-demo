@@ -21,10 +21,10 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/promise-polyfill@7/dist/polyfill.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch"></script>
     <script>
-        var isTestnet = location.hostname === 'test.nimiq.watch';
+        var useTestnet = location.hostname !== 'nimiq.watch';
 
         var apiUrl = 'https://api.nimiq.watch';
-        if(isTestnet) apiUrl = 'https://test-api.nimiq.watch';
+        if(useTestnet) apiUrl = 'https://test-api.nimiq.watch';
 
         // Dummy object to prevent JS errors
         var nimiqLoaded = false;
@@ -71,7 +71,7 @@
         }
 
         Nimiq.init(function() {
-            if(isTestnet) Nimiq.GenesisConfig.test();
+            if(useTestnet) Nimiq.GenesisConfig.test();
             else Nimiq.GenesisConfig.main();
 
             _onNimiqLoaded();
@@ -469,7 +469,7 @@
             <p>
                 <!--<a href="#chart-wealth-distribution">Wealth Distribution</a>-->
                 <a href="#chart-global-hashrate">Global Hashrate</a>
-                <!--<a href="#chart-transactions-per-block">Transactions</a>-->
+                <a href="#chart-transactions-per-block">Transactions</a>
                 <a href="#chart-hashing-distribution">Hashing Distribution</a>
             </p>
         </div>
@@ -477,7 +477,7 @@
 
     <script src="./staging.js"></script>
     <script>
-        if(isTestnet) {
+        if(useTestnet) {
             document.head.querySelector('title').textContent = 'TESTNET.WATCH';
             document.querySelector('#page-name').textContent = 'TESTNET.WATCH';
         }
