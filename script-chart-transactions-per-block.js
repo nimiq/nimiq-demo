@@ -29,8 +29,7 @@ async function _transactionsPerBlock(range, skipRender) {
                 }
                 catch(e) {}
 
-                var time = new Date($.blockchain.head.timestamp * 1000);
-                $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created at block #" + $.blockchain.head.height + " - " + time.toLocaleString()
+                $infobox.getElementsByClassName('chart-valid-info')[0].innerHTML = "Created " + (new Date()).toLocaleString();
 
                 if(window.chart) window.chart.destroy();
 
