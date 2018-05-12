@@ -129,9 +129,9 @@
             <a href="#charts" onclick="_linkClicked(this, true);" id="charts">Charts</a>
 
             <div class="submenu">
-                <!---<a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>-->
+                <!--<a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>-->
                 <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
-                <!---<a href="#chart-transactions-per-block" onclick="_linkClicked(this);">Transactions</a>-->
+                <a href="#chart-transactions-per-block" onclick="_linkClicked(this);">Transactions</a>
                 <a href="#chart-hashing-distribution" onclick="_linkClicked(this);">Hashing Distribution</a>
             </div>
         </div>
@@ -576,17 +576,35 @@
     <script src="./script-chart-wealth-distribution.js"></script>
     -->
 
-    <!--
     <script type="text/x-tmpl" id="template-transactions-per-block-chart">
+        <div class="switch-toggle switch-candy global-hashrate-range-switch">
+            <input id="global-hashrate-range-day" name="global-hashrate-range" type="radio" onclick="switchTransactionsPerBlockRange('day')">
+            <label for="global-hashrate-range-day" onclick="">Day</label>
+
+            <input id="global-hashrate-range-week" name="global-hashrate-range" type="radio" checked="checked" onclick="switchTransactionsPerBlockRange('week')">
+            <label for="global-hashrate-range-week" onclick="">Week</label>
+
+            <input id="global-hashrate-range-month" name="global-hashrate-range" type="radio" onclick="switchTransactionsPerBlockRange('month')">
+            <label for="global-hashrate-range-month" onclick="">Month</label>
+
+            <input id="global-hashrate-range-year" name="global-hashrate-range" type="radio" onclick="switchTransactionsPerBlockRange('year')">
+            <label for="global-hashrate-range-year" onclick="">Year</label>
+
+            <!--
+            <input id="global-hashrate-range-all" name="global-hashrate-range" type="radio" onclick="switchTransactionsPerBlockRange('all')">
+            <label for="global-hashrate-range-all" onclick="">all</label>
+            -->
+
+            <a></a>
+        </div>
         <h2>Transactions</h2>
-        <small>During the last 24 hours</small>
+        <!-- <small>Description</small> -->
         <canvas class="chart"></canvas>
         <div class="blocklist-loader over-canvas">
             <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30"><path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path></svg>
         </div>
         <div class="chart-valid-info"></div>
     </script>
-    <script src="./script-chart-transactions-per-block"></script>
-    -->
+    <script src="./script-chart-transactions-per-block.js"></script>
 </body>
 </html>
