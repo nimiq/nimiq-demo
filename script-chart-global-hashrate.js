@@ -15,6 +15,38 @@ function _globalHashrate(range, skipRender) {
             var difficulty = data.map(function(block) { return block['difficulty']; });
             var timestamp  = data.map(function(block) { return block['timestamp']; });
 
+            // Fill empty times
+            var i = 0
+            var gap;
+            var now = Date.now() / 1000;
+
+            switch(range) {
+                case 'day':
+                    gap = 15 * 60; // 15 minutes
+                    break;
+                case 'week':
+                    gap = 1 * 60 * 60 // 1 hour
+                    break;
+                case 'month':
+                    gap = 4 * 60 * 60; // 4 hours
+                    break;
+                default: // 'year'
+                    gap = 2 * 24 * 60 * 60; // 2 days
+                    break;
+            }
+
+            while(timestamp[i]) {
+                if(
+                    (!timestamp[i + 1] && now - timestamp[i] > gap * 1.8)
+                 || (timestamp[i + 1] > timestamp[i] + gap * 1.8)
+                ) {
+                    // Add missing time
+                    timestamp.splice(i + 1, 0, timestamp[i] + gap);
+                    difficulty.splice(i + 1, 0, 0);
+                }
+                i++;
+            }
+
             var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
             // Calculate hashrate from difficulty
