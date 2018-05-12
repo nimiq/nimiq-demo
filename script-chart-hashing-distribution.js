@@ -18,7 +18,7 @@ async function _hashingDistribution(range, skipRender) {
         response.json().then(function(data) {
 
             // Converting into label and data arrays
-            var addresses        = data.map(function(obj) { return obj.miner_address.substr(0, 20).toUpperCase() + '…'; });
+            var addresses        = data.map(function(obj) { return _labelAddress(obj.miner_address, true); });
             var blocksMined      = data.map(function(obj) { return obj.blocks_mined; });
             var totalBlocksMined = blocksMined.reduce(function(acc, val) { return acc + val; });
 

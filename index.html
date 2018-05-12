@@ -236,7 +236,7 @@
             <div class="blockinfo-miner">
                 <div class="blockinfo-body-row">
                     <label>Miner </label>
-                    <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.miner_address%}</a></hash>
+                    <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.miner_address)%}</a></hash>
                 </div>
                 {% if(o.extra_data) { %}
                     <div class="blockinfo-body-row">
@@ -265,8 +265,8 @@
                 </div>
                 {% for(var i = 0; i < o.transactions.length; i++) { %}
                     <div class="blockinfo-transaction-row">
-                        <hash><a href="#{%=o.transactions[i].sender_address.replace(/ /g, '+')%}"   onclick="_linkClicked(this);">{%=o.transactions[i].sender_address  %}</a></hash>
-                        <hash><a href="#{%=o.transactions[i].receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.transactions[i].receiver_address%}</a></hash>
+                        <hash><a href="#{%=o.transactions[i].sender_address.replace(/ /g, '+')%}"   onclick="_linkClicked(this);">{%=_labelAddress(o.transactions[i].sender_address)%}</a></hash>
+                        <hash><a href="#{%=o.transactions[i].receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.transactions[i].receiver_address)%}</a></hash>
                         <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%} NIM</span>
                         <span><a href="#{%=o.transactions[i].hash%}" onclick="_linkClicked(this);" class="info-icon"></a></span>
                     </div>
@@ -290,13 +290,13 @@
                 <div class="blockinfo-body-row">
                     <label>Sender </label>
                     <hash>
-                        <a href="#{%=o.sender_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.sender_address%}</a>
+                        <a href="#{%=o.sender_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.sender_address)%}</a>
                     </hash>
                 </div>
                 <div class="blockinfo-body-row">
                     <label>Recipient </label>
                     <hash>
-                        <a href="#{%=o.receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.receiver_address%}</a>
+                        <a href="#{%=o.receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.receiver_address)%}</a>
                     </hash>
                 </div>
                 <div class="blockinfo-body-row">
@@ -338,6 +338,12 @@
                 </div>
             </div>
             <div class="blockinfo-body">
+                {% if(_labelAddress(o.address) !== o.address) { %}
+                    <div class="blockinfo-body-row">
+                        <label>Label </label>
+                        <span>{%=_labelAddress(o.address)%}</span>
+                    </div>
+                {% } %}
                 <div class="blockinfo-body-row">
                     <label>Balance </label>
                     <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
@@ -402,7 +408,7 @@
             <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
             <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span><br>
             {% if(o.isReceiver) print('&larr;', true); else print('&rarr;', true); %}
-            <hash class="event-address"><a href="#{%=o.otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.otherAddress%}</a></hash>
+            <hash class="event-address"><a href="#{%=o.otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.otherAddress)%}</a></hash>
         </div>
     </script>
 
@@ -428,7 +434,7 @@
             {%=o.transaction_count%} {% if(o.transaction_count === 1) print('transaction'); else print('transactions'); %}
         </div>
         <div class="blocklist-cell ellipsis">
-            found by <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=o.miner_address%}</a></hash>
+            found by <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.miner_address)%}</a></hash>
         </div>
         <div class="blocklist-cell">
             {%=_formatSize(o.size)%}
