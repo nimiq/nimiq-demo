@@ -23,6 +23,8 @@ async function _transactionsPerBlock(range, skipRender) {
                 return date.getDate() + ". " + months[date.getMonth()] + " " + date.toTimeString().slice(0, 5);
             });
 
+            transactionValue = transactionValue.map(value => Nimiq.Policy.satoshisToCoins(value));
+
             var _renderTransactionsPerBlockChart = function() {
                 try {
                     $infobox.removeChild($infobox.getElementsByClassName('blocklist-loader')[0]);
