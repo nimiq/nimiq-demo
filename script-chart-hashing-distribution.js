@@ -1,7 +1,7 @@
 template.hashingDistributionChart = tmpl('template-hashing-distribution-chart');
 
 async function _hashingDistribution(range, skipRender) {
-    range      = range || 12;
+    range      = range || 24;
     skipRender = skipRender || false;
 
     if(!skipRender) {

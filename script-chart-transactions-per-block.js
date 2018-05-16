@@ -1,7 +1,7 @@
 template.transactionsPerBlockChart = tmpl('template-transactions-per-block-chart');
 
 async function _transactionsPerBlock(range, skipRender) {
-    range      = range || 'week';
+    range      = range || 'month';
     skipRender = skipRender || false;
 
     if(!skipRender) {

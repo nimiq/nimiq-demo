@@ -1,7 +1,7 @@
 template.globalHashrateChart = tmpl('template-global-hashrate-chart');
 
 function _globalHashrate(range, skipRender) {
-    range      = range || 'week';
+    range      = range || 'month';
     skipRender = skipRender || false;
 
     if(!skipRender) {
