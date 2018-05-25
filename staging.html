@@ -57,7 +57,11 @@
 
         function _onHeadChanged(head) {
             var height = head.height;
-            if(height > 1) $height.textContent = ' @ #' + height;
+            var hashrate = _humanReadableHashesPerSecond(Number(head.difficulty));
+            if(height > 1) {
+                $height.textContent = '@ #' + height;
+                $hashrate.textContent = '(' + hashrate + ')';
+            }
 
             if(blocklistBuilt && height > latestBlockHeight) {
                 _getBlockListInfo(head, function(blockInfo) {
@@ -151,7 +155,9 @@
 
         <span id="monitor" title="Connected to 0 peers">
             <strong>Status:</strong>
-            <span id="status" class="not-connected">connecting</span><span id="height"></span></span>
+            <span id="status" class="not-connected">connecting</span>
+            <span id="height"></span>
+            <span id="hashrate"></span>
         </span>
         <div class="color-strip"></div>
     </header>

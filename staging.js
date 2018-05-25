@@ -15,7 +15,8 @@ var template = {
 var $infobox        = document.getElementById('infobox'),
     $searchInput    = document.getElementById('search-input'),
     $status         = document.getElementById('status'),
-    $height         = document.getElementById('height');
+    $height         = document.getElementById('height'),
+    $hashrate       = document.getElementById('hashrate');
 
 var directNavigationTargets = ['#charts', '#about'];
 
