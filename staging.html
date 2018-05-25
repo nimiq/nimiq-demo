@@ -57,7 +57,7 @@
 
         function _onHeadChanged(head) {
             var height = head.height;
-            var hashrate = _humanReadableHashesPerSecond(Number(head.difficulty));
+            var hashrate = _humanReadableHashesPerSecond(Math.round(head.difficulty * Math.pow(2, 16) / Nimiq.Policy.BLOCK_TIME), true);
             if(height > 1) {
                 $height.textContent = '@ #' + height;
                 $hashrate.textContent = '(' + hashrate + ')';
