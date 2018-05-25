@@ -45,19 +45,19 @@
         }
 
         function _onConsensusEstablished() {
-            $status.innerText = 'connected';
+            $status.textContent = 'connected';
             $status.classList.add('consensus-established');
         }
 
         function _onConsensusLost() {
             console.error('Consensus lost');
-            $status.innerText = 'consensus lost';
+            $status.textContent = 'consensus lost';
             $status.classList.remove('consensus-established', 'synchronizing');
         }
 
         function _onHeadChanged(head) {
             var height = head.height;
-            if(height > 1) $height.innerText = ' @ #' + height;
+            if(height > 1) $height.textContent = ' @ #' + height;
 
             if(blocklistBuilt && height > latestBlockHeight) {
                 _getBlockListInfo(head, function(blockInfo) {
@@ -76,7 +76,7 @@
 
             _onNimiqLoaded();
 
-            $status.innerText = 'synchronizing';
+            $status.textContent = 'synchronizing';
             $status.classList.add('synchronizing');
 
             Nimiq.Consensus.volatileNano().then(function(nanoConsensus) {
