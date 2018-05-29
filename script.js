@@ -499,6 +499,7 @@ AddressBook.BOOK = {
     'NQ46 UTKP D8A9 04RS A1LL GPR8 BE4L G2BD FYSX': 'Hehe Pool',
     'NQ06 NG1G 83YG 5D59 LK8G Y2JB VYTH EL6D 7AKY': 'Nimbus Pool',
     'NQ15 MLJN 23YB 8FBM 61TN 7LYG 2212 LVBG 4V19': 'NIM Activation',
+    'NQ94 GSXP KNG0 K5YV HFJ1 PYAQ Y5D1 XTQ1 SLFP': 'Nimiq-Faucet.surge.sh',
 
     // Testnet
     'NQ31 QEPR ED7V 00KC P7UC P1PR DKJC VNU7 E461': 'pool.nimiq-testnet.com',
