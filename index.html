@@ -74,12 +74,12 @@
             if(useTestnet) {
                 Nimiq.GenesisConfig.test();
                 var address = Nimiq.WsPeerAddress.seed('test-node.nimiq.watch', 8080);
-                Nimiq.GenesisConfig.SEED_PEERS.push(address);
+                Nimiq.GenesisConfig.SEED_PEERS.unshift(address);
             }
             else {
                 Nimiq.GenesisConfig.main();
                 var address = Nimiq.WsPeerAddress.seed('node.nimiq.watch', 8080);
-                Nimiq.GenesisConfig.SEED_PEERS.push(address);
+                Nimiq.GenesisConfig.SEED_PEERS.unshift(address);
             }
 
             _onNimiqLoaded();
