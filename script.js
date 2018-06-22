@@ -148,7 +148,7 @@ function loadMoreTransactions(self, address) {
             if(transactions.length < limit) {
                 var notice = document.createElement('div');
                 notice.classList.add('no-more');
-                notice.innerText = 'No earlier transactions';
+                notice.textContent = 'No earlier transactions';
                 list.appendChild(notice);
             }
 
@@ -187,7 +187,7 @@ function loadMoreBlocks(self, address) {
             if(blocks.length < limit) {
                 var notice = document.createElement('div');
                 notice.classList.add('no-more');
-                notice.innerText = 'No earlier blocks';
+                notice.textContent = 'No earlier blocks';
                 list.appendChild(notice);
             }
 
@@ -321,7 +321,7 @@ function _buildListOfLatestBlocks(self) {
 
                 var notice = document.createElement('div');
                 notice.classList.add('no-more');
-                notice.innerText = 'No earlier blocks';
+                notice.textContent = 'No earlier blocks';
                 blocklistNode.appendChild(notice);
             }
 
@@ -369,7 +369,7 @@ function _onHashChange(e) {
 
     if(value === "" || value === "search") {
         // Display homepage
-        $infobox.innerText = "";
+        $infobox.textContent = "";
         $searchInput.value = "";
         $searchInput.focus();
         window.scrollTo(0, 0);

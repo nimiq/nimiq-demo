@@ -265,7 +265,7 @@ hash {
 }
 
 .accountinfo-wrapper {
-    width: 450px;
+    width: 540px;
     margin: auto;
 }
 
@@ -320,9 +320,20 @@ hash {
     background: #F0F0F0;
 }
 
-.accountinfo-wrapper .blockinfo-header,
+.accountinfo-wrapper .blockinfo-header {
+    padding: 0.5em 1em 1.5em 1em;
+}
+
 .txinfo-wrapper .blockinfo-header {
     padding: 2px 1em 1em 1em;
+}
+
+.accountinfo-wrapper .blockinfo-header .iqon {
+    float: left;
+    width: 80px;
+    height: 80px !important;
+    padding-right: 1em;
+    margin-bottom: -1em;
 }
 
 .blockinfo-header .height {

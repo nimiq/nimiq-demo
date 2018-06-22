@@ -45,13 +45,13 @@
         }
 
         function _onConsensusEstablished() {
-            $status.innerText = 'connected';
+            $status.textContent = 'connected';
             $status.classList.add('consensus-established');
         }
 
         function _onConsensusLost() {
             console.error('Consensus lost');
-            $status.innerText = 'consensus lost';
+            $status.textContent = 'consensus lost';
             $status.classList.remove('consensus-established', 'synchronizing');
         }
 
@@ -84,7 +84,7 @@
 
             _onNimiqLoaded();
 
-            $status.innerText = 'synchronizing';
+            $status.textContent = 'synchronizing';
             $status.classList.add('synchronizing');
 
             Nimiq.Consensus.volatileNano().then(function(nanoConsensus) {
@@ -340,6 +340,7 @@
         <div class="accountinfo-wrapper">
             <h2>Account Info</h2>
             <div class="blockinfo-header">
+                <img class="iqon" src="{%=apiUrl%}/iqon/{%=o.address.replace(/ /g, '+')%}">
                 <div class="hash">
                     <h3>Address</h3>
                     <hash>{%=o.address%}</hash>
