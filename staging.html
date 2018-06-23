@@ -62,7 +62,7 @@
         }
 
         function _onHeadChanged(height) {
-            if(height > 1) $height.textContent = '@ #' + height;
+            if(height > 1) $height.textContent = ' @ #' + height;
 
             while(blocklistBuilt && latestBlockHeight < height) {
                 latestBlockHeight++;
