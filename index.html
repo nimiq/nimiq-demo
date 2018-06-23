@@ -24,7 +24,11 @@
         var useTestnet = location.hostname !== 'nimiq.watch';
 
         var apiUrl = 'https://api.nimiq.watch';
-        if(useTestnet) apiUrl = 'https://test-api.nimiq.watch';
+        var wsUrl = 'wss://api.nimiq.watch';
+        if(useTestnet) {
+            apiUrl = 'https://test-api.nimiq.watch';
+            wsUrl = 'wss://test-api.nimiq.watch';
+        }
 
         // Dummy object to prevent JS errors
         var nimiqLoaded = false;
@@ -50,75 +54,49 @@
         }
 
         function _onConsensusLost() {
-            console.error('Consensus lost');
-            $status.textContent = 'consensus lost';
+            console.warn('Connection lost');
+            $status.textContent = 'connection lost';
             $status.classList.remove('consensus-established', 'synchronizing');
         }
 
-        function _onHeadChanged(head) {
-            var height = head.height;
-            if(height > 1) $height.innerText = ' @ #' + height;
+        function _onHeadChanged(height) {
+            if(height > 1) $height.textContent = '@ #' + height;
 
-            if(blocklistBuilt && height > latestBlockHeight) {
-                _getBlockListInfo(head, function(blockInfo) {
-                    _addBlockToListOfLatestBlocks(blockInfo);
-                });
+            while(blocklistBuilt && latestBlockHeight < height) {
+                latestBlockHeight++;
+                _getBlockListInfo(latestBlockHeight, _addBlockToListOfLatestBlocks);
             }
         }
 
-        function _onPeersChanged() {
-            document.getElementById('monitor').setAttribute('title', 'Connected to ' + $.network.peerCount + ' peers');
-        }
-
-        Nimiq.init(function() {
-            if(useTestnet) {
-                Nimiq.GenesisConfig.test();
-                var address = Nimiq.WsPeerAddress.seed('test-node.nimiq.watch', 8080);
-                Nimiq.GenesisConfig.SEED_PEERS.unshift(address);
-            }
-            else {
-                Nimiq.GenesisConfig.main();
-                var address = Nimiq.WsPeerAddress.seed('node.nimiq.watch', 8080);
-                Nimiq.GenesisConfig.SEED_PEERS.unshift(address);
-            }
-
+        Nimiq.loadOffline().then(function() {
             _onNimiqLoaded();
-
-            $status.textContent = 'synchronizing';
-            $status.classList.add('synchronizing');
-
-            Nimiq.Consensus.volatileNano().then(function(nanoConsensus) {
-                var $ = {};
-                window.$ = $;
-
-                $.consensus = nanoConsensus;
-
-                $.blockchain = $.consensus.blockchain;
-                $.network    = $.consensus.network;
-
-                $.consensus.on('established', _onConsensusEstablished);
-                $.consensus.on('lost', _onConsensusLost);
-
-                $.blockchain.on('head-changed', _onHeadChanged);
-                _onHeadChanged($.blockchain.head);
-
-                $.network.on('peers-changed', _onPeersChanged);
-
-                $.network.connect();
-            });
-        }, function(code) {
-            switch (code) {
-                case Nimiq.ERR_WAIT:
-                    alert('Error: Already open in another tab or window.');
-                    break;
-                case Nimiq.ERR_UNSUPPORTED:
-                    alert('Error: Browser not supported');
-                    break;
-                default:
-                    alert('Error: Nimiq initialization error');
-                    break;
-            }
         });
+
+        // $status.textContent = 'synchronizing';
+        // $status.classList.add('synchronizing');
+
+        var ws;
+        function connectWS() {
+            // Set up websocket connection
+            ws = new WebSocket(wsUrl + '/live');
+            ws.onopen = function() {
+                _onConsensusEstablished();
+            };
+            ws.onmessage = function(e) {
+                // console.log(e);
+                var msg = JSON.parse(e.data);
+                if (msg.type !== 'height') return;
+                _onHeadChanged(msg.height);
+            };
+            ws.onerror = function(e) {
+                console.error(e);
+            };
+            ws.onclose = function() {
+                _onConsensusLost();
+                setTimeout(connectWS, 2000);
+            };
+        }
+        connectWS();
     </script>
     <script src="vendor/tmpl.min.js"></script>
 </head>
@@ -157,7 +135,7 @@
         <a href="https://pool.nimiq.watch:8443" target="_blank">Pool</a>
         <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
 
-        <span id="monitor" title="Connected to 0 peers">
+        <span id="monitor">
             <strong>Status:</strong>
             <span id="status" class="not-connected">connecting</span><span id="height"></span></span>
         </span>
