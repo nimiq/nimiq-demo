@@ -40,7 +40,7 @@ header h1 {
     margin: 0.1em 0;
     margin-left: 16px;
     margin-right: 1em;
-    margin-bottom: 16px;
+    margin-bottom: 6px;
     float: left;
     font-size: 1.5em;
     letter-spacing: 0.05em;
@@ -52,9 +52,10 @@ header h1 a {
     text-decoration: none;
 }
 
-header .nimiq-logo {
+header #page-name {
     position: relative;
-    top: 0.25em;
+    top: -11px;
+    margin-left: 4px;
 }
 
 header #mobile-menu-button {
@@ -734,11 +735,15 @@ a.blocklist-cell:focus::after {
 }
 
 .blocklist-loader {
-    width: 34px;
-    height: 30px;
+    width: 40px;
 
     margin: auto;
-    animation: sk-rotateplane 1.2s infinite ease-in-out;
+    animation: sk-rotateplane 2.4s infinite ease-in-out;
+}
+
+.blocklist-loader svg {
+    width: 100%;
+    height: 100%;
 }
 
 .blocklist-loader.over-canvas {
@@ -753,8 +758,9 @@ a.blocklist-cell:focus::after {
 
 @keyframes sk-rotateplane {
     0%   { transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
-    50%  { transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
-    100% { transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
+    25%  { transform: perspective(120px) rotateX(-180deg) rotateY(0deg); }
+    50%  { transform: perspective(120px) rotateX(-180deg) rotateY(-180deg); }
+    75%  { transform: perspective(120px) rotateX(0deg) rotateY(-180deg); }
 }
 
 .ellipsis {
