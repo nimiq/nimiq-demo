@@ -261,6 +261,7 @@ hash {
     letter-spacing: -0.04em;
     text-transform: uppercase;
     word-wrap: break-word;
+    word-spacing: -0.15em;
 }
 
 #infobox {
@@ -494,7 +495,6 @@ hash {
 
 .blockinfo-transaction-row > hash {
     font-size: 0.8em;
-    word-spacing: -2px;
 }
 
 .blockinfo-transaction-row > span {
