@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>NIMIQ.WATCH - Nimiq Block Explorer</title>
+    <title>NIMIQ.WATCH - Block Explorer</title>
 
     <meta name="description" content="A blockchain explorer for the new Nimiq blockchain project. Search accounts and blocks.">
 
@@ -112,30 +112,35 @@
                 <span id="page-name">NIMIQ.WATCH</span>
             </a>
         </h1>
-        <a href="#" onclick="_linkClicked(this, true);" id="search">Search</a>
-        <div class="submenu-container">
-            <a href="#charts" onclick="_linkClicked(this, true);" id="charts">Charts</a>
 
-            <div class="submenu">
-                <!--<a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>-->
-                <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
-                <a href="#chart-transactions-per-block" onclick="_linkClicked(this);">Transactions</a>
-                <a href="#chart-hashing-distribution" onclick="_linkClicked(this);">Hashing Distribution</a>
-            </div>
-        </div>
-        <!--<div class="submenu-container">
-            <a href="https://nimiq.watch/news" target="_blank">News</a>
+        <button id="mobile-menu-button">Menu</button>
 
-            <div class="submenu">
-                <a href="https://nimiq.watch/news/2017-11-24-week-in-review-1.html" target="_blank">24 Nov 2017 | Week In Review #1</a>
-                <a href="https://nimiq.watch/news/2017-12-01-week-in-review-2.html" target="_blank">01 Dec 2017 | Week In Review #2</a>
-                <a href="https://nimiq.watch/news/2017-12-08-week-in-review-3.html" target="_blank">08 Dec 2017 | Week In Review #3</a>
-                <a href="https://nimiq.watch/news/2017-12-17-week-in-review-4.html" target="_blank">17 Dec 2017 | Week In Review #4</a>
-                <a href="https://nimiq.watch/news/2017-12-23-week-in-review-5.html" target="_blank">23 Dec 2017 | Week In Review #5</a>
+        <nav id="nav">
+            <a href="#" onclick="_linkClicked(this, true);" id="search">Search</a>
+            <div class="submenu-container">
+                <a href="#charts" onclick="_linkClicked(this, true);" id="charts">Charts</a>
+
+                <div class="submenu">
+                    <!--<a href="#chart-wealth-distribution" onclick="_linkClicked(this);">Wealth Distribution</a>-->
+                    <a href="#chart-global-hashrate" onclick="_linkClicked(this);">Global Hashrate</a>
+                    <a href="#chart-transactions-per-block" onclick="_linkClicked(this);">Transactions</a>
+                    <a href="#chart-hashing-distribution" onclick="_linkClicked(this);">Hashing Distribution</a>
+                </div>
             </div>
-        </div>-->
-        <a href="https://pool.nimiq.watch:8443" target="_blank">Pool</a>
-        <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
+            <!--<div class="submenu-container">
+                <a href="https://nimiq.watch/news" target="_blank">News</a>
+
+                <div class="submenu">
+                    <a href="https://nimiq.watch/news/2017-11-24-week-in-review-1.html" target="_blank">24 Nov 2017 | Week In Review #1</a>
+                    <a href="https://nimiq.watch/news/2017-12-01-week-in-review-2.html" target="_blank">01 Dec 2017 | Week In Review #2</a>
+                    <a href="https://nimiq.watch/news/2017-12-08-week-in-review-3.html" target="_blank">08 Dec 2017 | Week In Review #3</a>
+                    <a href="https://nimiq.watch/news/2017-12-17-week-in-review-4.html" target="_blank">17 Dec 2017 | Week In Review #4</a>
+                    <a href="https://nimiq.watch/news/2017-12-23-week-in-review-5.html" target="_blank">23 Dec 2017 | Week In Review #5</a>
+                </div>
+            </div>-->
+            <a href="https://pool.nimiq.watch:8443" target="_blank">Pool</a>
+            <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
+        </nav>
 
         <span id="monitor">
             <strong>Status:</strong>
@@ -144,6 +149,20 @@
             <span id="hashrate"></span>
         </span>
         <div class="color-strip"></div>
+
+        <script>
+            var button = document.getElementById('mobile-menu-button');
+            var nav = document.getElementById('nav');
+
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                nav.classList.toggle('show');
+            });
+
+            document.addEventListener('click', function() {
+                nav.classList.remove('show');
+            });
+        </script>
     </header>
 
     <div id="searchbox">
@@ -231,7 +250,7 @@
                 {% if(o.extra_data) { %}
                     <div class="blockinfo-body-row">
                         <label>Extra Data </label>
-                        <span>{%=o.extra_data%}</span>
+                        <span class="blockinfo-extra-data">{%=o.extra_data%}</span>
                     </div>
                 {% } %}
                 <!--
@@ -255,8 +274,8 @@
                 </div>
                 {% for(var i = 0; i < o.transactions.length; i++) { %}
                     <div class="blockinfo-transaction-row">
-                        <hash><a href="#{%=o.transactions[i].sender_address.replace(/ /g, '+')%}"   onclick="_linkClicked(this);">{%=_labelAddress(o.transactions[i].sender_address)%}</a></hash>
-                        <hash><a href="#{%=o.transactions[i].receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.transactions[i].receiver_address)%}</a></hash>
+                        <hash class="ellipsis"><a href="#{%=o.transactions[i].sender_address.replace(/ /g, '+')%}"   onclick="_linkClicked(this);">{%=_labelAddress(o.transactions[i].sender_address)%}</a></hash>
+                        <hash class="ellipsis"><a href="#{%=o.transactions[i].receiver_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.transactions[i].receiver_address)%}</a></hash>
                         <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.transactions[i].value))%} NIM</span>
                         <span><a href="#{%=o.transactions[i].hash%}" onclick="_linkClicked(this);" class="info-icon"></a></span>
                     </div>
@@ -422,12 +441,13 @@
             {% var time = new Date(o.timestamp * 1000); print(time.toLocaleTimeString()); %}
         </div>
         <div class="blocklist-cell">
-            {%=o.transaction_count%} {% if(o.transaction_count === 1) print('transaction'); else print('transactions'); %}
+            <span class="hide-mobile">{%=o.transaction_count%} transaction{% if(o.transaction_count !== 1) print('s'); %}</span>
+            <span class="show-mobile">{%=o.transaction_count%} tx{% if(o.transaction_count !== 1) print('s'); %}</span>
         </div>
-        <div class="blocklist-cell ellipsis">
-            found by <hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.miner_address)%}</a></hash>
+        <div class="blocklist-cell miner-address ellipsis">
+            <span class="hide-mobile">found by </span><hash><a href="#{%=o.miner_address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.miner_address)%}</a></hash>
         </div>
-        <div class="blocklist-cell">
+        <div class="blocklist-cell hide-xs">
             {%=_formatSize(o.size)%}
         </div>
     </script>
@@ -469,8 +489,8 @@
     <script src="./staging.js"></script>
     <script>
         if(useTestnet) {
-            document.head.querySelector('title').textContent = 'TESTNET.WATCH';
-            document.querySelector('#page-name').textContent = 'TESTNET.WATCH';
+            // document.head.querySelector('title').textContent = 'TESTNET.WATCH - Block Explorer';
+            // document.querySelector('#page-name').textContent = 'TESTNET.WATCH';
         }
     </script>
 

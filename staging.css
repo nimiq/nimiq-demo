@@ -44,6 +44,7 @@ header h1 {
     float: left;
     font-size: 1.5em;
     letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 header h1 a {
@@ -56,7 +57,26 @@ header .nimiq-logo {
     top: 0.25em;
 }
 
-header > a,
+header #mobile-menu-button {
+    display: none;
+    float: right;
+    background: transparent;
+    font-family: inherit;
+    color: inherit;
+    border: 1px solid;
+    border-radius: 3px;
+    font-size: 1em;
+    padding: 0.4em 0.6em;
+    margin-right: 0.8em;
+    margin-top: 0.4em;
+}
+
+header nav {
+    overflow: visible;
+    float: left;
+}
+
+header nav > a,
 header .submenu-container,
 header .submenu-container > a {
     line-height: 2.7em;
@@ -175,12 +195,16 @@ header .color-strip {
     max-width: 800px;
     margin: 2em auto;
     padding: 0 20px;
-    padding-top: 3.6em;
+    padding-top: 3.6em !important;
 }
 
 #searchbox h1 {
     font-weight: normal;
     text-align: center;
+}
+
+#search-form {
+    position: relative;
 }
 
 #search-form input {
@@ -191,18 +215,25 @@ header .color-strip {
     border: 1px solid #3b3b3b;
 }
 
-#search-input {
-    width: 83%;
+#search-form #search-input {
+    width: 100%;
+    box-sizing: border-box;
     text-transform: uppercase;
+    padding-right: 13%;
 }
 
-#search-submit {
+#search-form #search-submit {
     width: 10%;
     text-transform: uppercase;
     cursor: pointer;
     font-weight: bold;
     min-width: 60px;
     background: #DDDDDD;
+    position: absolute;
+    right: 0;
+    top: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 #search-submit:hover {
     background: #CCCCCC;
@@ -213,7 +244,9 @@ header .color-strip {
 }
 
 #search-form .detection {
-    font-size: 16px;
+    font-size: 0.9em;;
+    display: block;
+    margin-top: 0.4em;
 }
 
 #hash-format {
@@ -223,13 +256,14 @@ header .color-strip {
 
 hash {
     font-family: "Fira Mono", monospace;
-    font-size: 16px;
+    font-size: 0.9em;
     letter-spacing: -0.04em;
     text-transform: uppercase;
+    word-wrap: break-word;
 }
 
 #infobox {
-    width: 900px;
+    max-width: 900px;
     margin: 4em auto 2em auto;
     padding: 0 20px;
 }
@@ -247,7 +281,7 @@ hash {
 
 #infobox h3 {
     font-weight: bold;
-    font-size: 16px;
+    font-size: 0.9em;
     color: #999;
 }
 
@@ -260,12 +294,12 @@ hash {
 }
 
 .txinfo-wrapper {
-    width: 650px;
+    max-width: 650px;
     margin: auto;
 }
 
 .accountinfo-wrapper {
-    width: 540px;
+    max-width: 540px;
     margin: auto;
 }
 
@@ -273,12 +307,12 @@ hash {
 #infobox .txinfo-wrapper > h3 {
     margin-bottom: 0.5em;
     color: #042146;
-    font-size: 22px;
+    font-size: 1.2em;;
     font-weight: normal;
 }
 
 .switch-toggle.switch-candy {
-    font-size: 16px;
+    font-size: 0.9em;
     margin-bottom: 0.5em;
     background-color: #DDDDDD;
     box-shadow: none;
@@ -296,7 +330,7 @@ hash {
 }
 
 .about-wrapper {
-    width: 600px;
+    max-width: 600px;
     margin: auto;
     padding: 1em;
     background: white;
@@ -318,14 +352,7 @@ hash {
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
     background: #F0F0F0;
-}
-
-.accountinfo-wrapper .blockinfo-header {
-    padding: 0.5em 1em 1.5em 1em;
-}
-
-.txinfo-wrapper .blockinfo-header {
-    padding: 2px 1em 1em 1em;
+    padding: 1em;
 }
 
 .accountinfo-wrapper .blockinfo-header .iqon {
@@ -333,18 +360,23 @@ hash {
     width: 80px;
     height: 80px !important;
     padding-right: 1em;
-    margin-bottom: -1em;
+    margin-top: -0.5em;
+    margin-bottom: -0.5em;
+}
+
+.blockinfo-header h3 {
+    margin-top: 0;
 }
 
 .blockinfo-header .height {
     float: left;
-    width: 200px;
-    padding: 0 1em 1em 1em;
+    margin-right: 6%;
+    padding-right: 1em;
     overflow: auto;
 }
 
 .blockinfo-header .height span {
-    font-size: 40px;
+    font-size: 2.2em;
     float: left;
 }
 
@@ -371,7 +403,7 @@ hash {
 }
 
 .blockinfo-header .hash {
-    float: left;
+    /* float: left; */
 }
 
 .blockinfo-body {
@@ -403,7 +435,6 @@ hash {
 
 .blockinfo-body-row {
     margin: 0.75em 0;
-    overflow: auto;
     min-height: 1.4em;
 }
 
@@ -424,6 +455,10 @@ hash {
     border-top: 1px solid #D9DEE4;
     padding: 0.25em 1em;
     overflow: auto;
+}
+
+.blockinfo-extra-data {
+    word-wrap: break-word;
 }
 
 .blockinfo-transactions {
@@ -457,7 +492,7 @@ hash {
 }
 
 .blockinfo-transaction-row > hash {
-    font-size: 14px;
+    font-size: 0.8em;
     word-spacing: -2px;
 }
 
@@ -531,7 +566,7 @@ a.info-icon:active {
 }
 
 .event-address a {
-    font-size: 15px;
+    font-size: 0.85em;
     color: #888;
 }
 
@@ -549,7 +584,7 @@ a.info-icon:active {
 
 #infobox .charts-wrapper {
     background: white;
-    width: 400px;
+    max-width: 485px;
     margin: auto;
     border: 1px solid #D9DEE4;
     border-radius: 5px;
@@ -595,7 +630,7 @@ a.info-icon:active {
 
 #infobox .axis-type-switch {
     float: right;
-    font-size: 16px;
+    font-size: 0.9em;
     width: 250px;
     margin-top: 1em;
 }
@@ -695,7 +730,7 @@ a.blocklist-cell:focus::after {
 }
 
 .blocklist-cell > hash {
-    font-size: 15px;
+    font-size: 0.85em;
 }
 
 .blocklist-loader {
@@ -729,12 +764,133 @@ a.blocklist-cell:focus::after {
     max-width: 1px; /* enables the correct overflow behaviour */
 }
 
+.blockinfo-transaction-row .ellipsis {
+    width: 45%;
+}
+
 footer {
     text-align: center;
-    font-size: 14px;
+    font-size: 0.8em;;
     color: #AAA;
     padding: 1em;
 }
 footer a {
     color: #888;
+}
+
+@media (max-width: 960px) {
+    #monitor {
+        display: none;
+    }
+}
+
+.show-mobile {
+    display: none;
+}
+
+@media (max-width: 690px) {
+    body {
+        font-size: 16px;
+    }
+
+    .hide-mobile {
+        display: none !important;
+    }
+
+    .show-mobile {
+        display: initial !important;
+    }
+
+    header nav > a,
+    header .submenu-container,
+    header .submenu-container > a {
+        margin-right: 0;
+    }
+
+    header > a:hover,
+    header > a:focus,
+    header > a:target,
+    header .submenu-container > a:hover,
+    header .submenu-container > a:focus,
+    header .submenu-container > a:target {
+        background: none;
+        border-color: transparent;
+    }
+
+    .submenu {
+        display: none !important;
+    }
+
+    #searchbox,
+    #infobox,
+    #blocklist-wrapper {
+        padding: 0 10px;
+    }
+
+    .blocklist-cell {
+        padding: 0.6em 0.5em;
+    }
+}
+
+@media (max-width: 600px) {
+
+}
+
+@media (max-width: 580px) {
+    header #mobile-menu-button {
+        display: block;
+    }
+
+    header nav {
+        float: none;
+        clear: left;
+        display: none;
+    }
+
+    header nav.show {
+        display: block;
+    }
+
+    header nav > a,
+    header nav .submenu-container,
+    header .submenu-container > a {
+        float: none;
+    }
+
+    #search-form #search-input {
+        padding-right: 14%;
+    }
+
+    .blockinfo-body-row label,
+    .blockinfo-miner label {
+        float: none;
+    }
+
+    .blockinfo-body-row > span,
+    .blockinfo-body-row > hash,
+    .blockinfo-miner hash {
+        float: none;
+        display: block;
+        margin-top: 0.4em;
+    }
+}
+
+@media (max-width: 480px) {
+    .hide-xs {
+        display: none !important;
+    }
+
+    #searchbox h1 {
+        font-size: 1.5em;
+    }
+
+    #search-form #search-input {
+        padding-right: 20%;
+    }
+
+    .blocklist-cell.miner-address {
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
+        border-right: 1px solid #D9DEE4;
+    }
 }
