@@ -470,8 +470,8 @@ function _linkClicked(self) {
     }
 }
 
-var supportsTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
-isTouch || $searchInput.focus();
+var hasTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
+hasTouch || $searchInput.focus();
 if(directNavigationTargets.indexOf(window.location.hash) > -1) _onHashChange();
 
 // Address book (https://github.com/nimiq/nimiq-utils/blob/master/address-book/address-book.js)
