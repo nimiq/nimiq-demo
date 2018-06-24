@@ -2,14 +2,22 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>NIMIQ.WATCH - Block Explorer</title>
+    <title>NIMIQ.WATCH Blockchain Explorer</title>
 
-    <meta name="description" content="A blockchain explorer for the new Nimiq blockchain project. Search accounts and blocks.">
+    <meta name="description" content="A blockchain explorer for the new Nimiq blockchain. Explore accounts, blocks and transactions.">
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="manifest" href="/icons/site.webmanifest">
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#ffc107">
+    <link rel="shortcut icon" href="/icons/favicon.ico">
+    <meta name="apple-mobile-web-app-title" content="NIMIQ.WATCH">
+    <meta name="application-name" content="NIMIQ.WATCH">
+    <meta name="msapplication-TileColor" content="#2b5797">
+    <meta name="theme-color" content="#fafafa">
 
     <link rel="stylesheet" href="vendor/source-sans-pro/source-sans-pro.css">
     <link rel="stylesheet" href="vendor/fira/fira.css">
@@ -107,7 +115,7 @@
         <h1>
             <a href="#" onclick="_linkClicked(this, true);">
                 <span class="nimiq-logo">
-                    <img width="40" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45.922382 46.027046" height="46.027046mm" width="45.922382mm"><g fill="%23ffc107" fill-rule="evenodd"><path d="M19.326194 1.029874C18.994341.461027 18.191007 0 17.533238 0H7.199695c-.658756 0-1.460603.461027-1.792971 1.029874L.2489 9.879957c-.331867.568829-.331867 1.491401 0 2.060247l5.157824 8.850065c.331867.568847 1.135202 1.030375 1.792971 1.030375h10.333543c.658756 0 1.460603-.461027 1.792956-1.030375l5.157824-8.850065c.331867-.568846.331867-1.490918 0-2.060247z" fill-opacity=".66666667"/><path d="M40.515659 13.128918c-.331867-.568847-1.135201-1.029874-1.792971-1.029874H28.389146c-.658756 0-1.460603.461027-1.792956 1.029874L21.438366 21.979c-.331867.568829-.331867 1.491401 0 2.060248l5.157824 8.850065c.331867.568847 1.135201 1.030375 1.792956 1.030375h10.333542c.658756 0 1.460604-.461028 1.792971-1.030375l5.157825-8.850065c.331866-.568847.331866-1.490918 0-2.060248z"/><path d="M19.501729 25.236275c-.331867-.568847-1.135201-1.029874-1.79297-1.029874H7.375231c-.658756 0-1.460603.461027-1.792971 1.029874L.424436 34.086358c-.331867.568829-.331867 1.491401 0 2.060247L5.58226 44.99667c.331867.568847 1.135202 1.030375 1.792971 1.030375h10.333528c.65877 0 1.460617-.461027 1.79297-1.030375l5.157825-8.850065c.331867-.568846.331867-1.490918 0-2.060247z" fill-opacity=".33333333"/></g></svg>'>
+                    <img width="40" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="45.922386mm" height="46.027046mm" viewBox="0 0 45.922386 46.027046"><g fill-rule="evenodd"><path d="M19.326194 1.029874C18.994341.461027 18.191007 0 17.533238 0H7.199695c-.658756 0-1.460603.461027-1.792971 1.029874L.2489 9.879957c-.331867.568829-.331867 1.491401 0 2.060247l5.157824 8.850065c.331867.568847 1.135202 1.030375 1.792971 1.030375h10.333543c.658756 0 1.460603-.461027 1.792956-1.030375l5.157821-8.850065c.33187-.568846.33187-1.490917 0-2.060247z" fill="%23ffd559"/><path d="M40.515655 13.128918c-.33186-.568847-1.1352-1.029874-1.79297-1.029874h-10.33354c-.65876 0-1.4606.461027-1.79296 1.029874l-5.157819 8.850083c-.331867.568829-.331867 1.491401 0 2.060247l5.157819 8.850065c.33187.568847 1.13521 1.030375 1.79296 1.030375h10.33354c.65876 0 1.46061-.461027 1.79297-1.030375l5.15783-8.850065c.33187-.568846.33187-1.490918 0-2.060247z" fill="%23ffc107"/><path d="M19.501729 25.236275c-.331867-.568846-1.135201-1.029874-1.79297-1.029874H7.375231c-.658756 0-1.460603.461028-1.792971 1.029874L.424436 34.086358c-.331867.568829-.331867 1.491401 0 2.060248l5.157824 8.850065c.331867.568846 1.135202 1.030374 1.792971 1.030374h10.333528c.65877 0 1.460617-.461027 1.79297-1.030374l5.157826-8.850065c.33187-.568847.33187-1.490918 0-2.060248z" fill="%23ffebad"/></g></svg>'>
                 </span>
                 <span id="page-name">NIMIQ.WATCH</span>
             </a>
@@ -487,7 +495,7 @@
     <script src="./script.js"></script>
     <script>
         if(useTestnet) {
-            document.head.querySelector('title').textContent = 'TESTNET.WATCH - Block Explorer';
+            document.head.querySelector('title').textContent = 'TESTNET.WATCH Blockchain Explorer';
             document.querySelector('#page-name').textContent = 'TESTNET.WATCH';
         }
     </script>
