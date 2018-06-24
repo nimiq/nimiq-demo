@@ -15,13 +15,18 @@ var template = {
 var $infobox        = document.getElementById('infobox'),
     $searchInput    = document.getElementById('search-input'),
     $status         = document.getElementById('status'),
-    $height         = document.getElementById('height'),
-    $hashrate       = document.getElementById('hashrate');
+    $height         = document.getElementById('height');
 
 var directNavigationTargets = ['#charts', '#about'];
 
 var default_colors = ['#3366CC','#DC3912','#FF9900','#109618','#990099','#3B3EAC','#0099C6','#DD4477','#66AA00','#B82E2E','#316395','#994499','#22AA99','#AAAA11','#6633CC','#E67300','#8B0707','#329262','#5574A6','#3B3EAC'];
 default_colors = default_colors.concat(default_colors, default_colors);
+
+var account_types = {
+    0: 'Basic Account',
+    1: 'Vesting Contract',
+    2: 'Hashed Timelock Contract'
+};
 
 function _detectHashFormat(value) {
     if(value.substr(0,2) === 'NQ') {
@@ -351,9 +356,6 @@ function _addBlockToListOfLatestBlocks(blockInfo, append) {
     item.innerHTML = template.blocklistBlock(blockInfo);
 
     append && blocklistNode.appendChild(item) || blocklistNode.insertBefore(item, blocklistNode.firstChild);
-
-    var hashrate = _humanReadableHashesPerSecond(Math.round(blockInfo.difficulty * Math.pow(2, 16) / Nimiq.Policy.BLOCK_TIME), true);
-    $hashrate.textContent = '(' + hashrate + ')';
 }
 
 function _onHashChange(e) {
@@ -375,7 +377,7 @@ function _onHashChange(e) {
         // Display homepage
         $infobox.textContent = "";
         $searchInput.value = "";
-        $searchInput.focus();
+        value === "search" && $searchInput.focus();
         window.scrollTo(0, 0);
     }
     else if(value === "about") {
@@ -474,7 +476,8 @@ function _linkClicked(self) {
     }
 }
 
-$searchInput.focus();
+var hasTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
+hasTouch || $searchInput.focus();
 if(directNavigationTargets.indexOf(window.location.hash) > -1) _onHashChange();
 
 // Address book (https://github.com/nimiq/nimiq-utils/blob/master/address-book/address-book.js)
