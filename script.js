@@ -371,7 +371,7 @@ function _onHashChange(e) {
         // Display homepage
         $infobox.textContent = "";
         $searchInput.value = "";
-        $searchInput.focus();
+        value === "search" && $searchInput.focus();
         window.scrollTo(0, 0);
     }
     else if(value === "about") {
@@ -470,7 +470,8 @@ function _linkClicked(self) {
     }
 }
 
-$searchInput.focus();
+var supportsTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
+isTouch || $searchInput.focus();
 if(directNavigationTargets.indexOf(window.location.hash) > -1) _onHashChange();
 
 // Address book (https://github.com/nimiq/nimiq-utils/blob/master/address-book/address-book.js)
