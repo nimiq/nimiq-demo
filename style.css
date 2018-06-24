@@ -415,12 +415,26 @@ hash {
     background: white;
 }
 
-.accountinfo-wrapper .blockinfo-body,
-.txinfo-wrapper .blockinfo-body {
-    padding: 0.25em 1em;
+.accountinfo-wrapper .blockinfo-body {
     border-bottom: 1px solid #D9DEE4;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+}
+
+.blockinfo-body .account-basics,
+.blockinfo-body .account-data,
+.txinfo-wrapper .blockinfo-body {
+    padding: 0.25em 1em;
+}
+
+.blockinfo-body .account-data {
+    border-top: 1px solid #D9DEE4;
+}
+
+.account-data .hash-root {
+    max-width: 100%;
+    margin-top: 0.4em;
+    margin-bottom: 0.75em;
 }
 
 .blockinfo-body-left,

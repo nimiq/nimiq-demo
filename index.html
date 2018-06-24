@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
-    <link rel="manifest" href="site.webmanifest">
+    <link rel="manifest" href="/site.webmanifest">
     <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#ffc107">
     <link rel="shortcut icon" href="favicon.ico">
     <meta name="apple-mobile-web-app-title" content="NIMIQ.WATCH">
@@ -19,8 +19,8 @@
     <meta name="msapplication-TileColor" content="#2b5797">
     <meta name="theme-color" content="#fafafa">
 
-    <link rel="stylesheet" href="vendor/source-sans-pro/source-sans-pro.css">
-    <link rel="stylesheet" href="vendor/fira/fira.css">
+    <link rel="stylesheet" href="/vendor/source-sans-pro/source-sans-pro.css">
+    <link rel="stylesheet" href="/vendor/fira/fira.css">
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/css-toggle-switch@latest/dist/toggle-switch.css" />
 
@@ -108,7 +108,7 @@
         }
         connectWS();
     </script>
-    <script src="vendor/tmpl.min.js"></script>
+    <script src="/vendor/tmpl.min.js"></script>
 </head>
 <body>
     <header>
@@ -354,20 +354,80 @@
                 </div>
             </div>
             <div class="blockinfo-body">
-                {% if(_labelAddress(o.address) !== o.address) { %}
+                <div class="account-basics">
+                    {% if(_labelAddress(o.address) !== o.address) { %}
+                        <div class="blockinfo-body-row">
+                            <label>Label </label>
+                            <span>{%=_labelAddress(o.address)%}</span>
+                        </div>
+                    {% } %}
                     <div class="blockinfo-body-row">
-                        <label>Label </label>
-                        <span>{%=_labelAddress(o.address)%}</span>
+                        <label>Balance </label>
+                        <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
+                    </div>
+                    <div class="blockinfo-body-row">
+                        <label>Type </label>
+                        <span>{%=account_types[o.type]%}</span>
+                    </div>
+                </div>
+                {% if(account_types[o.type] === 'Vesting Contract') { %}
+                    <div class="account-data">
+                        <div class="blockinfo-body-row">
+                            <label>Owner </label>
+                            <hash>
+                                <a href="#{%=o.data.owner.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.data.owner)%}</a>
+                            </hash>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Vesting Start </label>
+                            <span>{%=o.data.vestingStart%}</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Vesting Step Amount </label>
+                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.vestingStepAmount))%} NIM</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Vesting Step Blocks </label>
+                            <span>{%=o.data.vestingStepBlocks%}</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Vesting Total Amount </label>
+                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.vestingTotalAmount))%} NIM</span>
+                        </div>
                     </div>
                 {% } %}
-                <div class="blockinfo-body-row">
-                    <label>Balance </label>
-                    <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
-                </div>
-                <div class="blockinfo-body-row">
-                    <label>Type </label>
-                    <span>{%=account_types[o.type]%}</span>
-                </div>
+                {% if(account_types[o.type] === 'Hashed Timelock Contract') { %}
+                    <div class="account-data">
+                        <div class="blockinfo-body-row">
+                            <label>Sender </label>
+                            <hash>
+                                <a href="#{%=o.data.sender.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.data.sender)%}</a>
+                            </hash>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Recipient </label>
+                            <hash>
+                                <a href="#{%=o.data.recipient.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.data.recipient)%}</a>
+                            </hash>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Total Amount </label>
+                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.totalAmount))%} NIM</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Timeout </label>
+                            <span>{%=o.data.timeout%}</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Hash Count </label>
+                            <span>{%=o.data.hashCount%}</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Hash Root </label>
+                            <hash class="hash-root">{%=o.data.hashRoot%}</hash>
+                        </div>
+                    </div>
+                {% } %}
             </div>
 
             <h3>History</h3>
@@ -544,7 +604,7 @@
         <div class="chart-valid-info"></div>
         <p><small><strong>Disclaimer:</strong> The graph shows the averaged global hashrate for the respective intervals. The global hashrate for each block is estimated from its difficutly, which is based on the time it took for the last 120 blocks to be mined.</small></p>
     </script>
-    <script src="./script-chart-global-hashrate.js"></script>
+    <script src="/script-chart-global-hashrate.js"></script>
 
     <script type="text/x-tmpl" id="template-hashing-distribution-chart">
         <div class="switch-toggle switch-candy hashing-distribution-range-switch">
@@ -572,7 +632,7 @@
             <div class="chart-valid-info"></div>
         </div>
     </script>
-    <script src="./script-chart-hashing-distribution.js"></script>
+    <script src="/script-chart-hashing-distribution.js"></script>
 
     <!--
     <script type="text/x-tmpl" id="template-wealth-distribution-chart">
@@ -594,7 +654,7 @@
         </div>
         <div class="chart-valid-info"></div>
     </script>
-    <script src="./script-chart-wealth-distribution.js"></script>
+    <script src="/script-chart-wealth-distribution.js"></script>
     -->
 
     <script type="text/x-tmpl" id="template-transactions-per-block-chart">
@@ -626,6 +686,6 @@
         </div>
         <div class="chart-valid-info"></div>
     </script>
-    <script src="./script-chart-transactions-per-block.js"></script>
+    <script src="/script-chart-transactions-per-block.js"></script>
 </body>
 </html>
