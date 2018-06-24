@@ -364,6 +364,10 @@
                     <label>Balance </label>
                     <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
                 </div>
+                <div class="blockinfo-body-row">
+                    <label>Type </label>
+                    <span>{%=account_types[o.type]%}</span>
+                </div>
             </div>
 
             <h3>History</h3>

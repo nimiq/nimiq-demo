@@ -22,6 +22,12 @@ var directNavigationTargets = ['#charts', '#about'];
 var default_colors = ['#3366CC','#DC3912','#FF9900','#109618','#990099','#3B3EAC','#0099C6','#DD4477','#66AA00','#B82E2E','#316395','#994499','#22AA99','#AAAA11','#6633CC','#E67300','#8B0707','#329262','#5574A6','#3B3EAC'];
 default_colors = default_colors.concat(default_colors, default_colors);
 
+var account_types = {
+    0: 'Basic Account',
+    1: 'Vesting Contract',
+    2: 'Hashed Timelock Contract'
+};
+
 function _detectHashFormat(value) {
     if(value.substr(0,2) === 'NQ') {
         value = value.replace(/[\+ ]/g, '').match(/.{4}/g).join(' ');
