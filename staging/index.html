@@ -354,20 +354,80 @@
                 </div>
             </div>
             <div class="blockinfo-body">
-                {% if(_labelAddress(o.address) !== o.address) { %}
+                <div class="account-basics">
+                    {% if(_labelAddress(o.address) !== o.address) { %}
+                        <div class="blockinfo-body-row">
+                            <label>Label </label>
+                            <span>{%=_labelAddress(o.address)%}</span>
+                        </div>
+                    {% } %}
                     <div class="blockinfo-body-row">
-                        <label>Label </label>
-                        <span>{%=_labelAddress(o.address)%}</span>
+                        <label>Balance </label>
+                        <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
+                    </div>
+                    <div class="blockinfo-body-row">
+                        <label>Type </label>
+                        <span>{%=account_types[o.type]%}</span>
+                    </div>
+                </div>
+                {% if(account_types[o.type] === 'Vesting Contract') { %}
+                    <div class="account-data">
+                        <div class="blockinfo-body-row">
+                            <label>Owner </label>
+                            <hash>
+                                <a href="#{%=o.data.owner.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.data.owner)%}</a>
+                            </hash>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Vesting Start </label>
+                            <span>{%=o.data.vestingStart%}</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Vesting Step Amount </label>
+                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.vestingStepAmount))%} NIM</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Vesting Step Blocks </label>
+                            <span>{%=o.data.vestingStepBlocks%}</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Vesting Total Amount </label>
+                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.vestingTotalAmount))%} NIM</span>
+                        </div>
                     </div>
                 {% } %}
-                <div class="blockinfo-body-row">
-                    <label>Balance </label>
-                    <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.balance))%} NIM</span>
-                </div>
-                <div class="blockinfo-body-row">
-                    <label>Type </label>
-                    <span>{%=account_types[o.type]%}</span>
-                </div>
+                {% if(account_types[o.type] === 'Hashed Timelock Contract') { %}
+                    <div class="account-data">
+                        <div class="blockinfo-body-row">
+                            <label>Sender </label>
+                            <hash>
+                                <a href="#{%=o.data.sender.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.data.sender)%}</a>
+                            </hash>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Recipient </label>
+                            <hash>
+                                <a href="#{%=o.data.recipient.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.data.recipient)%}</a>
+                            </hash>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Total Amount </label>
+                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.totalAmount))%} NIM</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Timeout </label>
+                            <span>{%=o.data.timeout%}</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Hash Count </label>
+                            <span>{%=o.data.hashCount%}</span>
+                        </div>
+                        <div class="blockinfo-body-row">
+                            <label>Hash Root </label>
+                            <hash class="hash-root">{%=o.data.hashRoot%}</hash>
+                        </div>
+                    </div>
+                {% } %}
             </div>
 
             <h3>History</h3>
