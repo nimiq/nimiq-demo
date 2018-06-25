@@ -1,3 +1,5 @@
+'use strict';
+
 var accountHashRegExp = new RegExp('^NQ[A-Z0-9 ]{42}'),
     blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
 
@@ -124,13 +126,55 @@ function _getAccountInfo(address, callback) {
             if(data.error) alert('Error: ' + data.error);
             if(!data) alert('No data received from https://api.nimiq.watch/account/' + address + '!');
 
+            if(data.type === 1) { // Vesting
+                return _populateComputedVestingData(data, callback);
+            }
+
             callback(data);
         });
     });
 }
 
+function _populateComputedVestingData(account, callback) {
+    if(latestBlockHeight === 0) return setTimeout(_populateComputedVestingData, 200, account, callback);
+
+    account.availableBalance = _calculateVestingAvailableBalance(account.balance, account.data);
+    account.steps = _calculateVestingSteps(account.data);
+
+    callback(account);
+}
+
+function _calculateVestingAvailableBalance(balance, data) {
+    return (balance - data.vestingTotalAmount)
+        + Math.min(
+            data.vestingTotalAmount,
+            Math.floor((latestBlockHeight - data.vestingStart) / data.vestingStepBlocks) * data.vestingStepAmount
+        );
+}
+
+function _calculateVestingSteps(data) {
+    var steps = [];
+    var numberSteps = Math.ceil(data.vestingTotalAmount / data.vestingStepAmount);
+
+    for (var i = 1; i <= numberSteps; i++) {
+        var stepHeight = data.vestingStart + i * data.vestingStepBlocks;
+        var stepHeightDelta = stepHeight - latestBlockHeight;
+        var timestamp = Math.round(Date.now() / 1000) + stepHeightDelta * Nimiq.Policy.BLOCK_TIME;
+        var amount = (i < numberSteps && data.vestingStepAmount) || data.vestingTotalAmount - (i - 1) * data.vestingStepAmount;
+
+        steps.push({
+            height: stepHeight,
+            timestamp: timestamp,
+            amount: amount,
+            isFuture: stepHeight > latestBlockHeight
+        });
+    }
+
+    return steps;
+}
+
 function loadMoreTransactions(self, address) {
-    urlAddress = address.replace(/ /g, '+');
+    var urlAddress = address.replace(/ /g, '+');
     var limit = 10;
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
@@ -171,7 +215,7 @@ function loadMoreTransactions(self, address) {
 }
 
 function loadMoreBlocks(self, address) {
-    urlAddress = address.replace(/ /g, '+');
+    var urlAddress = address.replace(/ /g, '+');
     var limit = 10;
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
@@ -409,10 +453,7 @@ function _onHashChange(e) {
         switch(format) {
             case "Account Address":
                 _getAccountInfo(value, function(accountInfo) {
-                    if(!accountInfo) {
-                        alert("That account cannot be found.");
-                        return;
-                    }
+                    if(accountInfo.error) return;
 
                     accountInfo.accountTransaction = template.accountTransaction;
                     accountInfo.accountBlock       = template.accountBlock;
