@@ -453,10 +453,7 @@ function _onHashChange(e) {
         switch(format) {
             case "Account Address":
                 _getAccountInfo(value, function(accountInfo) {
-                    if(!accountInfo) {
-                        alert("That account cannot be found.");
-                        return;
-                    }
+                    if(accountInfo.error) return;
 
                     accountInfo.accountTransaction = template.accountTransaction;
                     accountInfo.accountBlock       = template.accountBlock;
