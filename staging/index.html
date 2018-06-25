@@ -31,6 +31,8 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/promise-polyfill@7/dist/polyfill.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch"></script>
     <script>
+        'use strict';
+
         var useTestnet = location.hostname !== 'nimiq.watch';
 
         var apiUrl = 'https://api.nimiq.watch';
@@ -379,20 +381,28 @@
                             </hash>
                         </div>
                         <div class="blockinfo-body-row">
-                            <label>Vesting Start </label>
-                            <span>{%=o.data.vestingStart%}</span>
+                            <label>Available Now </label>
+                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.availableBalance))%} NIM</span>
                         </div>
+
+                        <h3>Vesting Steps</h3>
+                        {% for(var i = 0; i < o.steps.length; i++) { %}
+                                <div class="blockinfo-body-row">
+                                <label>
+                                    <span class="event-height">
+                                        {% if(o.steps[i].isFuture) { %}
+                                            #{%=o.steps[i].height%}
+                                        {% } else { %}
+                                            <a href="#{%=o.steps[i].height%}" onclick="_linkClicked(this);">#{%=o.steps[i].height%}</a>
+                                        {% } %}
+                                    </span>
+                                    <span class="event-datetime">({% var date = new Date(o.steps[i].timestamp * 1000); print(date.toLocaleString()); %}*)</span>
+                                </label>
+                                <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.steps[i].amount))%} NIM</span>
+                            </div>
+                        {% } %}
                         <div class="blockinfo-body-row">
-                            <label>Vesting Step Amount </label>
-                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.vestingStepAmount))%} NIM</span>
-                        </div>
-                        <div class="blockinfo-body-row">
-                            <label>Vesting Step Blocks </label>
-                            <span>{%=o.data.vestingStepBlocks%}</span>
-                        </div>
-                        <div class="blockinfo-body-row">
-                            <label>Vesting Total Amount </label>
-                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.vestingTotalAmount))%} NIM</span>
+                            <small>* Estimated from the current time.</small>
                         </div>
                     </div>
                 {% } %}

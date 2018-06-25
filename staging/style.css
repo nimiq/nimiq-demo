@@ -415,7 +415,8 @@ hash {
     background: white;
 }
 
-.accountinfo-wrapper .blockinfo-body {
+.accountinfo-wrapper .blockinfo-body,
+.txinfo-wrapper .blockinfo-body {
     border-bottom: 1px solid #D9DEE4;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -429,6 +430,10 @@ hash {
 
 .blockinfo-body .account-data {
     border-top: 1px solid #D9DEE4;
+}
+
+.account-data small {
+    display: inline !important;
 }
 
 .account-data .hash-root {
