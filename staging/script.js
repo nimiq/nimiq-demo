@@ -174,7 +174,7 @@ function _calculateVestingSteps(data) {
 }
 
 function loadMoreTransactions(self, address) {
-    urlAddress = address.replace(/ /g, '+');
+    var urlAddress = address.replace(/ /g, '+');
     var limit = 10;
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
@@ -215,7 +215,7 @@ function loadMoreTransactions(self, address) {
 }
 
 function loadMoreBlocks(self, address) {
-    urlAddress = address.replace(/ /g, '+');
+    var urlAddress = address.replace(/ /g, '+');
     var limit = 10;
     var page  = parseInt(self.getAttribute('data-page'));
     var skip  = (page - 1) * limit;
