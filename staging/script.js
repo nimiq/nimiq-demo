@@ -412,6 +412,14 @@ function _onHashChange(e) {
 
     // Remove leading '#'
     if(value[0] === "#") value = value.substring(1);
+    // Remove eventual leading forward-slash /
+    if(value[0] === "/") value = value.substring(1);
+
+    // Filter eventual URI encoding
+    value = decodeURIComponent(value);
+
+    // Clean leading/trailing whitespace
+    value = value.trim();
 
     if(value.substr(0,2) === 'NQ') {
         value = value.replace(/[\+ ]/g, '').match(/.{4}/g).join(' ');
