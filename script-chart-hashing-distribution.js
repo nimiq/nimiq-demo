@@ -15,7 +15,8 @@ async function _hashingDistribution(range, skipRender) {
         response.json().then(function(data) {
 
             // Converting into label and data arrays
-            var addresses        = data.map(function(obj) { return _labelAddress(obj.miner_address, true); });
+            var addresses        = data.map(function(obj) { return obj.miner_address; });
+            var labels           = data.map(function(obj) { return _labelAddress(obj.miner_address, true); });
             var blocksMined      = data.map(function(obj) { return obj.blocks_mined; });
             var totalBlocksMined = blocksMined.reduce(function(acc, val) { return acc + val; });
 
@@ -34,13 +35,13 @@ async function _hashingDistribution(range, skipRender) {
                     otherMiners++;
                     return false;
                 }
-                else return true;
+                return true;
             });
 
             // Adapt labels
             if(otherMiners > 0) {
-                addresses = addresses.slice(0, blocksMined.length);
-                addresses.push(otherMiners + ' others');
+                labels = labels.slice(0, blocksMined.length);
+                labels.push(otherMiners + ' others');
 
                 blocksMined.push(otherBlocks);
             }
@@ -68,7 +69,7 @@ async function _hashingDistribution(range, skipRender) {
 
                     // The data for our dataset
                     data: {
-                        labels: addresses,
+                        labels: labels,
                         datasets: [
                         {
                             label: "Blocks mined",
@@ -92,7 +93,7 @@ async function _hashingDistribution(range, skipRender) {
                         tooltips: {
                             callbacks: {
                                 label: function(item, chart) {
-                                    return chart.labels[item.index] + ': ' + item.y + ' (' + blocksMinedPerc[item.index] + '%)';
+                                    return chart.labels[item.index] + ': ' + item.y + ' (' + blocksMinedPerc[item.index].toFixed(2) + '%)';
                                 }
                             }
                         }
@@ -110,6 +111,19 @@ async function _hashingDistribution(range, skipRender) {
                 scriptTag.onload = _renderHashingDistributionChart;
                 document.body.appendChild(scriptTag);
             }
+
+            const table = $infobox.querySelector('.miners-table');
+            let html = '<tr><th>Miner</th><th>Blocks</th><th>%</th></tr>';
+
+            for (let i = 0; i < labels.length; i++) {
+                let label = labels[i];
+                if (!labels[i].includes('others')) {
+                    label = `<hash><a href="#${addresses[i].replace(/ /g, '+')}" onclick="_linkClicked(this)">${label}</a></hash>`;
+                }
+                html += `<tr><td>${label}</td><td>${blocksMined[i]}</td><td>${blocksMinedPerc[i].toFixed(2)}</td>`;
+            }
+
+            table.innerHTML = html;
         });
     });
 }
