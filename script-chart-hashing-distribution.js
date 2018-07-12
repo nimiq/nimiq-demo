@@ -10,9 +10,6 @@ async function _hashingDistribution(range, skipRender) {
         window.scrollTo(0, $infobox.offsetTop - 100);
     }
 
-    var blocksMinedArray = [];
-    var blocksMinedSum   = 0;
-
     // Collect data
     fetch(apiUrl + '/statistics/miners/' + range).then(function(response) {
         response.json().then(function(data) {
@@ -49,7 +46,7 @@ async function _hashingDistribution(range, skipRender) {
             }
 
             // Convert into percentages
-            // blocksMined  = blocksMined.map(function(count) { return Math.round(count / totalBlocksMined * 10000) / 100; });
+            const blocksMinedPerc = blocksMined.map(function(count) { return Math.round(count / totalBlocksMined * 10000) / 100; });
 
             var _renderHashingDistributionChart = function() {
                 try {
@@ -91,6 +88,13 @@ async function _hashingDistribution(range, skipRender) {
                     options: {
                         legend: {
                             display: false
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: function(item, chart) {
+                                    return chart.labels[item.index] + ': ' + item.y + ' (' + blocksMinedPerc[item.index] + '%)';
+                                }
+                            }
                         }
                     }
                 });
