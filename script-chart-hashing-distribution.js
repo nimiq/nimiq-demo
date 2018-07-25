@@ -93,7 +93,7 @@ async function _hashingDistribution(range, skipRender) {
                         tooltips: {
                             callbacks: {
                                 label: function(item, chart) {
-                                    return chart.labels[item.index] + ': ' + item.y + ' (' + blocksMinedPerc[item.index].toFixed(2) + '%)';
+                                    return chart.labels[item.index] + ': ' + blocksMined[item.index] + ' (' + blocksMinedPerc[item.index].toFixed(2) + '%)';
                                 }
                             }
                         }
