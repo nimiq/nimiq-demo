@@ -1,7 +1,7 @@
 'use strict';
 
 var accountHashRegExp = new RegExp('^NQ[A-Z0-9 ]{42}'),
-    blockHashRegExp   = new RegExp('^[A-Fa-f0-9]{64}$');
+    blockHashRegExp   = new RegExp('^[A-F0-9]{64}$');
 
 var template = {
     blocklistBlock:            tmpl('template-blocklist-block'),
@@ -31,6 +31,8 @@ var account_types = {
 };
 
 function _detectHashFormat(value) {
+    value = value.toUpperCase();
+
     if(value.substr(0,2) === 'NQ') {
         value = value.replace(/[\+ ]/g, '').match(/.{4}/g).join(' ');
     }
