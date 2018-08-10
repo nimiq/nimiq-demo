@@ -85,32 +85,45 @@ function _formatSize(size) {
 }
 
 // From https://github.com/nimiq/secure-utils/utf8-tools/utf8-tools.js
-function _formatTxData(bytes) {
-    // TODO: Use native implementations if/when available
-    var out = [], pos = 0, c = 0;
-    while (pos < bytes.length) {
-        var c1 = bytes[pos++];
-        if (c1 < 128) {
-            out[c++] = String.fromCharCode(c1);
-        } else if (c1 > 191 && c1 < 224) {
-            var c2 = bytes[pos++];
-            out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
-        } else if (c1 > 239 && c1 < 365) {
-            // Surrogate Pair
-            var c2 = bytes[pos++];
-            var c3 = bytes[pos++];
-            var c4 = bytes[pos++];
-            var u = ((c1 & 7) << 18 | (c2 & 63) << 12 | (c3 & 63) << 6 | c4 & 63) - 0x10000;
-            out[c++] = String.fromCharCode(0xD800 + (u >> 10));
-            out[c++] = String.fromCharCode(0xDC00 + (u & 1023));
-        } else {
-            var c2 = bytes[pos++];
-            var c3 = bytes[pos++];
-            out[c++] =
-            String.fromCharCode((c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+function _formatTxData(data) {
+    var bytes = Nimiq.BufferUtils.fromBase64(data);
+
+    var transactionTags = {
+        sendCashlink: new Uint8Array([0, 130, 128, 146, 135]),
+        receiveCashlink: new Uint8Array([0, 139, 136, 141, 138]),
+    };
+
+    if (Nimiq.BufferUtils.equals(bytes, transactionTags.sendCashlink)) {
+        return 'Charging cashlink';
+    } else if (Nimiq.BufferUtils.equals(bytes, transactionTags.receiveCashlink)) {
+        return 'Redeeming cashlink';
+    } else {
+        // TODO: Use native implementations if/when available
+        var out = [], pos = 0, c = 0;
+        while (pos < bytes.length) {
+            var c1 = bytes[pos++];
+            if (c1 < 128) {
+                out[c++] = String.fromCharCode(c1);
+            } else if (c1 > 191 && c1 < 224) {
+                var c2 = bytes[pos++];
+                out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
+            } else if (c1 > 239 && c1 < 365) {
+                // Surrogate Pair
+                var c2 = bytes[pos++];
+                var c3 = bytes[pos++];
+                var c4 = bytes[pos++];
+                var u = ((c1 & 7) << 18 | (c2 & 63) << 12 | (c3 & 63) << 6 | c4 & 63) - 0x10000;
+                out[c++] = String.fromCharCode(0xD800 + (u >> 10));
+                out[c++] = String.fromCharCode(0xDC00 + (u & 1023));
+            } else {
+                var c2 = bytes[pos++];
+                var c3 = bytes[pos++];
+                out[c++] =
+                String.fromCharCode((c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+            }
         }
+        return out.join('');
     }
-    return out.join('');
 }
 
 function _labelAddress(address, shorten) {
@@ -316,16 +329,6 @@ function _getTransactionInfo(identifier, callback) {
         response.json().then(function(data) {
             if(data.error && data.error !== 'Transaction not found') alert('Error: ' + data.error);
             if(!data) alert('No data received from https://api.nimiq.watch/transaction/' + identifier + '!');
-
-            if(data.extra_data) {
-                var buf = Nimiq.BufferUtils.fromBase64(data.extra_data);
-
-                // Check if we can convert the extraData into ASCII
-                if(buf.every(function(c) {return c >= 32 && c <= 126;})) {
-                    data.extra_data = Nimiq.BufferUtils.toAscii(buf);
-                }
-            }
-
             callback(data);
         });
     });

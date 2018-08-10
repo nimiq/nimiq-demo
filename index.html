@@ -334,7 +334,7 @@
                 {% if(o.data.length > 0) { %}
                     <div class="blockinfo-body-row">
                         <label>Message </label>
-                        <span>{%=_formatTxData(Nimiq.BufferUtils.fromBase64(o.data))%}</span>
+                        <span>{%=_formatTxData(o.data)%}</span>
                     </div>
                 {% } %}
                 <div class="blockinfo-body-row">
