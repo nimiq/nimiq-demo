@@ -163,7 +163,7 @@ function _calculateVestingAvailableBalance(balance, data) {
     return (balance - data.vestingTotalAmount)
         + Math.min(
             data.vestingTotalAmount,
-            Math.floor((latestBlockHeight - data.vestingStart) / data.vestingStepBlocks) * data.vestingStepAmount
+            Math.max(0, Math.floor((latestBlockHeight - data.vestingStart) / data.vestingStepBlocks)) * data.vestingStepAmount
         );
 }
 
