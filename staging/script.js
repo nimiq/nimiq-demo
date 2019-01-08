@@ -163,7 +163,7 @@ function _calculateVestingAvailableBalance(balance, data) {
     return (balance - data.vestingTotalAmount)
         + Math.min(
             data.vestingTotalAmount,
-            Math.floor((latestBlockHeight - data.vestingStart) / data.vestingStepBlocks) * data.vestingStepAmount
+            Math.max(0, Math.floor((latestBlockHeight - data.vestingStart) / data.vestingStepBlocks)) * data.vestingStepAmount
         );
 }
 
@@ -563,14 +563,21 @@ AddressBook.BOOK = {
     'NQ18 37VM K2Y5 2HPY 5U80 2E0U VHUJ R7RK QSNE': 'Sirius Pool',
     'NQ64 55BR 87SX AFHN XB27 M7BQ F7CY L4FV 2TG2': 'HexaPool',
     'NQ67 AQB4 RHCC AU2T 4CC0 ETUT X1XB SSFL V9UQ': 'mineNIM Pool',
+    'NQ37 47US CL1J M0KQ KEY3 YQ4G KGHC VPVF 8L02': 'Nimiqpocket Pool',
+    'NQ24 900S EKCD HGDA TN30 8UET LX2F 75U1 G1A1': 'Nimiqo.com',
+    'NQ88 QEC9 5MDH T2SB V70A GB76 MGRT STSB LN9A': 'X Pool',
 
     // Mainnet Services
     'NQ15 MLJN 23YB 8FBM 61TN 7LYG 2212 LVBG 4V19': 'NIM Activation',
     'NQ09 VF5Y 1PKV MRM4 5LE1 55KV P6R2 GXYJ XYQF': 'Nimiq Foundation',
     'NQ19 YG54 46TX EHGQ D2R2 V8XA JX84 UFG0 S0MC': 'Nimiq Charity',
+    'NQ93 RL4N M68G 9DEN CKU9 HJRE HYRJ CYRE J0XB': 'nimiqfaucet.io',
     'NQ94 GSXP KNG0 K5YV HFJ1 PYAQ Y5D1 XTQ1 SLFP': 'Nimiq-Faucet.surge.sh',
     'NQ80 PAYN R93R D0H4 BH8T KPRT SBYE 30A3 PHDL': 'PayNim.app',
     'NQ85 TEST VY0L DR6U KDXA 6EAV 1EJG ENJ9 NCGP': 'Discord NIM Tip Bot',
+    'NQ26 NMK7 R4EA KSV2 67Q2 5L4T DVDS FR5E NX7B': 'Nimiq Shop',
+    'NQ02 YP68 BA76 0KR3 QY9C SF0K LP8Q THB6 LTKU': 'Nimiq Faucet',
+    'NQ23 3RK3 U8KF 72NS SPNX H0R3 E9HQ 68AB SHAQ': 'Nimbet.cc',
 
     // Testnet
     'NQ31 QEPR ED7V 00KC P7UC P1PR DKJC VNU7 E461': 'pool.nimiq-testnet.com',
