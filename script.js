@@ -282,9 +282,28 @@ function switchAccountHistory(selection) {
     }
 }
 
+
+var pendingBlockRequests = 0;
+var waitingBlockRequests = [];
+
 function _getBlockInfo(identifier, callback, errback) {
     identifier = encodeURIComponent(identifier);
+
+    if (pendingBlockRequests >= 6) { // Two less than the rate limit, to have a buffer
+        waitingBlockRequests.push([identifier, callback, errback]);
+        return;
+    }
+    pendingBlockRequests += 1;
+
     fetch(apiUrl + '/block/' + identifier).then(function(response) {
+        pendingBlockRequests -= 1;
+
+        // Process queue
+        if (waitingBlockRequests.length > 0) {
+            var args = waitingBlockRequests.shift();
+            setTimeout(_getBlockInfo, 200, args[0], args[1], args[2]);
+        }
+
         response.json().then(function(data) {
             if(data.error) {
                 if(errback) errback(data);
