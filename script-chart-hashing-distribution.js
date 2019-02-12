@@ -96,7 +96,10 @@ async function _hashingDistribution(range, skipRender) {
                                     return chart.labels[item.index] + ': ' + blocksMined[item.index] + ' (' + blocksMinedPerc[item.index].toFixed(2) + '%)';
                                 }
                             }
-                        }
+                        },
+                        animation: {
+                            duration: 0,
+                        },
                     }
                 });
             };

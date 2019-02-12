@@ -133,7 +133,10 @@ async function _transactionsPerBlock(range, skipRender) {
                                     }
                                 }
                             ]
-                        }
+                        },
+                        animation: {
+                            duration: 0,
+                        },
                     }
                 });
             };

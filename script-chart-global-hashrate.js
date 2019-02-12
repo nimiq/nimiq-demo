@@ -106,7 +106,10 @@ function _globalHashrate(range, skipRender) {
                             callbacks: {
                                 label: _humanReadableHashesPerSecond
                             }
-                        }
+                        },
+                        animation: {
+                            duration: 0,
+                        },
                     }
                 });
             };
