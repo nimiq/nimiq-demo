@@ -26,13 +26,13 @@ async function _transactionsPerBlock(range, skipRender) {
                     gap = 15 * 60; // 15 minutes
                     break;
                 case 'week':
-                    gap = 1 * 60 * 60 // 1 hour
+                    gap = 2 * 60 * 60 // 2 hours
                     break;
                 case 'month':
-                    gap = 4 * 60 * 60; // 4 hours
+                    gap = 8 * 60 * 60; // 8 hours
                     break;
                 default: // 'year'
-                    gap = 2 * 24 * 60 * 60; // 2 days
+                    gap = 4 * 24 * 60 * 60; // 4 days
                     break;
             }
 
