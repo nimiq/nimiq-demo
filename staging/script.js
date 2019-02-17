@@ -160,22 +160,22 @@ function _populateComputedVestingData(account, callback) {
 }
 
 function _calculateVestingAvailableBalance(balance, data) {
-    return (balance - data.vestingTotalAmount)
+    return (balance - data.total_amount)
         + Math.min(
-            data.vestingTotalAmount,
-            Math.max(0, Math.floor((latestBlockHeight - data.vestingStart) / data.vestingStepBlocks)) * data.vestingStepAmount
+            data.total_amount,
+            Math.max(0, Math.floor((latestBlockHeight - data.start) / data.step_blocks)) * data.step_amount
         );
 }
 
 function _calculateVestingSteps(data) {
     var steps = [];
-    var numberSteps = Math.ceil(data.vestingTotalAmount / data.vestingStepAmount);
+    var numberSteps = Math.ceil(data.total_amount / data.step_amount);
 
     for (var i = 1; i <= numberSteps; i++) {
-        var stepHeight = data.vestingStart + i * data.vestingStepBlocks;
+        var stepHeight = data.start + i * data.step_blocks;
         var stepHeightDelta = stepHeight - latestBlockHeight;
         var timestamp = Math.round(Date.now() / 1000) + stepHeightDelta * Nimiq.Policy.BLOCK_TIME;
-        var amount = (i < numberSteps && data.vestingStepAmount) || data.vestingTotalAmount - (i - 1) * data.vestingStepAmount;
+        var amount = (i < numberSteps && data.step_amount) || data.total_amount - (i - 1) * data.step_amount;
 
         steps.push({
             height: stepHeight,

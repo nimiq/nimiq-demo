@@ -422,7 +422,7 @@
                         </div>
                         <div class="blockinfo-body-row">
                             <label>Total Amount </label>
-                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.totalAmount))%} NIM</span>
+                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.total_amount))%} NIM</span>
                         </div>
                         <div class="blockinfo-body-row">
                             <label>Timeout </label>
@@ -430,11 +430,11 @@
                         </div>
                         <div class="blockinfo-body-row">
                             <label>Hash Count </label>
-                            <span>{%=o.data.hashCount%}</span>
+                            <span>{%=o.data.hash_count%}</span>
                         </div>
                         <div class="blockinfo-body-row">
                             <label>Hash Root </label>
-                            <hash class="hash-root">{%=o.data.hashRoot%}</hash>
+                            <hash class="hash-root">{%=o.data.hash_root%}</hash>
                         </div>
                     </div>
                 {% } %}
