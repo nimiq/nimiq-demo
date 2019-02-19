@@ -11,10 +11,10 @@ async function _transactionsPerBlock(range, skipRender) {
     }
 
     fetch(apiUrl + '/statistics/transactions/' + range).then(function(response) {
-        response.json().then(function(data) {
-            var transactionCount = data.map(function(block) { return block['count']; });
-            var transactionValue = data.map(function(block) { return block['value']; });
-            var timestamp = data.map(function(block) { return block['timestamp']; });
+        response.json().then(function(data) { // { h: block_height, t: timestamp, v: value, c: count }
+            var transactionCount = data.map(function(block) { return block['c']; });
+            var transactionValue = data.map(function(block) { return block['v']; });
+            var timestamp = data.map(function(block) { return block['t']; });
 
             // Fill empty times
             var i = 0
@@ -26,13 +26,13 @@ async function _transactionsPerBlock(range, skipRender) {
                     gap = 15 * 60; // 15 minutes
                     break;
                 case 'week':
-                    gap = 1 * 60 * 60 // 1 hour
+                    gap = 2 * 60 * 60 // 2 hours
                     break;
                 case 'month':
-                    gap = 4 * 60 * 60; // 4 hours
+                    gap = 8 * 60 * 60; // 8 hours
                     break;
                 default: // 'year'
-                    gap = 2 * 24 * 60 * 60; // 2 days
+                    gap = 4 * 24 * 60 * 60; // 4 days
                     break;
             }
 
