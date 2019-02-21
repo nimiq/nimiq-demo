@@ -497,21 +497,21 @@ function _onHashChange(e) {
             case "Block or Tx Hash":
                 value = Nimiq.BufferUtils.toBase64(Nimiq.BufferUtils.fromHex(value));
             case "Block Number":
-                _getBlockInfo(value, function(blockInfo) {
-                    if(!blockInfo || blockInfo.error) {
-                        _getTransactionInfo(value, function(txInfo) {
-                            if(!txInfo || txInfo.error) {
-                                alert("That block or tx hash cannot be found.");
+                _getTransactionInfo(value, function(txInfo) {
+                    if(!txInfo || txInfo.error) {
+                        _getBlockInfo(value, function(blockInfo) {
+                            if(!blockInfo || blockInfo.error) {
+                                alert("That transaction or block hash cannot be found.");
                                 return;
                             }
 
-                            $infobox.innerHTML = template.txInfo(txInfo);
+                            $infobox.innerHTML = template.blockInfo(blockInfo);
                             window.scrollTo(0, $infobox.offsetTop - 100);
                         });
                         return;
                     }
 
-                    $infobox.innerHTML = template.blockInfo(blockInfo);
+                    $infobox.innerHTML = template.txInfo(txInfo);
                     window.scrollTo(0, $infobox.offsetTop - 100);
                 });
                 break;
