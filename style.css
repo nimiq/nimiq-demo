@@ -424,12 +424,18 @@ hash {
 
 .blockinfo-body .account-basics,
 .blockinfo-body .account-data,
+.blockinfo-body .account-vestings,
 .txinfo-wrapper .blockinfo-body {
     padding: 0.25em 1em;
 }
 
-.blockinfo-body .account-data {
+.blockinfo-body .account-data,
+.blockinfo-body .account-vestings {
     border-top: 1px solid #D9DEE4;
+}
+
+.account-vestings .blockinfo-body-row > hash {
+    float: none;
 }
 
 .account-data small {

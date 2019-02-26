@@ -438,6 +438,18 @@
                         </div>
                     </div>
                 {% } %}
+                {% if(o.vestingContracts.length > 0) { %}
+                    <div class="account-vestings">
+                        <h3>Vesting Contracts</h3>
+                        {% for(var i = 0; i < o.vestingContracts.length; i++) { %}
+                            <div class="blockinfo-body-row">
+                                <hash>
+                                    <a href="#{%=o.vestingContracts[i].address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.vestingContracts[i].address)%}</a>
+                                </hash>
+                            </div>
+                        {% } %}
+                    </div>
+                {% } %}
             </div>
 
             <h3>History</h3>
