@@ -422,7 +422,7 @@
                         </div>
                         <div class="blockinfo-body-row">
                             <label>Total Amount </label>
-                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.totalAmount))%} NIM</span>
+                            <span>{%=_formatBalance(Nimiq.Policy.satoshisToCoins(o.data.total_amount))%} NIM</span>
                         </div>
                         <div class="blockinfo-body-row">
                             <label>Timeout </label>
@@ -430,12 +430,24 @@
                         </div>
                         <div class="blockinfo-body-row">
                             <label>Hash Count </label>
-                            <span>{%=o.data.hashCount%}</span>
+                            <span>{%=o.data.hash_count%}</span>
                         </div>
                         <div class="blockinfo-body-row">
                             <label>Hash Root </label>
-                            <hash class="hash-root">{%=o.data.hashRoot%}</hash>
+                            <hash class="hash-root">{%=o.data.hash_root%}</hash>
                         </div>
+                    </div>
+                {% } %}
+                {% if(o.vestingContracts.length > 0) { %}
+                    <div class="account-vestings">
+                        <h3>Vesting Contracts</h3>
+                        {% for(var i = 0; i < o.vestingContracts.length; i++) { %}
+                            <div class="blockinfo-body-row">
+                                <hash>
+                                    <a href="#{%=o.vestingContracts[i].address.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.vestingContracts[i].address)%}</a>
+                                </hash>
+                            </div>
+                        {% } %}
                     </div>
                 {% } %}
             </div>

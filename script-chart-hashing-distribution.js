@@ -12,12 +12,12 @@ async function _hashingDistribution(range, skipRender) {
 
     // Collect data
     fetch(apiUrl + '/statistics/miners/' + range).then(function(response) {
-        response.json().then(function(data) {
+        response.json().then(function(data) { // { a: miner_address, c: blocks_mined }
 
             // Converting into label and data arrays
-            var addresses        = data.map(function(obj) { return obj.miner_address; });
-            var labels           = data.map(function(obj) { return _labelAddress(obj.miner_address, true); });
-            var blocksMined      = data.map(function(obj) { return obj.blocks_mined; });
+            var addresses        = data.map(function(obj) { return obj.a; });
+            var labels           = data.map(function(obj) { return _labelAddress(obj.a, true); });
+            var blocksMined      = data.map(function(obj) { return obj.c; });
             var totalBlocksMined = blocksMined.reduce(function(acc, val) { return acc + val; });
 
             // Filter out the little guys

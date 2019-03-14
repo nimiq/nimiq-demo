@@ -160,22 +160,22 @@ function _populateComputedVestingData(account, callback) {
 }
 
 function _calculateVestingAvailableBalance(balance, data) {
-    return (balance - data.vestingTotalAmount)
+    return (balance - data.total_amount)
         + Math.min(
-            data.vestingTotalAmount,
-            Math.max(0, Math.floor((latestBlockHeight - data.vestingStart) / data.vestingStepBlocks)) * data.vestingStepAmount
+            data.total_amount,
+            Math.max(0, Math.floor((latestBlockHeight - data.start) / data.step_blocks)) * data.step_amount
         );
 }
 
 function _calculateVestingSteps(data) {
     var steps = [];
-    var numberSteps = Math.ceil(data.vestingTotalAmount / data.vestingStepAmount);
+    var numberSteps = Math.ceil(data.total_amount / data.step_amount);
 
     for (var i = 1; i <= numberSteps; i++) {
-        var stepHeight = data.vestingStart + i * data.vestingStepBlocks;
+        var stepHeight = data.start + i * data.step_blocks;
         var stepHeightDelta = stepHeight - latestBlockHeight;
         var timestamp = Math.round(Date.now() / 1000) + stepHeightDelta * Nimiq.Policy.BLOCK_TIME;
-        var amount = (i < numberSteps && data.vestingStepAmount) || data.vestingTotalAmount - (i - 1) * data.vestingStepAmount;
+        var amount = (i < numberSteps && data.step_amount) || data.total_amount - (i - 1) * data.step_amount;
 
         steps.push({
             height: stepHeight,
@@ -289,7 +289,7 @@ var waitingBlockRequests = [];
 function _getBlockInfo(identifier, callback, errback) {
     identifier = encodeURIComponent(identifier);
 
-    if (pendingBlockRequests >= 6) { // Two less than the rate limit, to have a buffer
+    if (pendingBlockRequests >= 8) { // Two less than the rate limit, to have a buffer
         waitingBlockRequests.push([identifier, callback, errback]);
         return;
     }
@@ -604,4 +604,6 @@ AddressBook.BOOK = {
     'NQ31 QEPR ED7V 00KC P7UC P1PR DKJC VNU7 E461': 'pool.nimiq-testnet.com',
     'NQ36 P00L 1N6T S3QL KJY8 6FH4 5XN4 DXY0 L7C8': 'NIMIQ.WATCH Test-Pool',
     'NQ50 CXGC 14C6 Y7Q4 U3X2 KF0S 0Q88 G09C PGA0': 'SushiPool TESTNET',
+    'NQ26 XM1G BFAD PACE R5L0 C85L 6143 FD8L 82U9': 'Nimiq Shop (Testnet)',
+    'NQ76 F8M9 1VJ9 K88B TXDY ADT3 F08D QLHY UULK': 'Nimiq Bar',
 }

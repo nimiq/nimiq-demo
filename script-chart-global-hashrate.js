@@ -11,9 +11,9 @@ function _globalHashrate(range, skipRender) {
     }
 
     fetch(apiUrl + '/statistics/difficulty/' + range).then(function(response) {
-        response.json().then(function(data) {
-            var difficulty = data.map(function(block) { return block['difficulty']; });
-            var timestamp  = data.map(function(block) { return block['timestamp']; });
+        response.json().then(function(data) { // { h: height, t: timestamp, d: difficulty }
+            var difficulty = data.map(function(block) { return block['d']; });
+            var timestamp  = data.map(function(block) { return block['t']; });
 
             // Fill empty times
             var i = 0
@@ -25,13 +25,13 @@ function _globalHashrate(range, skipRender) {
                     gap = 15 * 60; // 15 minutes
                     break;
                 case 'week':
-                    gap = 1 * 60 * 60 // 1 hour
+                    gap = 2 * 60 * 60 // 2 hours
                     break;
                 case 'month':
-                    gap = 4 * 60 * 60; // 4 hours
+                    gap = 8 * 60 * 60; // 8 hours
                     break;
                 default: // 'year'
-                    gap = 2 * 24 * 60 * 60; // 2 days
+                    gap = 4 * 24 * 60 * 60; // 4 days
                     break;
             }
 
