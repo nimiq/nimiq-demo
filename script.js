@@ -41,7 +41,7 @@ function _detectHashFormat(value) {
         return "Account Address";
     }
     else if(blockHashRegExp.test(value) /*&& value[0] === "0" && value[1] === "0"*/) {
-        return "Block or Tx Hash";
+        return "Tx or Block Hash";
     }
     else if(value.match(/^[0-9]*$/) && parseInt(value)) {
         return "Block Number";
@@ -494,9 +494,8 @@ function _onHashChange(e) {
                     window.scrollTo(0, $infobox.offsetTop - 100);
                 });
                 break;
-            case "Block or Tx Hash":
+            case "Tx or Block Hash":
                 value = Nimiq.BufferUtils.toBase64(Nimiq.BufferUtils.fromHex(value));
-            case "Block Number":
                 _getTransactionInfo(value, function(txInfo) {
                     if(!txInfo || txInfo.error) {
                         _getBlockInfo(value, function(blockInfo) {
@@ -512,6 +511,17 @@ function _onHashChange(e) {
                     }
 
                     $infobox.innerHTML = template.txInfo(txInfo);
+                    window.scrollTo(0, $infobox.offsetTop - 100);
+                });
+                break;
+            case "Block Number":
+                _getBlockInfo(value, function(blockInfo) {
+                    if(!blockInfo || blockInfo.error) {
+                        alert("That block number cannot be found.");
+                        return;
+                    }
+
+                    $infobox.innerHTML = template.blockInfo(blockInfo);
                     window.scrollTo(0, $infobox.offsetTop - 100);
                 });
                 break;
