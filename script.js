@@ -67,7 +67,7 @@ function _formatBalance(value) {
 
 function _formatThousands(number, separator) {
     separator = separator || ' ';
-    let reversed = number.split('').reverse();
+    let reversed = number.toString().split('').reverse();
     for(let i = 3; i < reversed.length; i += 4) {
         reversed.splice(i, 0, separator);
     }
@@ -125,6 +125,30 @@ function _formatTxData(data) {
         return out.join('');
     }
 }
+
+function _formatTimeAgo(timestamp) {
+    var secondsPast = parseInt(Date.now() / 1000) - timestamp;
+
+    if (secondsPast < 60) return secondsPast + ' sec';
+    if (secondsPast < 3600)  {
+        var secs = (secondsPast % 60).toString().padStart(2, '0');
+        return parseInt(secondsPast / 60) + ':' + secs + ' min';
+    }
+
+    var hours = parseInt(secondsPast / 60 / 60);
+    var mins = parseInt(secondsPast / 60 % 60).toString().padStart(2, '0');
+    var secs = (secondsPast % 60).toString().padStart(2, '0');
+    return hours + ':' + mins + ':' + secs;
+}
+
+function _updateTimeAgo() {
+    const nodes = document.getElementsByClassName('update-time-ago');
+    for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        node.textContent = _formatTimeAgo(node.getAttribute('data-timestamp'));
+    }
+}
+setInterval(_updateTimeAgo, 1000);
 
 function _labelAddress(address, shorten) {
     var label = AddressBook.getLabel(address);

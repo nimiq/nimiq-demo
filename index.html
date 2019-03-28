@@ -534,8 +534,9 @@
         <a href="#{%=o.height%}" class="blocklist-cell" onclick="_linkClicked(this);">
             #{%=o.height%}
         </a>
-        <div class="blocklist-cell">
-            {% var time = new Date(o.timestamp * 1000); print(time.toLocaleTimeString()); %}
+        <div class="blocklist-cell update-time-ago" data-timestamp="{%=o.timestamp%}">
+            <!-- {% var time = new Date(o.timestamp * 1000); print(time.toLocaleTimeString()); %} -->
+            {%=_formatTimeAgo(o.timestamp)%}
         </div>
         <div class="blocklist-cell">
             <span class="hide-mobile">{%=o.transaction_count%} transaction{% if(o.transaction_count !== 1) print('s'); %}</span>
