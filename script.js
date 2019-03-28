@@ -634,6 +634,7 @@ AddressBook.BOOK = {
     'NQ02 YP68 BA76 0KR3 QY9C SF0K LP8Q THB6 LTKU': 'Nimiq Faucet',
     'NQ23 3RK3 U8KF 72NS SPNX H0R3 E9HQ 68AB SHAQ': 'Nimbet.cc',
     'NQ07 R0NG UTD5 P187 6YLK CD3H EMGF EDAC LFUS': 'GetNIM',
+    'NQ91 B9E4 1FTS PV33 9NTJ H1PE NYDE 0M36 CMLT': 'Nimiq TrustWallet Faucet',
 
     // Testnet
     'NQ31 QEPR ED7V 00KC P7UC P1PR DKJC VNU7 E461': 'pool.nimiq-testnet.com',
