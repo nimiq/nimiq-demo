@@ -971,6 +971,8 @@ footer a {
 
     #searchbox h1 {
         font-size: 1.5em;
+        margin-top: 1em;
+        margin-bottom: 30px;
     }
 
     #search-form #search-input {
