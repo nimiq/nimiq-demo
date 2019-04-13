@@ -37,7 +37,7 @@
 
         var apiUrl = 'https://api.nimiq.watch';
         var wsUrl = 'wss://api.nimiq.watch';
-        if(useTestnet) {
+        if (useTestnet) {
             apiUrl = 'https://test-api.nimiq.watch';
             wsUrl = 'wss://test-api.nimiq.watch';
         }
@@ -149,7 +149,7 @@
                         <a href="https://nimiq.watch/news/2017-12-23-week-in-review-5.html" target="_blank">23 Dec 2017 | Week In Review #5</a>
                     </div>
                 </div>-->
-                <a href="https://pool.nimiq.watch:8443" target="_blank">Pool</a>
+                <a href="https://pool.nimiq.watch:8443" target="_blank" id="pool-link">Pool</a>
                 <a href="#about" onclick="_linkClicked(this, true);" id="about">What is this?</a>
             </nav>
 
@@ -171,6 +171,10 @@
             document.addEventListener('click', function() {
                 nav.classList.remove('show');
             });
+            
+            if (useTestnet) {
+                document.getElementById('pool-link').href = 'https://test-pool.nimiq.watch:8443';
+            }
         </script>
     </header>
 
