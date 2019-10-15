@@ -3,53 +3,45 @@
 <head>
     <meta charset=utf-8 />
     <title>Nimiq Demo</title>
-    <script type="text/javascript" src="https://cdn.nimiq.com/nimiq.js"></script>
+    <script type="text/javascript" src="https://cdn.nimiq.com/v1.5/nimiq.js"></script>
     <script>
 
-function _onConsensusEstablished() {
-    document.getElementById('message').innerText = 'Consensus established.';
-    document.getElementById('height').innerText = $.blockchain.height;
-    document.getElementById('address').innerText = $.wallet.address.toUserFriendlyAddress();
+function _onConsensusChanged(state) {
+    document.getElementById('message').innerText = `Consensus ${state}.`;
 
-    _updateBalance();
-
-    // Recheck balance on every head change.
-    $.blockchain.on('head-changed', _updateBalance);
-
-    // If we want to start mining.
-    // $.miner.startWork();
-}
-
-function _updateBalance() {
-    // Get current balance
-    if (window.clientType !== 'nano') {
-        $.accounts.get($.wallet.address)
-            .then(account => _onBalanceChanged(account));
-    } else {
-        // nano clients don't have the whole accounts state and have to request single accounts from their peers
-        $.consensus.getAccount($.wallet.address)
-            .then(account => _onBalanceChanged(account));
+    if (state === Nimiq.Client.ConsensusState.ESTABLISHED) {
+        _updateBalance();
     }
 }
 
-function _onBalanceChanged(account) {
-    account = account || Nimiq.BasicAccount.INITIAL;
-    console.log(`New balance of ${$.wallet.address.toUserFriendlyAddress()} is ${account.balance}.`);
-    document.getElementById('balance').innerText = Nimiq.Policy.satoshisToCoins(account.balance).toFixed(2);
+async function _updateBalance() {
+    // Get current balance.
+    const account = await $.client.getAccount($.wallet.address);
+    _onBalanceChanged(account);
 }
 
-function _onHeadChanged() {
-    const height = $.blockchain.height;
+function _onBalanceChanged(account) {
+    console.log(`New balance of ${$.wallet.address.toUserFriendlyAddress()} is ${account.balance}.`);
+    document.getElementById('balance').innerText = Nimiq.Policy.lunasToCoins(account.balance).toFixed(2);
+}
+
+async function _onHeadChanged() {
+    const height = await $.client.getHeadHeight();
     console.log(`Now at height ${height}.`);
     document.getElementById('height').innerText = height;
+
+    // Recheck balance on every head change.
+    _updateBalance();
 }
 
-function _onPeersChanged() {
-    console.log(`Now connected to ${$.network.peerCount} peers.`);
-    document.getElementById('peers').innerText = $.network.peerCount;
+async function _updatePeerCount() {
+    const statistics = await $.client.network.getStatistics();
+    const peerCount = statistics.totalPeerCount;
+    // console.log(`Now connected to ${peerCount} peers.`);
+    document.getElementById('peers').innerText = peerCount;
 }
 
-function init(clientType = 'full') {
+function init(clientType = 'pico') {
     Nimiq.init(async function() {
         document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
 
@@ -58,32 +50,31 @@ function init(clientType = 'full') {
 
         const $ = {};
         window.$ = $;
+
+        // Create client configuration.
+        const configBuilder = Nimiq.Client.Configuration.builder();
         if (clientType === 'light') {
-            $.consensus = await Nimiq.Consensus.light();
-        } else if (clientType === 'nano') {
-            $.consensus = await Nimiq.Consensus.nano();
+            // Adding the Mempool feature triggers a light consensus.
+            configBuilder.feature(Nimiq.Client.Feature.MEMPOOL);
         }
 
-        $.blockchain = $.consensus.blockchain;
-        $.mempool = $.consensus.mempool;
-        $.network = $.consensus.network;
+        // Instantiate the client based on the configuration.
+        // The client automatically connects to the network when instantiated.
+        $.client = configBuilder.instantiateClient();
 
-        // Generate a temporary wallet.
-        $.wallet = await Nimiq.Wallet.generate();
+        // Get wallet from wallet store.
+        // The wallet store generates a new wallet (and stores it) when no wallets are stored.
+        $.walletStore = await new Nimiq.WalletStore();
+        $.wallet = await $.walletStore.getDefault();
+        document.getElementById('address').innerText = $.wallet.address.toUserFriendlyAddress();
 
-        // The nano client does not sync the full account info and cannot mine.
-        if (clientType !== 'nano') {
-            $.accounts = $.blockchain.accounts;
-            $.miner = new Nimiq.Miner($.blockchain, $.accounts, $.mempool, $.network.time, $.wallet.address);
-        }
+        $.client.addConsensusChangedListener(_onConsensusChanged);
 
-        $.consensus.on('established', () => _onConsensusEstablished());
-        $.consensus.on('lost', () => console.error('Consensus lost'));
+        $.client.addHeadChangedListener(_onHeadChanged);
 
-        $.blockchain.on('head-changed', () => _onHeadChanged());
-        $.network.on('peers-changed', () => _onPeersChanged());
+        // Update the peer count every 1 second
+        setInterval(_updatePeerCount, 1000);
 
-        $.network.connect();
     }, function(code) {
         switch (code) {
             case Nimiq.ERR_WAIT:
@@ -100,43 +91,48 @@ function init(clientType = 'full') {
 }
 
     </script>
+
+    <!-- Use Nimiq's brand font (regular and bold weights). -->
+    <link href="https://fonts.googleapis.com/css?family=Muli:400,700" rel="stylesheet">
 </head>
 <body>
-    <h1>Getting started with the Nimiq API</h1>
-    This html file demonstrates the most simple way to build web applications on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
+    <h1>Getting started with the Nimiq Client API</h1>
+    This HTML file demonstrates the most simple way to build web applications on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
     <h2>Most Simple Client</h2>
-    <p id="client-selector">Client type: <a href="#" client-type="nano">nano</a> <a href="#" client-type="light">light</a></p>
+    <p id="client-selector">
+        Client type:
+        <a href="#" client-type="pico">pico</a>
+        <a href="#" client-type="light">light</a>
+    </p>
     <div id="client-info" style="display:none">
         <p>Status: <span id="message">Loading Nimiq.</span></p>
         <p>Account address: <span id="address"><em>loading</em></span></p>
-        <p>Balance: <img src="nimiq_white.svg" class="nimiq_currency"> <span id="balance"><em>loading</em></span></p>
+        <p>Balance: &#x2B23; <span id="balance"><em>loading</em></span></p>
         <p>Current block height: <span id="height"><em>loading</em></span></p>
         <p>Current number of peers: <span id="peers"><em>loading</em></span></p>
     </div>
 
     <h2>Source Code</h2>
     <a target="_blank" href="https://github.com/nimiq-network/nimiq-demo/blob/master/index.html">View Source Code on Github.</a>
+
     <style>
         body {
-            background:teal;
-            color:white;
-            font-family: sans-serif;
-            padding: 8%;
+            background: #F4F4F4;
+            color: #1F2348; /* Nimiq Indigo */
+            font-family: 'Muli', sans-serif;
+            padding: 6% 8%;
         }
 
         a {
-            color:white;
-        }
-
-        img.nimiq_currency {
-            height: 12px;
+            color: #0582CA; /* Nimiq Blue */
         }
     </style>
 
     <script>
-        /* UI Stuff */
+        /* Attach UI event handlers. */
         document.querySelectorAll('[client-type]').forEach(el => {
-            el.addEventListener('click', () => {
+            el.addEventListener('click', (event) => {
+                event.preventDefault();
                 const type = el.getAttribute('client-type');
                 window.clientType = type;
                 document.getElementById('client-selector').textContent = 'Client type: ' + type;
