@@ -3,7 +3,7 @@
 <head>
     <meta charset=utf-8 />
     <title>Nimiq Demo</title>
-    <script type="text/javascript" src="https://cdn.nimiq.com/v1.5.0/nimiq.js"></script>
+    <script type="text/javascript" src="https://cdn.nimiq.com/v1.5/nimiq.js"></script>
     <script>
 
 function _onConsensusChanged(state) {
@@ -22,7 +22,7 @@ async function _updateBalance() {
 
 function _onBalanceChanged(account) {
     console.log(`New balance of ${$.wallet.address.toUserFriendlyAddress()} is ${account.balance}.`);
-    document.getElementById('balance').innerText = Nimiq.Policy.satoshisToCoins(account.balance).toFixed(2);
+    document.getElementById('balance').innerText = Nimiq.Policy.lunasToCoins(account.balance).toFixed(2);
 }
 
 async function _onHeadChanged() {
@@ -34,10 +34,10 @@ async function _onHeadChanged() {
     _updateBalance();
 }
 
-async function _onPeersChanged() {
+async function _updatePeerCount() {
     const statistics = await $.client.network.getStatistics();
     const peerCount = statistics.totalPeerCount;
-    console.log(`Now connected to ${peerCount} peers.`);
+    // console.log(`Now connected to ${peerCount} peers.`);
     document.getElementById('peers').innerText = peerCount;
 }
 
@@ -58,7 +58,8 @@ function init(clientType = 'pico') {
             configBuilder.feature(Nimiq.Client.Feature.MEMPOOL);
         }
 
-        // Instantiate the client.
+        // Instantiate the client based on the configuration.
+        // The client automatically connects to the network when instantiated.
         $.client = configBuilder.instantiateClient();
 
         // Generate a temporary wallet.
@@ -69,9 +70,8 @@ function init(clientType = 'pico') {
 
         $.client.addHeadChangedListener(_onHeadChanged);
 
-        // The Client API does not currently expose a peer-changed listener, so we need to use a workaround.
-        const consensus = await $.client._consensus;
-        consensus.network.on('peers-changed', _onPeersChanged);
+        // Update the peer count every 1 second
+        setInterval(_updatePeerCount, 1000);
 
     }, function(code) {
         switch (code) {
