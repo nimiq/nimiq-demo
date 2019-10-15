@@ -62,8 +62,10 @@ function init(clientType = 'pico') {
         // The client automatically connects to the network when instantiated.
         $.client = configBuilder.instantiateClient();
 
-        // Generate a temporary wallet.
-        $.wallet = await Nimiq.Wallet.generate();
+        // Get wallet from wallet store.
+        // The wallet store generates a new wallet (and stores it) when no wallets are stored.
+        $.walletStore = await new Nimiq.WalletStore();
+        $.wallet = await $.walletStore.getDefault();
         document.getElementById('address').innerText = $.wallet.address.toUserFriendlyAddress();
 
         $.client.addConsensusChangedListener(_onConsensusChanged);
