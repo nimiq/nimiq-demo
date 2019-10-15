@@ -62,11 +62,20 @@ function init(clientType = 'pico') {
         // The client automatically connects to the network when instantiated.
         $.client = configBuilder.instantiateClient();
 
-        // Get wallet from wallet store.
-        // The wallet store generates a new wallet (and stores it) when no wallets are stored.
-        $.walletStore = await new Nimiq.WalletStore();
-        $.wallet = await $.walletStore.getDefault();
-        document.getElementById('address').innerText = $.wallet.address.toUserFriendlyAddress();
+        try {
+            // Get wallet from wallet store.
+            // The wallet store generates a new wallet (and stores it) when no wallets are stored.
+            const walletStore = await new Nimiq.WalletStore();
+            $.wallet = await walletStore.getDefault();
+        } catch (error) {
+            // The wallet store accesses IndexedDB, which can fail for all kinds of browser-reasons.
+            console.error(error);
+            console.log('Using temporary wallet.')
+            // Generate a temporary wallet.
+            $.wallet = await Nimiq.Wallet.generate();
+        } finally {
+            document.getElementById('address').innerText = $.wallet.address.toUserFriendlyAddress();
+        }
 
         $.client.addConsensusChangedListener(_onConsensusChanged);
 
