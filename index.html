@@ -171,7 +171,7 @@
             document.addEventListener('click', function() {
                 nav.classList.remove('show');
             });
-            
+
             if (useTestnet) {
                 document.getElementById('pool-link').href = 'https://test-pool.nimiq.watch:8443';
             }
@@ -349,6 +349,10 @@
                 <div class="blockinfo-body-row">
                     <label>Validity Start Height </label>
                     <span>{%=o.validity_start_height%}</span>
+                </div>
+                <div class="blockinfo-body-row">
+                    <label>Confirmations </label>
+                    <span>{%=o.confirmations%}</span>
                 </div>
             </div>
         </div>
