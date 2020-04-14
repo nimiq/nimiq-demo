@@ -365,7 +365,9 @@ hash {
     background-color: #BBBBBB;
 }
 
-.about-wrapper {
+.about-wrapper,
+.charts-wrapper,
+.labels-wrapper {
     max-width: 600px;
     margin: auto;
     padding: 1em;
@@ -374,12 +376,49 @@ hash {
     border-radius: 5px;
 }
 
-.about-wrapper h2 {
+.charts-wrapper,
+.labels-wrapper {
+    max-width: 485px;
+}
+
+.about-wrapper h2,
+.charts-wrapper h2,
+.labels-wrapper h2 {
     margin-top: 0;
 }
 
-.about-wrapper p:last-child {
+.about-wrapper p,
+.charts-wrapper p,
+.labels-wrapper ul {
     margin-bottom: 0;
+}
+
+.charts-wrapper a {
+    background: #042146;
+    color: white;
+    padding: 0 0.75em;
+    line-height: 2.5em;
+    display: inline-block;
+    border-radius: 4px;
+    border: 1px solid #042146;
+    margin-bottom: 4px;
+}
+
+.charts-wrapper a:hover,
+.charts-wrapper a:focus {
+    color: #042146;
+    background: white;
+}
+
+.labels-wrapper ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.labels-wrapper .iqon {
+    height: 40px !important;
+    vertical-align: middle;
+    margin: 0.25em 0.25em 0.25em 0;
 }
 
 .blockinfo-header {
@@ -655,40 +694,6 @@ a.info-icon:active {
     text-transform: uppercase;
     display: block;
     margin: auto;
-}
-
-#infobox .charts-wrapper {
-    background: white;
-    max-width: 485px;
-    margin: auto;
-    border: 1px solid #D9DEE4;
-    border-radius: 5px;
-    padding: 1em;
-}
-
-#infobox .charts-wrapper h2 {
-    margin-top: 0;
-}
-
-#infobox .charts-wrapper p {
-    margin-bottom: 0;
-}
-
-#infobox .charts-wrapper a {
-    background: #042146;
-    color: white;
-    padding: 0 0.75em;
-    line-height: 2.5em;
-    display: inline-block;
-    border-radius: 4px;
-    border: 1px solid #042146;
-    margin-bottom: 4px;
-}
-
-#infobox .charts-wrapper a:hover,
-#infobox .charts-wrapper a:focus {
-    color: #042146;
-    background: white;
 }
 
 #infobox .hashing-distribution-chart-wrapper {

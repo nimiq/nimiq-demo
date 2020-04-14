@@ -11,7 +11,8 @@ var template = {
     accountTransaction:        tmpl('template-account-transaction'),
     accountBlock:              tmpl('template-account-block'),
     about:                     tmpl('template-about'),
-    charts:                    tmpl('template-charts')
+    charts:                    tmpl('template-charts'),
+    labels:                    tmpl('template-labels'),
 };
 
 var $infobox        = document.getElementById('infobox'),
@@ -19,7 +20,7 @@ var $infobox        = document.getElementById('infobox'),
     $status         = document.getElementById('status'),
     $height         = document.getElementById('height');
 
-var directNavigationTargets = ['#charts', '#about'];
+var directNavigationTargets = ['#about', '#charts', '#labels'];
 
 var default_colors = ['#3366CC','#DC3912','#FF9900','#109618','#990099','#3B3EAC','#0099C6','#DD4477','#66AA00','#B82E2E','#316395','#994499','#22AA99','#AAAA11','#6633CC','#E67300','#8B0707','#329262','#5574A6','#3B3EAC'];
 default_colors = default_colors.concat(default_colors, default_colors);
@@ -488,6 +489,12 @@ function _onHashChange(e) {
         $infobox.innerHTML = template.charts();
         window.scrollTo(0, $infobox.offsetTop - 100);
     }
+    else if(value === "labels") {
+        requestAnimationFrame(() => {
+            $infobox.innerHTML = template.labels(AddressBook.BOOK);
+            window.scrollTo(0, $infobox.offsetTop - 100);
+        });
+    }
     else if(value === "chart-wealth-distribution") {
         _wealthDistribution();
     }
@@ -654,8 +661,8 @@ AddressBook.BOOK = {
 
     // Testnet
     'NQ31 QEPR ED7V 00KC P7UC P1PR DKJC VNU7 E461': 'pool.nimiq-testnet.com',
-    'NQ36 P00L 1N6T S3QL KJY8 6FH4 5XN4 DXY0 L7C8': 'NIMIQ.WATCH Test-Pool',
+    'NQ36 P00L 1N6T S3QL KJY8 6FH4 5XN4 DXY0 L7C8': 'NIMIQ.WATCH Testnet-Pool',
     'NQ50 CXGC 14C6 Y7Q4 U3X2 KF0S 0Q88 G09C PGA0': 'SushiPool TESTNET',
     'NQ26 XM1G BFAD PACE R5L0 C85L 6143 FD8L 82U9': 'Nimiq Shop (Testnet)',
-    'NQ76 F8M9 1VJ9 K88B TXDY ADT3 F08D QLHY UULK': 'Nimiq Bar',
+    'NQ76 F8M9 1VJ9 K88B TXDY ADT3 F08D QLHY UULK': 'Nimiq Bar (Testnet)',
 }

@@ -127,7 +127,13 @@
             <button id="mobile-menu-button">Menu</button>
 
             <nav id="nav">
-                <a href="#search" onclick="_linkClicked(this, true);" id="search">Search</a>
+                <div class="submenu-container">
+                    <a href="#search" onclick="_linkClicked(this, true);" id="search">Search</a>
+
+                    <div class="submenu">
+                        <a href="#labels" onclick="_linkClicked(this);">Address Labels</a>
+                    </div>
+                </div>
                 <div class="submenu-container">
                     <a href="#charts" onclick="_linkClicked(this, true);" id="charts">Charts</a>
 
@@ -597,6 +603,24 @@
                 <a href="#chart-transactions-per-block">Transactions</a>
                 <a href="#chart-hashing-distribution">Hashing Distribution</a>
             </p>
+        </div>
+    </script>
+
+    <script type="text/x-tmpl" id="template-labels">
+        <div class="labels-wrapper">
+            <h2>Address Labels</h2>
+            <ul>
+                {% for(var address in o) { %}
+                    {% if(
+                        (useTestnet && o[address].toLowerCase().includes('testnet'))
+                        || (!useTestnet && !o[address].toLowerCase().includes('testnet'))
+                    ) %}
+                    <li>
+                        <img class="iqon" src="{%=apiUrl%}/iqon/{%=address.replace(/ /g, '+')%}">
+                        <a href="#{%=address%}">{%=o[address]%}</a>
+                    </li>
+                {% } %}
+            </ul>
         </div>
     </script>
 
