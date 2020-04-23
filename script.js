@@ -653,6 +653,9 @@ AddressBook.BOOK = {
     'NQ91 B9E4 1FTS PV33 9NTJ H1PE NYDE 0M36 CMLT': 'Nimiq TrustWallet Faucet',
     'NQ57 66QM QFT0 QQX8 1QSL 820V XDN1 1C82 1M2B': 'Bidali Giftcards',
 
+    // Mainet users
+    'NQ65 GS91 H8CS QFAN 1EVS UK3G X7PL L9N1 X4KC': 'Albermonte', // Added with his permission
+
     // Exchanges
     'NQ81 846T N9DB TD11 VJTU C7UP JLAH M6QQ 6UPB': 'HitBTC',
     'NQ55 UE76 E517 CKDR MADX 6SY9 PR70 K1XE FHM1': 'HitBTC Cold Wallet',
@@ -665,4 +668,5 @@ AddressBook.BOOK = {
     'NQ50 CXGC 14C6 Y7Q4 U3X2 KF0S 0Q88 G09C PGA0': 'SushiPool TESTNET',
     'NQ26 XM1G BFAD PACE R5L0 C85L 6143 FD8L 82U9': 'Nimiq Shop (Testnet)',
     'NQ76 F8M9 1VJ9 K88B TXDY ADT3 F08D QLHY UULK': 'Nimiq Bar (Testnet)',
+    'NQ54 8LN7 9DX7 XG20 1XK8 GGGT Y2UU 2DDT BKLV': 'UberPool (Testnet)',
 }
