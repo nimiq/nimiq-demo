@@ -661,6 +661,8 @@ AddressBook.BOOK = {
     'NQ55 UE76 E517 CKDR MADX 6SY9 PR70 K1XE FHM1': 'HitBTC Cold Wallet',
     'NQ57 EMG8 S4QY GE3B K4CB MQ4E 0SUS 6UT9 JFC0': 'TradeSatoshi',
     'NQ89 AAMN QJFF 7RKS 4XX0 EFXN M4QG 4MYH HMBJ': 'Changelly Cold Wallet',
+    'NQ13 XAME QAMX 3302 13E3 ECXQ HU88 TM6R YKVK': 'KuCoin', // Payouts
+    'NQ27 B9ED 98G5 3VH7 FY8D BFP0 XNF4 BD8L TN4B': 'KuCoin', // Payins
 
     // Testnet
     'NQ31 QEPR ED7V 00KC P7UC P1PR DKJC VNU7 E461': 'pool.nimiq-testnet.com',
