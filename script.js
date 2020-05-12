@@ -245,7 +245,7 @@ function loadMoreTransactions(self, address) {
             self.parentNode.insertBefore(list, self);
 
             if(transactions.length === limit) {
-                self.setAttribute('data-page', parseInt(self.getAttribute('data-page')) + 1 );
+                self.setAttribute('data-page', page + 1 );
             }
             else {
                 self.parentNode.removeChild(self);
@@ -284,7 +284,7 @@ function loadMoreBlocks(self, address) {
             self.parentNode.insertBefore(list, self);
 
             if(blocks.length === limit) {
-                self.setAttribute('data-page', parseInt(self.getAttribute('data-page')) + 1 );
+                self.setAttribute('data-page', page + 1 );
             }
             else {
                 self.parentNode.removeChild(self);

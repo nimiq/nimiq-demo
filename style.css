@@ -679,6 +679,12 @@ a.info-icon:active {
     opacity: 0.6;
 }
 
+.event-pending {
+    text-transform: uppercase;
+    font-weight: bold;
+    color: orange;
+}
+
 .event-address a {
     font-size: 0.85em;
     color: #888;

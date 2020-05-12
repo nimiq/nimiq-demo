@@ -329,8 +329,12 @@
                 <div class="blockinfo-body-row">
                     <label>Date </label>
                     <span>
-                        <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
-                        <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span>
+                        {% if(o.timestamp && o.block_height) { %}
+                            <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
+                            <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span>
+                        {% } else { %}
+                            <span class="event-pending">pending</span>
+                        {% } %}
                     </span>
                 </div>
                 <div class="blockinfo-body-row">
@@ -535,8 +539,12 @@
             </span>
             <span class="event-name">{% if(o.isReceiver) print('Received'); else print('Sent'); %} transaction</span>
             <span><a href="#{%=o.hash%}" onclick="_linkClicked(this);" class="info-icon"></a></span><br>
-            <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
-            <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span><br>
+            {% if(o.timestamp && o.block_height) { %}
+                <span class="event-datetime">{% var date = new Date(o.timestamp * 1000); print(date.toLocaleString()); %}</span>
+                <span class="event-height">(<a href="#{%=o.block_height%}" onclick="_linkClicked(this);">#{%=o.block_height%}</a>)</span>
+            {% } else { %}
+                <span class="event-pending">pending</span>
+            {% } %}<br>
             {% if(o.isReceiver) print('&larr;', true); else print('&rarr;', true); %}
             <hash class="event-address"><a href="#{%=o.otherAddress.replace(/ /g, '+')%}" onclick="_linkClicked(this);">{%=_labelAddress(o.otherAddress)%}</a></hash>
         </div>
