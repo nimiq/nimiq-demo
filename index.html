@@ -503,7 +503,7 @@
                         {%#o.accountTransaction(o.transactions[i])%}
                     {% } %}
 
-                    {% if(o.transactions.length === 10) { %}
+                    {% if(o.transactions.length >= 10) { %}
                         <button class="event-loadmore" onclick="loadMoreTransactions(this, '{%=o.address%}')" data-page="2">Load more</button>
                     {% } else { %}
                         <div class="no-more">No earlier transactions</div>
@@ -519,7 +519,7 @@
                         {%#o.accountBlock(o.blocks[i])%}
                     {% } %}
 
-                    {% if(o.blocks.length === 10) { %}
+                    {% if(o.blocks.length >= 10) { %}
                         <button class="event-loadmore" onclick="loadMoreBlocks(this, '{%=o.address%}')" data-page="2">Load more</button>
                     {% } else { %}
                         <div class="no-more">No earlier blocks</div>
