@@ -314,7 +314,7 @@ var waitingBlockRequests = [];
 function _getBlockInfo(identifier, callback, errback) {
     identifier = encodeURIComponent(identifier);
 
-    if (pendingBlockRequests >= 5) { // Two less than the rate limit, to have a buffer
+    if (pendingBlockRequests >= 5) { // Half of the rate limit, to be safe
         waitingBlockRequests.push([identifier, callback, errback]);
         return;
     }
