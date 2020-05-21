@@ -654,6 +654,7 @@ AddressBook.BOOK = {
     'NQ57 66QM QFT0 QQX8 1QSL 820V XDN1 1C82 1M2B': 'Bidali Giftcards',
     'NQ69 R83V YQXR L0LF YPEY 11KH SKX9 T7BY CBVH': 'Nimtris',
     'NQ41 V0TE UCSX NF24 BGKQ 8B7R RNVE FRMH NUJH': 'Curve Change Vote (May 2020)',
+    'NQ53 SQNM 36RL F333 PPBJ KKRC RE33 2X06 1HJA': 'Fastspot Demo',
 
     // Mainet users
     'NQ65 GS91 H8CS QFAN 1EVS UK3G X7PL L9N1 X4KC': 'Albermonte', // Added with his permission
@@ -686,5 +687,5 @@ AddressBook.BOOK = {
     'NQ26 XM1G BFAD PACE R5L0 C85L 6143 FD8L 82U9': 'Nimiq Shop (Testnet)',
     'NQ76 F8M9 1VJ9 K88B TXDY ADT3 F08D QLHY UULK': 'Nimiq Bar (Testnet)',
     'NQ54 8LN7 9DX7 XG20 1XK8 GGGT Y2UU 2DDT BKLV': 'UberPool (Testnet)',
-    'NQ17 D2ES UBTP N14D RG4E 2KBK 217A 2GH2 NNY1': 'FASTSpot (Testnet)',
+    'NQ17 D2ES UBTP N14D RG4E 2KBK 217A 2GH2 NNY1': 'Fastspot (Testnet)',
 }
