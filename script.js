@@ -85,6 +85,45 @@ function _formatSize(size) {
     }
 }
 
+function _isHTLCCreation(buf) {
+    try {
+        Nimiq.Address.unserialize(buf); // sender address
+        Nimiq.Address.unserialize(buf); // recipient address
+        const hashAlgorithm = /** @type {Hash.Algorithm} */ buf.readUint8();
+        Nimiq.Hash.unserialize(buf, hashAlgorithm);
+        const hashCount = buf.readUint8(); // hash count
+        buf.readUint32(); // timeout
+
+        if (hashCount === 0) {
+            throw new Error('Invalid hashCount');
+        }
+
+        // Blacklist Argon2 hash function.
+        if (hashAlgorithm === Nimiq.Hash.Algorithm.ARGON2D) {
+            throw new Error('Invalid algorithm');
+        }
+
+        if (buf.readPos !== buf.byteLength) {
+            throw new Error('Invalid length');
+        }
+    } catch (e) {
+        return false;
+    }
+
+    return true;
+}
+
+function _isVestingCreation(buf) {
+    switch (buf.length) {
+        case Nimiq.Address.SERIALIZED_SIZE + 4:
+        case Nimiq.Address.SERIALIZED_SIZE + 16:
+        case Nimiq.Address.SERIALIZED_SIZE + 24:
+            return true;
+        default:
+            return false;
+    }
+}
+
 // From https://github.com/nimiq/secure-utils/utf8-tools/utf8-tools.js
 function _formatTxData(data) {
     var bytes = Nimiq.BufferUtils.fromBase64(data);
@@ -98,6 +137,10 @@ function _formatTxData(data) {
         return 'Charging cashlink';
     } else if (Nimiq.BufferUtils.equals(bytes, transactionTags.receiveCashlink)) {
         return 'Redeeming cashlink';
+    } else if (_isHTLCCreation(bytes)) {
+        return '<Creation: Hashed Timelock Contract>';
+    } else if (_isVestingCreation(bytes)) {
+        return '<Creation: Vesting Contract>';
     } else {
         // TODO: Use native implementations if/when available
         var out = [], pos = 0, c = 0;
@@ -678,7 +721,7 @@ AddressBook.BOOK = {
     'NQ89 AAMN QJFF 7RKS 4XX0 EFXN M4QG 4MYH HMBJ': 'Changelly',
     'NQ13 XAME QAMX 3302 13E3 ECXQ HU88 TM6R YKVK': 'KuCoin', // Payouts
     'NQ27 B9ED 98G5 3VH7 FY8D BFP0 XNF4 BD8L TN4B': 'KuCoin', // Payins
-    'NQ66 QDMD SRPT B2A4 JBGJ 30M6 LBPN EK9N LR74': 'HotBit (not verified)',
+    'NQ66 QDMD SRPT B2A4 JBGJ 30M6 LBPN EK9N LR74': 'HotBit',
 
     // Testnet
     'NQ31 QEPR ED7V 00KC P7UC P1PR DKJC VNU7 E461': 'pool.nimiq-testnet.com',
