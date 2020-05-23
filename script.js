@@ -139,8 +139,8 @@ function _formatTxData(data) {
         return 'Redeeming cashlink';
     } else if (_isHTLCCreation(bytes)) {
         return '<Creation: Hashed Timelock Contract>';
-    } else if (_isVestingCreation(bytes)) {
-        return '<Creation: Vesting Contract>';
+    // } else if (_isVestingCreation(bytes)) {
+    //     return '<Creation: Vesting Contract>';
     } else {
         // TODO: Use native implementations if/when available
         var out = [], pos = 0, c = 0;
