@@ -142,28 +142,36 @@ function _formatTxData(data) {
     // } else if (_isVestingCreation(bytes)) {
     //     return '<Creation: Vesting Contract>';
     } else {
-        // TODO: Use native implementations if/when available
-        var out = [], pos = 0, c = 0;
+        if (typeof TextDecoder !== 'undefined') {
+            const decoder = new TextDecoder('utf-8');
+            return decoder.decode(bytes);
+        }
+
+        // Fallback for unsupported TextDecoder.
+        // Note that this fallback can result in a different decoding for invalid utf8 than the native implementation.
+        // This is the case when a character requires more bytes than are left in the array which is not handled here.
+        const out = [];
+        let pos = 0;
+        let c = 0;
         while (pos < bytes.length) {
-            var c1 = bytes[pos++];
+            const c1 = bytes[pos++];
             if (c1 < 128) {
                 out[c++] = String.fromCharCode(c1);
             } else if (c1 > 191 && c1 < 224) {
-                var c2 = bytes[pos++];
+                const c2 = bytes[pos++];
                 out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
             } else if (c1 > 239 && c1 < 365) {
                 // Surrogate Pair
-                var c2 = bytes[pos++];
-                var c3 = bytes[pos++];
-                var c4 = bytes[pos++];
-                var u = ((c1 & 7) << 18 | (c2 & 63) << 12 | (c3 & 63) << 6 | c4 & 63) - 0x10000;
+                const c2 = bytes[pos++];
+                const c3 = bytes[pos++];
+                const c4 = bytes[pos++];
+                const u = ((c1 & 7) << 18 | (c2 & 63) << 12 | (c3 & 63) << 6 | c4 & 63) - 0x10000;
                 out[c++] = String.fromCharCode(0xD800 + (u >> 10));
                 out[c++] = String.fromCharCode(0xDC00 + (u & 1023));
             } else {
-                var c2 = bytes[pos++];
-                var c3 = bytes[pos++];
-                out[c++] =
-                String.fromCharCode((c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+                const c2 = bytes[pos++];
+                const c3 = bytes[pos++];
+                out[c++] = String.fromCharCode((c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
             }
         }
         return out.join('');
