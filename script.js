@@ -705,6 +705,7 @@ AddressBook.BOOK = {
     'NQ57 66QM QFT0 QQX8 1QSL 820V XDN1 1C82 1M2B': 'Bidali Giftcards',
     'NQ69 R83V YQXR L0LF YPEY 11KH SKX9 T7BY CBVH': 'Nimtris',
     'NQ41 V0TE UCSX NF24 BGKQ 8B7R RNVE FRMH NUJH': 'Curve Change Vote (May 2020)',
+    'NQ84 V0TE 5EH3 UT5S 67UV SQL0 AUS8 NEKS 2K7B': 'Curve Ranking Vote (June 2020)',
     'NQ53 SQNM 36RL F333 PPBJ KKRC RE33 2X06 1HJA': 'Fastspot Demo',
 
     // Mainet users
