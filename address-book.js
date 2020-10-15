@@ -45,6 +45,7 @@ AddressBook.BOOK = {
     'NQ64 3GHE KLVF G5KT EM66 8CTX M7U3 3P6G CVXS': 'Consensus Protocol Pool', // @Saaasss
     'NQ72 MG1Y E8F2 EBH9 3NVH 1HBY ATRE 26TS MH19': 'AceMining Pool',
     'NQ97 QG2U YL9L 4NVG H18B 24B6 CYM3 75VJ FT73': 'HashExpress',
+    'NQ52 5XQ7 P24G B8E6 J8RM PP26 5XXR GT6Y ALEK': 'Urkel Pool',
 
     // Mainnet Services
     'NQ15 MLJN 23YB 8FBM 61TN 7LYG 2212 LVBG 4V19': 'NIM Activation',
