@@ -46,6 +46,8 @@ AddressBook.BOOK = {
     'NQ72 MG1Y E8F2 EBH9 3NVH 1HBY ATRE 26TS MH19': 'AceMining Pool',
     'NQ97 QG2U YL9L 4NVG H18B 24B6 CYM3 75VJ FT73': 'HashExpress',
     'NQ52 5XQ7 P24G B8E6 J8RM PP26 5XXR GT6Y ALEK': 'Urkel Pool',
+    'NQ76 ERYJ B75G 8QJ1 YFN3 VRKV RTYJ NTY4 NLH9': 'das3990x',
+    // '': '',
 
     // Mainnet Services
     'NQ15 MLJN 23YB 8FBM 61TN 7LYG 2212 LVBG 4V19': 'NIM Activation',
@@ -72,6 +74,9 @@ AddressBook.BOOK = {
     'NQ24 M0PS USES AJF6 9GQX 7C64 3E3F DYGF 6QP5': 'Mopsus Block Explorer',
     'NQ55 VDTM 6PVT N672 SECN JKVD 9KE4 SD91 PCCM': 'Nim.sh',
     'NQ60 JEN9 1QFN 5C00 NPHR 9AL0 TT09 4VFL 7X0E': 'Nimiq Lottery', // ?
+    'NQ20 8P9L 3YMD GQYT 1TAA 8D0G MC12 5HBQ 1Q8A': 'Nimiq Sunset Cyberspace',
+    'NQ31 FVDG LE5U 9RC9 77KQ EAN5 YP9V G999 X535': 'Dinarpay.net',
+    // '': '',
 
     // Mainet users
     'NQ65 GS91 H8CS QFAN 1EVS UK3G X7PL L9N1 X4KC': '@Albermonte', // Added with his permission
@@ -189,6 +194,10 @@ AddressBook.BOOK = {
     'NQ61 A1PT PHFU 7FV9 X3PL GUXC E0HD SL4A 05X8': '@Gtsmn',
     'NQ67 NJ74 E6D6 C2EV SD0B QXB3 245F CKM3 8ALE': '@Bu2020',
     'NQ88 5T0T 62E4 SA87 BQM3 91XP 151U 3211 3085': '@luketherock',
+    'NQ84 1AAM MG87 4HLX KRP4 EUR3 DAHR MD4G 9J72': '@HB',
+    'NQ27 3HGH 840H T8CC H71Q Y74U K1QX AL52 8LPX': '@vvv',
+    'NQ20 8P9L 3YMD GQYT 1TAA 8D0G MC12 5HBQ 1Q8A': '@TheViralClovers',
+    'NQ50 J7RS YHRL TPDK F27U TBXT Q2RU 4LEY QNP9': '@Pulsy',
     // '': '@',
 
     // Exchanges
