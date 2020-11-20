@@ -47,6 +47,13 @@ AddressBook.BOOK = {
     'NQ97 QG2U YL9L 4NVG H18B 24B6 CYM3 75VJ FT73': 'HashExpress',
     'NQ52 5XQ7 P24G B8E6 J8RM PP26 5XXR GT6Y ALEK': 'Urkel Pool',
     'NQ76 ERYJ B75G 8QJ1 YFN3 VRKV RTYJ NTY4 NLH9': 'das3990x',
+    'NQ33 P6CJ 15C8 RC8F KFXK LPCU C36A RNVB GHYT': 'LoloPool',
+    // '': '',
+    // '': '',
+    // '': '',
+    // '': '',
+    // '': '',
+    // '': '',
     // '': '',
 
     // Mainnet Services
@@ -76,6 +83,12 @@ AddressBook.BOOK = {
     'NQ60 JEN9 1QFN 5C00 NPHR 9AL0 TT09 4VFL 7X0E': 'Nimiq Lottery', // ?
     'NQ20 8P9L 3YMD GQYT 1TAA 8D0G MC12 5HBQ 1Q8A': 'Nimiq Sunset Cyberspace',
     'NQ31 FVDG LE5U 9RC9 77KQ EAN5 YP9V G999 X535': 'Dinarpay.net',
+    'NQ35 YGH5 41TT R77B 61S6 UP7L XC0M S0D2 GDFL': 'tip.cc',
+    'NQ56 VE9K PV0Y TK4T QBMY 8E9G B85J QR6M MSHL': 'Fastspot GO',
+    // '': '',
+    // '': '',
+    // '': '',
+    // '': '',
     // '': '',
 
     // Mainet users
@@ -197,6 +210,13 @@ AddressBook.BOOK = {
     'NQ84 1AAM MG87 4HLX KRP4 EUR3 DAHR MD4G 9J72': '@HB',
     'NQ27 3HGH 840H T8CC H71Q Y74U K1QX AL52 8LPX': '@vvv',
     'NQ50 J7RS YHRL TPDK F27U TBXT Q2RU 4LEY QNP9': '@Pulsy',
+    'NQ21 VVHY 9RFY 8XBB 755B HCDC X3BX SMD3 MJ8H': '@Kala',
+    'NQ35 1PYP YLK1 J9JB EKRK H1LA 9TPG PLBC VLAG': '@Bulldog',
+    'NQ32 GMK5 866D 1V79 M5U4 CR2Q FPNF F37L 4A60': '@Hrvoje',
+    'NQ66 BY8N 8EFC 3C0E SXAF 4QDT X1K0 TLPX AN52': '@pinky',
+    // '': '@',
+    // '': '@',
+    // '': '@',
     // '': '@',
 
     // Exchanges
@@ -213,6 +233,12 @@ AddressBook.BOOK = {
     'NQ69 NAL3 CH6V 42T4 QTLL 66D3 M9UH 7H40 0TT0': 'ChangeHero', // ?
     'NQ55 9V7S LG7M 6G1K D761 TPYJ 3T90 JCEF N8YH': 'LATOKEN', // ?
     'NQ61 A1PT PHFU 7FV9 X3PL GUXC E0HD SL4A 05X8': 'Bitmax', // ?
+    // '': '',
+    // '': '',
+    // '': '',
+    // '': '',
+    // '': '',
+    // '': '',
 
     // Testnet
     'NQ31 QEPR ED7V 00KC P7UC P1PR DKJC VNU7 E461': 'pool.nimiq-testnet.com',
