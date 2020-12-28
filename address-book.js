@@ -48,7 +48,8 @@ AddressBook.BOOK = {
     'NQ52 5XQ7 P24G B8E6 J8RM PP26 5XXR GT6Y ALEK': 'Urkel Pool',
     'NQ76 ERYJ B75G 8QJ1 YFN3 VRKV RTYJ NTY4 NLH9': 'das3990x',
     'NQ33 P6CJ 15C8 RC8F KFXK LPCU C36A RNVB GHYT': 'LoloPool',
-    'NQ27 CH2H Q8NK M9BL QYF5 K5X6 KFR8 76TL DHUX': 'das3990x', // Not a pool, just a single miner
+    'NQ27 CH2H Q8NK M9BL QYF5 K5X6 KFR8 76TL DHUX': 'das3990x',
+    'NQ13 J666 L991 VVJ4 X3D2 77LL Y9Y9 A615 0YVG': 'das3990x',
     // '': '',
     // '': '',
     // '': '',
