@@ -389,7 +389,7 @@
                         <label>Type </label>
                         <span>{%=account_types[o.type]%}</span>
                     </div>
-                    {% if(_labelAddress(o.address) === o.address) { %}
+                    {% if(_labelAddress(o.address) === o.address && o.balance >= 10e5) { %}
                         <div class="blockinfo-body-row">
                             <label>Label </label>
                             <span>
