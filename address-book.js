@@ -50,8 +50,7 @@ AddressBook.BOOK = {
     'NQ33 P6CJ 15C8 RC8F KFXK LPCU C36A RNVB GHYT': 'LoloPool',
     'NQ27 CH2H Q8NK M9BL QYF5 K5X6 KFR8 76TL DHUX': 'das3990x',
     'NQ13 J666 L991 VVJ4 X3D2 77LL Y9Y9 A615 0YVG': 'das3990x',
-    // '': '',
-    // '': '',
+    'NQ87 RP5U 72J8 5N5K JUDE HGVU VYHX QM37 23V4': 'Minet',
     // '': '',
     // '': '',
 
@@ -84,8 +83,6 @@ AddressBook.BOOK = {
     'NQ31 FVDG LE5U 9RC9 77KQ EAN5 YP9V G999 X535': 'Dinarpay.net',
     'NQ35 YGH5 41TT R77B 61S6 UP7L XC0M S0D2 GDFL': 'tip.cc',
     'NQ56 VE9K PV0Y TK4T QBMY 8E9G B85J QR6M MSHL': 'Fastspot GO',
-    // '': '',
-    // '': '',
     // '': '',
     // '': '',
 
@@ -249,8 +246,15 @@ AddressBook.BOOK = {
     'NQ63 PV14 U4P4 2P2A CCXY 5N4G 714V EL5G 5E7Y': '@V.L.',
     'NQ65 GFBH 6V8C TQ8D VEC3 LKNS TK1E 179J ANQ7': '@nimiq-france.fr',
     'NQ09 V97V QSL2 2CRF PQML 7R8D EMN1 5RQE QJ3V': '@xtopoffthelinex',
-    // '': '@',
-    // '': '@',
+    'NQ09 715Y QNGB C4NF 77K9 P9SP UCUQ 8L59 RGHE': '@SMSK',
+    'NQ45 9Q88 DY6S Y065 V78U P7XN GJSC L5E6 YG06': '@Hoot_hoot',
+    'NQ06 Y3UL 2HH0 TH94 7DXT B04A 9AAB 8DVU 0BG3': '@meilcandra1975',
+    'NQ72 92HA JELE 53LJ 866V 1C5U EUDE 3HE8 26GF': '@ALS_MINER',
+    'NQ45 9Q88 DY6S Y065 V78U P7XN GJSC L5E6 YG06': '@Cool_kid',
+    'NQ59 TUPH JERN 8YP1 232V 0R79 FQ0C V5HD 6VEK': '@didjingart',
+    'NQ32 M2NG 14A4 Y8EK 5LQX BQ6P 1BP6 TUL5 3MRP': '@Sahebkarami',
+    'NQ52 QY7Q M7Y4 LJNJ 15JC U9VG 8RMX 8EEQ 73EP': '@Stockton',
+    'NQ97 VCAN CGT0 CB13 H33J L3G7 1D7K 0QA1 YPY7': '@tro',
     // '': '@',
     // '': '@',
 
@@ -269,8 +273,6 @@ AddressBook.BOOK = {
     'NQ69 NAL3 CH6V 42T4 QTLL 66D3 M9UH 7H40 0TT0': 'ChangeHero', // ?
     'NQ55 9V7S LG7M 6G1K D761 TPYJ 3T90 JCEF N8YH': 'LATOKEN', // ?
     'NQ61 A1PT PHFU 7FV9 X3PL GUXC E0HD SL4A 05X8': 'Bitmax', // ?
-    // '': '',
-    // '': '',
     // '': '',
     // '': '',
 
