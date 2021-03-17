@@ -624,7 +624,7 @@
                         || (!useTestnet && !o[address].toLowerCase().includes('testnet'))
                     ) %}
                     <li>
-                        <img class="iqon" src="{%=apiUrl%}/iqon/{%=address.replace(/ /g, '+')%}">
+                        <img class="iqon" src="{%=apiUrl%}/iqon/{%=address.replace(/ /g, '+')%}" loading="lazy">
                         <a href="#{%=address%}">{%=o[address]%}</a>
                     </li>
                 {% } %}
