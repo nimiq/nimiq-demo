@@ -83,6 +83,7 @@ AddressBook.BOOK = {
     'NQ31 FVDG LE5U 9RC9 77KQ EAN5 YP9V G999 X535': 'Dinarpay.net',
     'NQ35 YGH5 41TT R77B 61S6 UP7L XC0M S0D2 GDFL': 'tip.cc',
     'NQ56 VE9K PV0Y TK4T QBMY 8E9G B85J QR6M MSHL': 'Fastspot GO',
+    'NQ04 PMCY 8ETQ TN8M 42NF M497 LCPM F215 T6CU': 'Nimiq Vouchers',
     // '': '',
     // '': '',
 
