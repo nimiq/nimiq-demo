@@ -84,7 +84,7 @@ AddressBook.BOOK = {
     'NQ35 YGH5 41TT R77B 61S6 UP7L XC0M S0D2 GDFL': 'tip.cc',
     'NQ56 VE9K PV0Y TK4T QBMY 8E9G B85J QR6M MSHL': 'Fastspot GO',
     'NQ04 PMCY 8ETQ TN8M 42NF M497 LCPM F215 T6CU': 'Nimiq Vouchers',
-    // '': '',
+    'NQ23 6CYY 7AJG AM08 Y5G5 MHGX 6U4U 270A 7SH0': 'OASIS Fee Buy-Back',
     // '': '',
 
     // Mainet users
