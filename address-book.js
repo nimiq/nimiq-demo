@@ -53,6 +53,7 @@ AddressBook.BOOK = {
     'NQ13 J666 L991 VVJ4 X3D2 77LL Y9Y9 A615 0YVG': 'das3990x',
     'NQ87 RP5U 72J8 5N5K JUDE HGVU VYHX QM37 23V4': 'Minet',
     'NQ36 M4KK FC8H 8M5A 9BCK LTP1 KEVQ 1XAA C6V5': 'mcpool',
+    'NQ21 YDBK D4LV QCY7 1AC2 N1TA YG3G 7X72 GRL4': 'mcpool',
     // '': '',
 
     // Mainnet Services
