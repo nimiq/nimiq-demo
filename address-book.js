@@ -54,6 +54,8 @@ AddressBook.BOOK = {
     'NQ87 RP5U 72J8 5N5K JUDE HGVU VYHX QM37 23V4': 'Minet',
     'NQ36 M4KK FC8H 8M5A 9BCK LTP1 KEVQ 1XAA C6V5': 'mcpool',
     'NQ21 YDBK D4LV QCY7 1AC2 N1TA YG3G 7X72 GRL4': 'mcpool',
+    'NQ72 SP61 6SXJ 1K6G 74TV XNB4 ATQP M2KP V657': 'Coinhunters Pool',
+    // 'NQ16 4EG5 0N94 PK1H 2UTA FF3S MX4Q DLFT 0B3P': 'My Nimiq Pool',
     // '': '',
 
     // Mainnet Services
