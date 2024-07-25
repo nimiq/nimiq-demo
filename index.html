@@ -41,8 +41,23 @@ async function _updatePeerCount() {
     document.getElementById('peers').innerText = peerCount;
 }
 
+const nimiqInitPromise = new Promise((resolve, reject) => Nimiq.init(resolve, (code) => {
+    switch (code) {
+        case Nimiq.ERR_WAIT:
+            alert('Error: Already open in another tab or window.');
+            break;
+        case Nimiq.ERR_UNSUPPORTED:
+            alert('Error: Browser not supported');
+            break;
+        default:
+            alert('Error: Nimiq initialization error');
+            break;
+    }
+    reject(code);
+}));
+
 function init(clientType = 'pico') {
-    Nimiq.init(async function() {
+    nimiqInitPromise.then(async () => {
         document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
 
         // Connect to the testnet.
@@ -83,19 +98,6 @@ function init(clientType = 'pico') {
 
         // Update the peer count every 1 second
         setInterval(_updatePeerCount, 1000);
-
-    }, function(code) {
-        switch (code) {
-            case Nimiq.ERR_WAIT:
-                alert('Error: Already open in another tab or window.');
-                break;
-            case Nimiq.ERR_UNSUPPORTED:
-                alert('Error: Browser not supported');
-                break;
-            default:
-                alert('Error: Nimiq initialization error');
-                break;
-        }
     });
 }
 
