@@ -60,8 +60,13 @@ function init(clientType = 'pico') {
     nimiqInitPromise.then(async () => {
         document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
 
-        // Connect to the testnet.
-        Nimiq.GenesisConfig.test();
+        try {
+            // Try to connect to the testnet.
+            Nimiq.GenesisConfig.test();
+        } catch (error) {
+            console.error(error);
+            // Don't fail if GenesisConfig has already been initialized (e.g. for mainnet).
+        }
 
         const $ = {};
         window.$ = $;
