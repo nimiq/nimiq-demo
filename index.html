@@ -3,26 +3,28 @@
 <head>
     <meta charset=utf-8 />
     <title>Nimiq Demo</title>
-    <script type="text/javascript" src="https://cdn.nimiq.com/latest/nimiq.js"></script>
-    <script>
+    <script type="module">
+import * as Nimiq from '/nimiq/web/index.js';
+
+window.Nimiq = Nimiq;
 
 function _onConsensusChanged(state) {
     document.getElementById('message').innerText = `Consensus ${state}.`;
 
-    if (state === Nimiq.Client.ConsensusState.ESTABLISHED) {
+    if (state === 'established') {
         _updateBalance();
     }
 }
 
 async function _updateBalance() {
     // Get current balance.
-    const account = await $.client.getAccount($.wallet.address);
+    const account = await $.client.getAccount($.keypair.toAddress());
     _onBalanceChanged(account);
 }
 
 function _onBalanceChanged(account) {
-    console.log(`New balance of ${$.wallet.address.toUserFriendlyAddress()} is ${account.balance}.`);
-    document.getElementById('balance').innerText = Nimiq.Policy.lunasToCoins(account.balance).toFixed(2);
+    console.log(`New balance of ${$.keypair.toAddress().toUserFriendlyAddress()} is ${account.balance}.`);
+    document.getElementById('balance').innerText = (account.balance / 1e5).toFixed(2);
 }
 
 async function _onHeadChanged() {
@@ -30,86 +32,71 @@ async function _onHeadChanged() {
     console.log(`Now at height ${height}.`);
     document.getElementById('height').innerText = height;
 
-    // Recheck balance on every head change.
-    _updateBalance();
+    // Recheck balance at every macro block (60s).
+    if (Nimiq.Policy.isMacroBlockAt(height)) {
+        _updateBalance();
+    }
 }
 
-async function _updatePeerCount() {
-    const statistics = await $.client.network.getStatistics();
-    const peerCount = statistics.totalPeerCount;
+async function _updatePeerCount(_peerId, _reason, peerCount, _peerInfo) {
     // console.log(`Now connected to ${peerCount} peers.`);
     document.getElementById('peers').innerText = peerCount;
 }
 
-const nimiqInitPromise = new Promise((resolve, reject) => Nimiq.init(resolve, (code) => {
-    switch (code) {
-        case Nimiq.ERR_WAIT:
-            alert('Error: Already open in another tab or window.');
-            break;
-        case Nimiq.ERR_UNSUPPORTED:
-            alert('Error: Browser not supported');
-            break;
-        default:
-            alert('Error: Nimiq initialization error');
-            break;
-    }
-    reject(code);
-}));
+const nimiqInitPromise = Nimiq.default().then(() => {
+    // Create client configuration so it can be manipulated before creating the client.
+    window.config = new Nimiq.ClientConfiguration();
+}).catch(error => {
+    alert(`Error: ${error.message}`);
+    throw error;
+});
 
-function init(clientType = 'pico') {
-    nimiqInitPromise.then(async () => {
-        document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
+window.init = async function(clientType = 'light') {
+    await nimiqInitPromise;
 
-        try {
-            // Try to connect to the testnet.
-            Nimiq.GenesisConfig.test();
-        } catch (error) {
-            console.error(error);
-            // Don't fail if GenesisConfig has already been initialized (e.g. for mainnet).
-        }
+    document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
 
-        const $ = {};
-        window.$ = $;
+    const $ = {};
+    window.$ = $;
 
-        // Create client configuration.
-        const configBuilder = Nimiq.Client.Configuration.builder();
-        if (clientType === 'light') {
-            // Adding the Mempool feature triggers a light consensus.
-            configBuilder.feature(Nimiq.Client.Feature.MEMPOOL);
-        }
+    // Instantiate the client based on the configuration.
+    // The client automatically connects to the network when instantiated.
+    $.client = await Nimiq.Client.create(window.config.build());
 
-        // Instantiate the client based on the configuration.
-        // The client automatically connects to the network when instantiated.
-        $.client = configBuilder.instantiateClient();
+    $.keypair = await Nimiq.KeyPair.generate();
+    document.getElementById('address').innerText = $.keypair.toAddress().toUserFriendlyAddress();
 
-        try {
-            // Get wallet from wallet store.
-            // The wallet store generates a new wallet (and stores it) when no wallets are stored.
-            const walletStore = await new Nimiq.WalletStore();
-            $.wallet = await walletStore.getDefault();
-        } catch (error) {
-            // The wallet store accesses IndexedDB, which can fail for all kinds of browser-reasons.
-            console.error(error);
-            console.log('Using temporary wallet.')
-            // Generate a temporary wallet.
-            $.wallet = await Nimiq.Wallet.generate();
-        } finally {
-            document.getElementById('address').innerText = $.wallet.address.toUserFriendlyAddress();
-        }
+    $.client.addConsensusChangedListener(_onConsensusChanged);
 
-        $.client.addConsensusChangedListener(_onConsensusChanged);
+    $.client.addHeadChangedListener(_onHeadChanged);
 
-        $.client.addHeadChangedListener(_onHeadChanged);
-
-        // Update the peer count every 1 second
-        setInterval(_updatePeerCount, 1000);
-    });
+    $.client.addPeerChangedListener(_updatePeerCount);
 }
 
+window.mainnet = function() {
+    window.config.network('mainalbatross');
+    window.config.seedNodes([
+        '/dns4/aurora.seed.nimiq.com/tcp/443/wss',
+        '/dns4/catalyst.seed.nimiq.network/tcp/443/wss',
+        '/dns4/cipher.seed.nimiq-network.com/tcp/443/wss',
+        '/dns4/eclipse.seed.nimiq.cloud/tcp/443/wss',
+        '/dns4/lumina.seed.nimiq.systems/tcp/443/wss',
+        '/dns4/nebula.seed.nimiq.com/tcp/443/wss',
+        '/dns4/nexus.seed.nimiq.network/tcp/443/wss',
+        '/dns4/polaris.seed.nimiq-network.com/tcp/443/wss',
+        '/dns4/photon.seed.nimiq.cloud/tcp/443/wss',
+        '/dns4/pulsar.seed.nimiq.systems/tcp/443/wss',
+        '/dns4/quasar.seed.nimiq.com/tcp/443/wss',
+        '/dns4/solstice.seed.nimiq.network/tcp/443/wss',
+        '/dns4/vortex.seed.nimiq.cloud/tcp/443/wss',
+        '/dns4/zenith.seed.nimiq.systems/tcp/443/wss',
+    ]);
+    console.log('Configured client for mainnet.');
+}
     </script>
 
     <!-- Use Nimiq's brand font (regular and bold weights). -->
-    <link href="https://fonts.googleapis.com/css?family=Muli:400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Mulish:400,700" rel="stylesheet">
 </head>
 <body>
     <h1>Getting started with the Nimiq Client API</h1>
@@ -117,7 +104,7 @@ function init(clientType = 'pico') {
     <h2>Most Simple Client</h2>
     <p id="client-selector">
         Client type:
-        <a href="#" client-type="pico">pico</a>
+        <!-- <a href="#" client-type="pico">pico</a> -->
         <a href="#" client-type="light">light</a>
     </p>
     <div id="client-info" style="display:none">
@@ -129,13 +116,13 @@ function init(clientType = 'pico') {
     </div>
 
     <h2>Source Code</h2>
-    <a target="_blank" href="https://github.com/nimiq-network/nimiq-demo/blob/master/index.html">View Source Code on Github.</a>
+    <a target="_blank" href="https://github.com/nimiq/nimiq-demo/blob/master/index.html">View Source Code on Github.</a>
 
     <style>
         body {
             background: #F4F4F4;
             color: #1F2348; /* Nimiq Indigo */
-            font-family: 'Muli', sans-serif;
+            font-family: 'Mulish', sans-serif;
             padding: 6% 8%;
         }
 
@@ -150,7 +137,6 @@ function init(clientType = 'pico') {
             el.addEventListener('click', (event) => {
                 event.preventDefault();
                 const type = el.getAttribute('client-type');
-                window.clientType = type;
                 document.getElementById('client-selector').textContent = 'Client type: ' + type;
                 document.getElementById('client-info').style.display = 'block';
                 init(type);
