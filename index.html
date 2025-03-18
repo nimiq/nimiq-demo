@@ -51,7 +51,7 @@ const nimiqInitPromise = Nimiq.default().then(() => {
     throw error;
 });
 
-window.init = async function(clientType = 'light') {
+window.init = async function(network = 'testnet', syncMode = 'light') {
     await nimiqInitPromise;
 
     document.getElementById('message').innerText = 'Nimiq loaded. Connecting and establishing consensus.';
@@ -61,6 +61,9 @@ window.init = async function(clientType = 'light') {
 
     // Instantiate the client based on the configuration.
     // The client automatically connects to the network when instantiated.
+    window[network]();
+    window.config.syncMode(syncMode);
+    window.config.logLevel('debug');
     $.client = await Nimiq.Client.create(window.config.build());
 
     $.keypair = await Nimiq.KeyPair.generate();
@@ -112,11 +115,18 @@ window.testnet = function() {
 <body>
     <h1>Getting started with the Nimiq Client API</h1>
     This HTML file demonstrates the most simple way to build web applications on top of the <a target="_blank" href="https://nimiq.com">Nimiq Blockchain</a>.
-    <h2>Most Simple Client</h2>
+    <h2>Start Client</h2>
+    <p id="network-selector">
+        Network:
+        <select id="network">
+            <option value="testnet" selected>Testnet</option>
+            <option value="mainnet">Mainnet</option>
+        </select>
+    </p>
     <p id="client-selector">
-        Client type:
-        <!-- <a href="#" client-type="pico">pico</a> -->
-        <a href="#" client-type="light">light</a>
+        Sync mode:
+        <a href="#" data-sync-mode="pico">pico</a>
+        <a href="#" data-sync-mode="light">light</a>
     </p>
     <div id="client-info" style="display:none">
         <p>Status: <span id="message">Loading Nimiq.</span></p>
@@ -144,13 +154,19 @@ window.testnet = function() {
 
     <script>
         /* Attach UI event handlers. */
-        document.querySelectorAll('[client-type]').forEach(el => {
+        document.querySelectorAll('#client-selector a').forEach(el => {
             el.addEventListener('click', (event) => {
                 event.preventDefault();
-                const type = el.getAttribute('client-type');
-                document.getElementById('client-selector').textContent = 'Client type: ' + type;
+
+                const network = document.querySelector('#network').value;
+                document.getElementById('network-selector').textContent = 'Network: ' + network;
+
+                const syncMode = el.dataset.syncMode;
+                document.getElementById('client-selector').textContent = 'Sync mode: ' + syncMode;
+
                 document.getElementById('client-info').style.display = 'block';
-                init(type);
+
+                init(network, syncMode);
             });
         });
     </script>
