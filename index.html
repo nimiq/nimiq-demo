@@ -93,6 +93,17 @@ window.mainnet = function() {
     ]);
     console.log('Configured client for mainnet.');
 }
+
+window.testnet = function() {
+    window.config.network('testalbatross');
+    window.config.seedNodes([
+        '/dns4/seed1.pos.nimiq-testnet.com/tcp/8443/wss',
+        '/dns4/seed2.pos.nimiq-testnet.com/tcp/8443/wss',
+        '/dns4/seed3.pos.nimiq-testnet.com/tcp/8443/wss',
+        '/dns4/seed4.pos.nimiq-testnet.com/tcp/8443/wss',
+    ]);
+    console.log('Configured client for testnet.');
+}
     </script>
 
     <!-- Use Nimiq's brand font (regular and bold weights). -->
