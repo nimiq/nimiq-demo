@@ -44,11 +44,15 @@ async function init(config) {
     Comlink.expose(client, nodeEndpoint(parentPort));
 };
 
-parentPort.addListener('message', async (event) => {
-    const { type } = event;
+parentPort.addListener('message', async (data) => {
+    if (data === 'NIMIQ_CHECKREADY') {
+        parentPort.postMessage('NIMIQ_READY');
+        return;
+    }
+
+    const { type, config } = data;
     if (type !== 'NIMIQ_INIT') return;
 
-    let { config } = event;
     if (!config || typeof config !== 'object') config = {};
 
     try {
@@ -59,5 +63,4 @@ parentPort.addListener('message', async (event) => {
     }
 });
 
-parentPort.postMessage('NIMIQ_ONLOAD');
-console.debug('Launched client WASM worker, ready for init');
+console.debug('Client WASM worker ready');

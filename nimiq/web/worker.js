@@ -39,10 +39,16 @@ async function init(config) {
 };
 
 self.addEventListener('message', async (event) => {
-    const { type } = event.data;
+    const data = event.data;
+
+    if (data === 'NIMIQ_CHECKREADY') {
+        self.postMessage('NIMIQ_READY');
+        return;
+    }
+
+    const { type, config } = data;
     if (type !== 'NIMIQ_INIT') return;
 
-    let { config } = event.data;
     if (!config || typeof config !== 'object') config = {};
 
     try {
@@ -53,5 +59,4 @@ self.addEventListener('message', async (event) => {
     }
 });
 
-self.postMessage('NIMIQ_ONLOAD');
-console.debug('Launched client WASM worker, ready for init');
+console.debug('Client WASM worker ready');

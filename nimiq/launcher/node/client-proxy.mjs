@@ -3,13 +3,22 @@ function clientFactory(workerFactory, comlinkWrapper) {
   return {
     async create(config) {
       const worker = workerFactory();
-      await new Promise((resolve) => {
-        const readyListener = (event) => {
-          removeEventListener(worker, "message", readyListener);
-          if (getEventData(event) === "NIMIQ_ONLOAD") resolve();
-        };
-        addEventListener(worker, "message", readyListener);
+      let workerReady;
+      const readyPromise = new Promise((resolve) => {
+        workerReady = resolve;
       });
+      const readyListener = (event) => {
+        if (getEventData(event) === "NIMIQ_READY") {
+          workerReady();
+        }
+      };
+      addEventListener(worker, "message", readyListener);
+      const readyCheckInterval = setInterval(() => {
+        worker.postMessage("NIMIQ_CHECKREADY");
+      }, 20);
+      await readyPromise;
+      removeEventListener(worker, "message", readyListener);
+      clearInterval(readyCheckInterval);
       console.debug("Client WASM worker loaded");
       const client = comlinkWrapper(worker);
       if (typeof window !== "undefined") {
@@ -31,7 +40,7 @@ function clientFactory(workerFactory, comlinkWrapper) {
       await new Promise((resolve, reject) => {
         addEventListener(worker, "message", (event) => {
           const eventData = getEventData(event);
-          if (!("ok" in eventData)) return;
+          if (typeof eventData !== "object" || !("ok" in eventData)) return;
           if (eventData.ok === true) resolve();
           if (eventData.ok === false && "error" in eventData && typeof eventData.error === "string") {
             const error = new Error(eventData.error);

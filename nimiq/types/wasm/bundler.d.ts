@@ -20,6 +20,267 @@ export enum TransactionFormat {
   Basic = 0,
   Extended = 1,
 }
+export interface PlainBasicAccount {
+    balance: number;
+}
+
+export interface PlainVestingContract {
+    balance: number;
+    owner: string;
+    startTime: number;
+    timeStep: number;
+    stepAmount: number;
+    totalAmount: number;
+}
+
+export interface PlainHtlcContract {
+    balance: number;
+    sender: string;
+    recipient: string;
+    hashAlgorithm: string;
+    hashRoot: string;
+    hashCount: number;
+    timeout: number;
+    totalAmount: number;
+}
+
+export interface PlainStakingContract {
+    balance: number;
+    activeValidators: [string, number][];
+    currentEpochDisabledSlots: [string, number[]][];
+    previousDisabledSlots: number[];
+}
+
+export type PlainAccount = ({ type: "basic" } & PlainBasicAccount) | ({ type: "vesting" } & PlainVestingContract) | ({ type: "htlc" } & PlainHtlcContract) | ({ type: "staking" } & PlainStakingContract);
+
+/**
+ * JSON-compatible and human-readable format of a staker. E.g. delegation addresses are presented in their
+ * human-readable format.
+ */
+export interface PlainStaker {
+    /**
+     * The staker\'s active balance.
+     */
+    balance: number;
+    /**
+     * The address of the validator for which the staker is delegating its stake for. If it is not
+     * delegating to any validator, this will be set to None.
+     */
+    delegation: string | undefined;
+    /**
+     * The staker\'s inactive balance. Only released inactive balance can be withdrawn from the staking contract.
+     * Stake can only be re-delegated if the whole balance of the staker is inactive and released
+     * (or if there was no prior delegation). For inactive balance to be released, the maximum of
+     * the inactive and the validator\'s jailed periods must have passed.
+     */
+    inactiveBalance: number;
+    /**
+     * The block number at which the inactive balance was last inactivated.
+     * If the stake is currently delegated to a jailed validator, the maximum of its jail release
+     * and the inactive release is taken. Re-delegation requires the whole balance of the staker to be inactive.
+     * The stake can only effectively become inactive on the next election block. Thus, this may contain a
+     * future block height.
+     */
+    inactiveFrom: number | undefined;
+    /**
+     * The block number from which the staker\'s `inactive_balance` gets released, e.g. for retirement.
+     * Re-delegation requires the whole balance of the staker to be inactive and released, as well as
+     * its delegated validator to not currently be jailed.
+     */
+    inactiveRelease: number | undefined;
+    /**
+     * The staker\'s retired balance. Retired balance can only be withdrawn, thus retiring is irreversible.
+     * Only released inactive balance can be retired, so the maximum of the inactive and the validator\'s jailed
+     * periods must have passed.
+     * Once retired, the funds are immediately available to be withdrawn (removed).
+     */
+    retiredBalance: number;
+}
+
+/**
+ * JSON-compatible and human-readable format of a validator. E.g. reward addresses and public keys are presented in
+ * their human-readable format.
+ */
+export interface PlainValidator {
+    /**
+     * The public key used to sign blocks. It is also used to retire and reactivate the validator.
+     */
+    signingPublicKey: string;
+    /**
+     * The voting public key, it is used to vote for skip and macro blocks.
+     */
+    votingPublicKey: string;
+    /**
+     * The reward address of the validator. All the block rewards are paid to this address.
+     */
+    rewardAddress: string;
+    /**
+     * Signaling field. Can be used to do chain upgrades or for any other purpose that requires
+     * validators to coordinate among themselves.
+     */
+    signalData: string | undefined;
+    /**
+     * The total stake assigned to this validator. It includes the validator deposit as well as the
+     * coins delegated to him by stakers.
+     */
+    totalStake: number;
+    /**
+     * The amount of coins deposited by this validator. The initial deposit is a fixed amount,
+     * however this value can be decremented by failing staking transactions due to fees.
+     */
+    deposit: number;
+    /**
+     * The number of stakers that are delegating to this validator.
+     */
+    numStakers: number;
+    /**
+     * An option indicating if the validator is marked as inactive. If it is, then it contains the
+     * block height at which it becomes inactive.
+     * A validator can only effectively become inactive on the next election block. Thus, this may
+     * contain a block height in the future.
+     */
+    inactiveFrom: number | undefined;
+    /**
+     * An option indicating if the validator is marked as inactive. If it is, then it contains the
+     * block height at which the inactive stake gets released and the validator can be retired.
+     */
+    inactiveRelease: number | undefined;
+    /**
+     * A flag indicating if the validator is retired.
+     */
+    retired: boolean;
+    /**
+     * An option indicating if the validator is jailed. If it is, then it contains the
+     * block height at which it became jailed.
+     * Opposed to `inactive_from`, jailing can and should take effect immediately to prevent
+     * the validator and its stakers from modifying their funds and or delegation.
+     */
+    jailedFrom: number | undefined;
+    /**
+     * An option indicating if the validator is jailed. If it is, then it contains the
+     * block height at which the jail period ends and the validator becomes interactive again.
+     */
+    jailedRelease: number | undefined;
+}
+
+/**
+ * Describes the state of consensus of the client.
+ */
+export type ConsensusState = "connecting" | "syncing" | "established";
+
+/**
+ * JSON-compatible and human-readable format of blocks.
+ */
+export interface PlainBlockCommonFields {
+    /**
+     * The block\'s unique hash, used as its identifier, in HEX format.
+     */
+    hash: string;
+    /**
+     * The block\'s on-chain size, in bytes.
+     */
+    size: number;
+    /**
+     * The block\'s block height, also called block number.
+     */
+    height: number;
+    /**
+     * The batch number that the block is in.
+     */
+    batch: number;
+    /**
+     * The epoch number that the block is in.
+     */
+    epoch: number;
+    /**
+     * The timestamp of the block. It follows the Unix time and has millisecond precision.
+     */
+    timestamp: number;
+    /**
+     * The network that this block is valid for.
+     */
+    network: string;
+    /**
+     * The protocol version that this block is valid for.
+     */
+    version: number;
+    /**
+     * The hash of the header of the immediately preceding block (either micro or macro), in HEX format.
+     */
+    prevHash: string;
+    /**
+     * The seed of the block. This is the BLS signature of the seed of the immediately preceding
+     * block (either micro or macro) using the validator key of the block producer.
+     */
+    seed: string;
+    /**
+     * The extra data of the block, in HEX format. Up to 32 raw bytes.
+     *
+     * In the genesis block, it encodes the initial supply as a big-endian `u64`.
+     *
+     * No planned use otherwise.
+     */
+    extraData: string;
+    /**
+     * The root of the Merkle tree of the blockchain state, in HEX format. It acts as a commitment to the state.
+     */
+    stateHash: string;
+    /**
+     * The root of the Merkle tree of the body, in HEX format. It acts as a commitment to the body.
+     */
+    bodyHash: string;
+    /**
+     * A Merkle root over all of the transactions that happened in the current epoch, in HEX format.
+     */
+    historyHash: string;
+}
+
+export interface PlainMacroBlock extends PlainBlockCommonFields {
+    /**
+     * If true, this macro block is an election block finalizing an epoch.
+     */
+    isElectionBlock: boolean;
+    /**
+     * The round number this block was proposed in.
+     */
+    round: number;
+    /**
+     * The hash of the header of the preceding election macro block, in HEX format.
+     */
+    prevElectionHash: string;
+}
+
+export interface PlainMicroBlock extends PlainBlockCommonFields {}
+
+export type PlainBlock = ({ type: "macro" } & PlainMacroBlock) | ({ type: "micro" } & PlainMicroBlock);
+
+/**
+ * Information about a networking peer.
+ */
+export interface PlainPeerInfo {
+    /**
+     * A libp2p peer ID
+     */
+    peerId: string;
+    /**
+     * Address of the peer in `Multiaddr` format
+     */
+    address: string;
+    /**
+     * Node type of the peer
+     */
+    type: 'full' | 'history' | 'light';
+    /**
+     * List of services the peer is providing
+     */
+    services: PlainService[];
+}
+
+/**
+ * Available peer service flags
+ */
+export type PlainService = "full-blocks" | "history" | "accounts-proof" | "accounts-chunk" | "mempool" | "transaction-index" | "validator" | "pre-genesis-transactions" | "unknown";
+
 export interface PlainClientConfiguration {
     networkId?: string;
     seedNodes?: string[];
@@ -29,6 +290,8 @@ export interface PlainClientConfiguration {
     peerCountMax?: number;
     peerCountPerIpMax?: number;
     peerCountPerSubnetMax?: number;
+    syncMode?: string;
+    numInitialConnections?: number;
 }
 
 /**
@@ -343,258 +606,9 @@ export interface PlainTransactionReceipt {
     blockHeight: number;
 }
 
-export type PlainAccountType = "basic" | "vesting" | "htlc" | "staking";
-
 export type PlainTransactionFormat = "basic" | "extended";
 
-/**
- * JSON-compatible and human-readable format of blocks.
- */
-export interface PlainBlockCommonFields {
-    /**
-     * The block\'s unique hash, used as its identifier, in HEX format.
-     */
-    hash: string;
-    /**
-     * The block\'s on-chain size, in bytes.
-     */
-    size: number;
-    /**
-     * The block\'s block height, also called block number.
-     */
-    height: number;
-    /**
-     * The batch number that the block is in.
-     */
-    batch: number;
-    /**
-     * The epoch number that the block is in.
-     */
-    epoch: number;
-    /**
-     * The timestamp of the block. It follows the Unix time and has millisecond precision.
-     */
-    timestamp: number;
-    /**
-     * The network that this block is valid for.
-     */
-    network: string;
-    /**
-     * The protocol version that this block is valid for.
-     */
-    version: number;
-    /**
-     * The hash of the header of the immediately preceding block (either micro or macro), in HEX format.
-     */
-    prevHash: string;
-    /**
-     * The seed of the block. This is the BLS signature of the seed of the immediately preceding
-     * block (either micro or macro) using the validator key of the block producer.
-     */
-    seed: string;
-    /**
-     * The extra data of the block, in HEX format. Up to 32 raw bytes.
-     *
-     * In the genesis block, it encodes the initial supply as a big-endian `u64`.
-     *
-     * No planned use otherwise.
-     */
-    extraData: string;
-    /**
-     * The root of the Merkle tree of the blockchain state, in HEX format. It acts as a commitment to the state.
-     */
-    stateHash: string;
-    /**
-     * The root of the Merkle tree of the body, in HEX format. It acts as a commitment to the body.
-     */
-    bodyHash: string;
-    /**
-     * A Merkle root over all of the transactions that happened in the current epoch, in HEX format.
-     */
-    historyHash: string;
-}
-
-export interface PlainMacroBlock extends PlainBlockCommonFields {
-    /**
-     * If true, this macro block is an election block finalizing an epoch.
-     */
-    isElectionBlock: boolean;
-    /**
-     * The round number this block was proposed in.
-     */
-    round: number;
-    /**
-     * The hash of the header of the preceding election macro block, in HEX format.
-     */
-    prevElectionHash: string;
-}
-
-export interface PlainMicroBlock extends PlainBlockCommonFields {}
-
-export type PlainBlock = ({ type: "macro" } & PlainMacroBlock) | ({ type: "micro" } & PlainMicroBlock);
-
-/**
- * Information about a networking peer.
- */
-export interface PlainPeerInfo {
-    peerId: string;
-    /**
-     * Address of the peer in `Multiaddr` format
-     */
-    address: string;
-    /**
-     * Node type of the peer
-     */
-    type: 'full' | 'history' | 'light';
-}
-
-/**
- * Describes the state of consensus of the client.
- */
-export type ConsensusState = "connecting" | "syncing" | "established";
-
-export interface PlainBasicAccount {
-    balance: number;
-}
-
-export interface PlainVestingContract {
-    balance: number;
-    owner: string;
-    startTime: number;
-    timeStep: number;
-    stepAmount: number;
-    totalAmount: number;
-}
-
-export interface PlainHtlcContract {
-    balance: number;
-    sender: string;
-    recipient: string;
-    hashAlgorithm: string;
-    hashRoot: string;
-    hashCount: number;
-    timeout: number;
-    totalAmount: number;
-}
-
-export interface PlainStakingContract {
-    balance: number;
-    activeValidators: [string, number][];
-    currentEpochDisabledSlots: [string, number[]][];
-    previousDisabledSlots: number[];
-}
-
-export type PlainAccount = ({ type: "basic" } & PlainBasicAccount) | ({ type: "vesting" } & PlainVestingContract) | ({ type: "htlc" } & PlainHtlcContract) | ({ type: "staking" } & PlainStakingContract);
-
-/**
- * JSON-compatible and human-readable format of a staker. E.g. delegation addresses are presented in their
- * human-readable format.
- */
-export interface PlainStaker {
-    /**
-     * The staker\'s active balance.
-     */
-    balance: number;
-    /**
-     * The address of the validator for which the staker is delegating its stake for. If it is not
-     * delegating to any validator, this will be set to None.
-     */
-    delegation: string | undefined;
-    /**
-     * The staker\'s inactive balance. Only released inactive balance can be withdrawn from the staking contract.
-     * Stake can only be re-delegated if the whole balance of the staker is inactive and released
-     * (or if there was no prior delegation). For inactive balance to be released, the maximum of
-     * the inactive and the validator\'s jailed periods must have passed.
-     */
-    inactiveBalance: number;
-    /**
-     * The block number at which the inactive balance was last inactivated.
-     * If the stake is currently delegated to a jailed validator, the maximum of its jail release
-     * and the inactive release is taken. Re-delegation requires the whole balance of the staker to be inactive.
-     * The stake can only effectively become inactive on the next election block. Thus, this may contain a
-     * future block height.
-     */
-    inactiveFrom: number | undefined;
-    /**
-     * The block number from which the staker\'s `inactive_balance` gets released, e.g. for retirement.
-     * Re-delegation requires the whole balance of the staker to be inactive and released, as well as
-     * its delegated validator to not currently be jailed.
-     */
-    inactiveRelease: number | undefined;
-    /**
-     * The staker\'s retired balance. Retired balance can only be withdrawn, thus retiring is irreversible.
-     * Only released inactive balance can be retired, so the maximum of the inactive and the validator\'s jailed
-     * periods must have passed.
-     * Once retired, the funds are immediately available to be withdrawn (removed).
-     */
-    retiredBalance: number;
-}
-
-/**
- * JSON-compatible and human-readable format of a validator. E.g. reward addresses and public keys are presented in
- * their human-readable format.
- */
-export interface PlainValidator {
-    /**
-     * The public key used to sign blocks. It is also used to retire and reactivate the validator.
-     */
-    signingPublicKey: string;
-    /**
-     * The voting public key, it is used to vote for skip and macro blocks.
-     */
-    votingPublicKey: string;
-    /**
-     * The reward address of the validator. All the block rewards are paid to this address.
-     */
-    rewardAddress: string;
-    /**
-     * Signaling field. Can be used to do chain upgrades or for any other purpose that requires
-     * validators to coordinate among themselves.
-     */
-    signalData: string | undefined;
-    /**
-     * The total stake assigned to this validator. It includes the validator deposit as well as the
-     * coins delegated to him by stakers.
-     */
-    totalStake: number;
-    /**
-     * The amount of coins deposited by this validator. The initial deposit is a fixed amount,
-     * however this value can be decremented by failing staking transactions due to fees.
-     */
-    deposit: number;
-    /**
-     * The number of stakers that are delegating to this validator.
-     */
-    numStakers: number;
-    /**
-     * An option indicating if the validator is marked as inactive. If it is, then it contains the
-     * block height at which it becomes inactive.
-     * A validator can only effectively become inactive on the next election block. Thus, this may
-     * contain a block height in the future.
-     */
-    inactiveFrom: number | undefined;
-    /**
-     * An option indicating if the validator is marked as inactive. If it is, then it contains the
-     * block height at which the inactive stake gets released and the validator can be retired.
-     */
-    inactiveRelease: number | undefined;
-    /**
-     * A flag indicating if the validator is retired.
-     */
-    retired: boolean;
-    /**
-     * An option indicating if the validator is jailed. If it is, then it contains the
-     * block height at which it became jailed.
-     * Opposed to `inactive_from`, jailing can and should take effect immediately to prevent
-     * the validator and its stakers from modifying their funds and or delegation.
-     */
-    jailedFrom: number | undefined;
-    /**
-     * An option indicating if the validator is jailed. If it is, then it contains the
-     * block height at which the jail period ends and the validator becomes interactive again.
-     */
-    jailedRelease: number | undefined;
-}
+export type PlainAccountType = "basic" | "vesting" | "htlc" | "staking";
 
 /**
  * An object representing a Nimiq address.
@@ -602,68 +616,52 @@ export interface PlainValidator {
  */
 export class Address {
   free(): void;
-  /**
-   * @returns {string}
-   */
   __getClassname(): string;
-  /**
-   * @param {Uint8Array} bytes
-   */
   constructor(bytes: Uint8Array);
   /**
    * Deserializes an address from a byte array.
-   * @param {Uint8Array} bytes
-   * @returns {Address}
    */
   static deserialize(bytes: Uint8Array): Address;
   /**
    * Parses an address from an {@link Address} instance, a hex string representation, or a byte array.
    *
    * Throws when an address cannot be parsed from the argument.
-   * @param {Address | string | Uint8Array} addr
-   * @returns {Address}
    */
   static fromAny(addr: Address | string | Uint8Array): Address;
   /**
    * Parses an address from a string representation, either user-friendly or hex format.
    *
    * Throws when an address cannot be parsed from the string.
-   * @param {string} str
-   * @returns {Address}
    */
   static fromString(str: string): Address;
   /**
    * Parses an address from its user-friendly string representation.
    *
    * Throws when an address cannot be parsed from the string.
-   * @param {string} str
-   * @returns {Address}
    */
   static fromUserFriendlyAddress(str: string): Address;
   /**
+   * Computes the multisig address of a list of signer public keys.
+   */
+  static fromPublicKeys(public_keys: (PublicKey | string | Uint8Array)[], num_signers: number): Address;
+  /**
    * Formats the address into a plain string format.
-   * @returns {string}
    */
   toPlain(): string;
   /**
    * Formats the address into user-friendly IBAN format.
-   * @returns {string}
    */
   toUserFriendlyAddress(): string;
   /**
    * Formats the address into hex format.
-   * @returns {string}
    */
   toHex(): string;
   /**
    * Returns the byte representation of the address.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Returns if this address is equal to the other address.
-   * @param {Address} other
-   * @returns {boolean}
    */
   equals(other: Address): boolean;
   /**
@@ -671,8 +669,6 @@ export class Address {
    *
    * Returns -1 if this address is smaller than the other address, 0 if they are equal,
    * and 1 if this address is larger than the other address.
-   * @param {Address} other
-   * @returns {number}
    */
   compare(other: Address): number;
 }
@@ -685,44 +681,33 @@ export class BLSKeyPair {
   free(): void;
   /**
    * Generates a new keypair from secure randomness.
-   * @returns {BLSKeyPair}
    */
   static generate(): BLSKeyPair;
   /**
    * Derives a keypair from an existing private key.
-   * @param {BLSSecretKey} private_key
-   * @returns {BLSKeyPair}
    */
   static derive(private_key: BLSSecretKey): BLSKeyPair;
   /**
    * Deserializes a keypair from a byte array.
-   * @param {Uint8Array} bytes
-   * @returns {BLSKeyPair}
    */
   static deserialize(bytes: Uint8Array): BLSKeyPair;
-  /**
-   * @param {BLSSecretKey} secret_key
-   * @param {BLSPublicKey} public_key
-   */
   constructor(secret_key: BLSSecretKey, public_key: BLSPublicKey);
   /**
    * Serializes to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Formats the keypair into a hex string.
-   * @returns {string}
    */
   toHex(): string;
-/**
- * Gets the keypair's public key.
- */
-  readonly publicKey: BLSPublicKey;
-/**
- * Gets the keypair's secret key.
- */
+  /**
+   * Gets the keypair's secret key.
+   */
   readonly secretKey: BLSSecretKey;
+  /**
+   * Gets the keypair's public key.
+   */
+  readonly publicKey: BLSPublicKey;
 }
 /**
  * The public part of the BLS keypair.
@@ -732,35 +717,26 @@ export class BLSPublicKey {
   free(): void;
   /**
    * Derives a public key from an existing private key.
-   * @param {BLSSecretKey} secret_key
-   * @returns {BLSPublicKey}
    */
   static derive(secret_key: BLSSecretKey): BLSPublicKey;
   /**
    * Deserializes a public key from a byte array.
-   * @param {Uint8Array} bytes
-   * @returns {BLSPublicKey}
    */
   static deserialize(bytes: Uint8Array): BLSPublicKey;
   /**
    * Creates a new public key from a byte array.
-   * @param {Uint8Array} bytes
    */
   constructor(bytes: Uint8Array);
   /**
    * Serializes the public key to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Parses a public key from its hex representation.
-   * @param {string} hex
-   * @returns {BLSPublicKey}
    */
   static fromHex(hex: string): BLSPublicKey;
   /**
    * Formats the public key into a hex string.
-   * @returns {string}
    */
   toHex(): string;
 }
@@ -772,34 +748,26 @@ export class BLSSecretKey {
   free(): void;
   /**
    * Generates a new private key from secure randomness.
-   * @returns {BLSSecretKey}
    */
   static generate(): BLSSecretKey;
   /**
    * Deserializes a private key from a byte array.
-   * @param {Uint8Array} bytes
-   * @returns {BLSSecretKey}
    */
   static deserialize(bytes: Uint8Array): BLSSecretKey;
   /**
    * Creates a new private key from a byte array.
-   * @param {Uint8Array} bytes
    */
   constructor(bytes: Uint8Array);
   /**
    * Serializes the private key to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Parses a private key from its hex representation.
-   * @param {string} hex
-   * @returns {BLSSecretKey}
    */
   static fromHex(hex: string): BLSSecretKey;
   /**
    * Formats the private key into a hex string.
-   * @returns {string}
    */
   toHex(): string;
 }
@@ -819,75 +787,57 @@ export class BLSSecretKey {
  * ```
  */
 export class Client {
+  private constructor();
   free(): void;
   /**
    * Creates a new Client that automatically starts connecting to the network.
-   * @param {PlainClientConfiguration} config
-   * @returns {Promise<Client>}
    */
   static create(config: PlainClientConfiguration): Promise<Client>;
   /**
    * Adds an event listener for consensus-change events, such as when consensus is established or lost.
-   * @param {(state: ConsensusState) => any} listener
-   * @returns {Promise<number>}
    */
   addConsensusChangedListener(listener: (state: ConsensusState) => any): Promise<number>;
   /**
    * Adds an event listener for new blocks added to the blockchain.
-   * @param {(hash: string, reason: string, reverted_blocks: string[], adopted_blocks: string[]) => any} listener
-   * @returns {Promise<number>}
    */
   addHeadChangedListener(listener: (hash: string, reason: string, reverted_blocks: string[], adopted_blocks: string[]) => any): Promise<number>;
   /**
    * Adds an event listener for peer-change events, such as when a new peer joins, or a peer leaves.
-   * @param {(peer_id: string, reason: 'joined' | 'left', peer_count: number, peer_info?: PlainPeerInfo) => any} listener
-   * @returns {Promise<number>}
    */
   addPeerChangedListener(listener: (peer_id: string, reason: 'joined' | 'left', peer_count: number, peer_info?: PlainPeerInfo) => any): Promise<number>;
   /**
    * Adds an event listener for transactions to and from the provided addresses.
    *
    * The listener is called for transactions when they are _included_ in the blockchain.
-   * @param {(transaction: PlainTransactionDetails) => any} listener
-   * @param {(Address | string | Uint8Array)[]} addresses
-   * @returns {Promise<number>}
    */
   addTransactionListener(listener: (transaction: PlainTransactionDetails) => any, addresses: (Address | string | Uint8Array)[]): Promise<number>;
   /**
    * Removes an event listener by its handle.
-   * @param {number} handle
-   * @returns {Promise<void>}
    */
   removeListener(handle: number): Promise<void>;
   /**
    * Returns the network ID that the client is connecting to.
-   * @returns {Promise<number>}
    */
   getNetworkId(): Promise<number>;
   /**
    * Returns if the client currently has consensus with the network.
-   * @returns {Promise<boolean>}
    */
   isConsensusEstablished(): Promise<boolean>;
   /**
    * Returns a promise that resolves when the client has established consensus with the network.
-   * @returns {Promise<void>}
    */
   waitForConsensusEstablished(): Promise<void>;
   /**
    * Returns the block hash of the current blockchain head.
-   * @returns {Promise<string>}
    */
   getHeadHash(): Promise<string>;
   /**
    * Returns the block number of the current blockchain head.
-   * @returns {Promise<number>}
    */
   getHeadHeight(): Promise<number>;
   /**
    * Returns the current blockchain head block.
    * Note that the web client is a light client and does not have block bodies, i.e. no transactions.
-   * @returns {Promise<PlainBlock>}
    */
   getHeadBlock(): Promise<PlainBlock>;
   /**
@@ -895,7 +845,6 @@ export class Client {
    * Each peer will have one address and currently no guarantee for the usefulness of that address can be given.
    *
    * The resulting Array may be empty if there is no peers in the address book.
-   * @returns {Promise<PlainPeerInfo[]>}
    */
   getAddressBook(): Promise<PlainPeerInfo[]>;
   /**
@@ -904,8 +853,6 @@ export class Client {
    * Throws if the client does not have the block.
    *
    * Fetching blocks from the network is not yet available.
-   * @param {string} hash
-   * @returns {Promise<PlainBlock>}
    */
   getBlock(hash: string): Promise<PlainBlock>;
   /**
@@ -914,70 +861,52 @@ export class Client {
    * Throws if the client does not have the block.
    *
    * Fetching blocks from the network is not yet available.
-   * @param {number} height
-   * @returns {Promise<PlainBlock>}
    */
   getBlockAt(height: number): Promise<PlainBlock>;
   /**
    * Fetches the account for the provided address from the network.
    *
    * Throws if the address cannot be parsed and on network errors.
-   * @param {Address | string | Uint8Array} address
-   * @returns {Promise<PlainAccount>}
    */
   getAccount(address: Address | string | Uint8Array): Promise<PlainAccount>;
   /**
    * Fetches the accounts for the provided addresses from the network.
    *
    * Throws if an address cannot be parsed and on network errors.
-   * @param {(Address | string | Uint8Array)[]} addresses
-   * @returns {Promise<PlainAccount[]>}
    */
   getAccounts(addresses: (Address | string | Uint8Array)[]): Promise<PlainAccount[]>;
   /**
    * Fetches the staker for the provided address from the network.
    *
    * Throws if the address cannot be parsed and on network errors.
-   * @param {Address | string | Uint8Array} address
-   * @returns {Promise<PlainStaker | undefined>}
    */
   getStaker(address: Address | string | Uint8Array): Promise<PlainStaker | undefined>;
   /**
    * Fetches the stakers for the provided addresses from the network.
    *
    * Throws if an address cannot be parsed and on network errors.
-   * @param {(Address | string | Uint8Array)[]} addresses
-   * @returns {Promise<(PlainStaker | undefined)[]>}
    */
   getStakers(addresses: (Address | string | Uint8Array)[]): Promise<(PlainStaker | undefined)[]>;
   /**
    * Fetches the validator for the provided address from the network.
    *
    * Throws if the address cannot be parsed and on network errors.
-   * @param {Address | string | Uint8Array} address
-   * @returns {Promise<PlainValidator | undefined>}
    */
   getValidator(address: Address | string | Uint8Array): Promise<PlainValidator | undefined>;
   /**
    * Fetches the validators for the provided addresses from the network.
    *
    * Throws if an address cannot be parsed and on network errors.
-   * @param {(Address | string | Uint8Array)[]} addresses
-   * @returns {Promise<(PlainValidator | undefined)[]>}
    */
   getValidators(addresses: (Address | string | Uint8Array)[]): Promise<(PlainValidator | undefined)[]>;
   /**
    * Sends a transaction to the network and returns {@link PlainTransactionDetails}.
    *
    * Throws in case of network errors.
-   * @param {Transaction | PlainTransaction | string | Uint8Array} transaction
-   * @returns {Promise<PlainTransactionDetails>}
    */
   sendTransaction(transaction: Transaction | PlainTransaction | string | Uint8Array): Promise<PlainTransactionDetails>;
   /**
    * Fetches the transaction details for the given transaction hash.
-   * @param {string} hash
-   * @returns {Promise<PlainTransactionDetails>}
    */
   getTransaction(hash: string): Promise<PlainTransactionDetails>;
   /**
@@ -990,13 +919,8 @@ export class Client {
    * It starts at the `start_at` transaction and goes backwards. If this hash does not exist
    * or does not belong to the address, an empty list is returned.
    * If the network does not have at least `min_peers` to query, then an error is returned.
-   * @param {Address | string | Uint8Array} address
-   * @param {number | undefined} [limit]
-   * @param {string | undefined} [start_at]
-   * @param {number | undefined} [min_peers]
-   * @returns {Promise<PlainTransactionReceipt[]>}
    */
-  getTransactionReceiptsByAddress(address: Address | string | Uint8Array, limit?: number, start_at?: string, min_peers?: number): Promise<PlainTransactionReceipt[]>;
+  getTransactionReceiptsByAddress(address: Address | string | Uint8Array, limit?: number | null, start_at?: string | null, min_peers?: number | null): Promise<PlainTransactionReceipt[]>;
   /**
    * This function is used to query the network for transactions from and to a specific
    * address, that have been included in the chain.
@@ -1017,15 +941,8 @@ export class Client {
    *
    * Up to a `limit` number of transactions are returned from newest to oldest.
    * If the network does not have at least `min_peers` to query, an error is returned.
-   * @param {Address | string | Uint8Array} address
-   * @param {number | undefined} [since_block_height]
-   * @param {PlainTransactionDetails[] | undefined} [known_transaction_details]
-   * @param {string | undefined} [start_at]
-   * @param {number | undefined} [limit]
-   * @param {number | undefined} [min_peers]
-   * @returns {Promise<PlainTransactionDetails[]>}
    */
-  getTransactionsByAddress(address: Address | string | Uint8Array, since_block_height?: number, known_transaction_details?: PlainTransactionDetails[], start_at?: string, limit?: number, min_peers?: number): Promise<PlainTransactionDetails[]>;
+  getTransactionsByAddress(address: Address | string | Uint8Array, since_block_height?: number | null, known_transaction_details?: PlainTransactionDetails[] | null, start_at?: string | null, limit?: number | null, min_peers?: number | null): Promise<PlainTransactionDetails[]>;
   /**
    * This function is used to tell the network to disconnect from every connected
    * peer and stop trying to connect to other peers.
@@ -1033,14 +950,12 @@ export class Client {
    * **Important**: this function returns when the signal to disconnect was sent,
    * before all peers actually disconnect. This means that in order to ensure the
    * network is disconnected, wait for all peers to disappear after calling.
-   * @returns {Promise<void>}
    */
   disconnectNetwork(): Promise<void>;
   /**
    * This function is used to tell the network to (re)start connecting to peers.
    * This is could be used to tell the network to restart connection operations after
    * disconnect network is called.
-   * @returns {Promise<void>}
    */
   connectNetwork(): Promise<void>;
 }
@@ -1062,14 +977,12 @@ export class ClientConfiguration {
    *
    * Possible values are `'MainAlbatross' | 'TestAlbatross' | 'DevAlbatross'`.
    * Default is `'MainAlbatross'`.
-   * @param {string} network
    */
   network(network: string): void;
   /**
    * Sets the list of seed nodes that are used to connect to the Nimiq Albatross network.
    *
    * Each array entry must be a proper Multiaddr format string.
-   * @param {any[]} seeds
    */
   seedNodes(seeds: any[]): void;
   /**
@@ -1077,71 +990,162 @@ export class ClientConfiguration {
    *
    * Possible values are `'trace' | 'debug' | 'info' | 'warn' | 'error'`.
    * Default is `'info'`.
-   * @param {string} log_level
    */
   logLevel(log_level: string): void;
   /**
    * Sets whether the client should only connect to secure WebSocket connections.
    * Default is `true`.
-   * @param {boolean} only_secure_ws_connections
    */
   onlySecureWsConnections(only_secure_ws_connections: boolean): void;
   /**
    * Sets the desired number of peers the client should try to connect to.
    * Default is `12`.
-   * @param {number} desired_peer_count
    */
   desiredPeerCount(desired_peer_count: number): void;
   /**
    * Sets the maximum number of peers the client should connect to.
    * Default is `50`.
-   * @param {number} peer_count_max
    */
   peerCountMax(peer_count_max: number): void;
   /**
    * Sets the maximum number of peers the client should connect to per IP address.
    * Default is `10`.
-   * @param {number} peer_count_per_ip_max
    */
   peerCountPerIpMax(peer_count_per_ip_max: number): void;
   /**
    * Sets the maximum number of peers the client should connect to per subnet.
    * Default is `10`.
-   * @param {number} peer_count_per_subnet_max
    */
   peerCountPerSubnetMax(peer_count_per_subnet_max: number): void;
   /**
+   * Sets the sync mode that shoud be used.
+   * Only "light" and "pico" are supported for web clients
+   * Default is "light"
+   */
+  syncMode(sync_mode: string): void;
+  /**
    * Returns a plain configuration object to be passed to `Client.create`.
-   * @returns {PlainClientConfiguration}
    */
   build(): PlainClientConfiguration;
 }
+/**
+ * A cryptographic commitment to a {@link RandomSecret}. The commitment is public, while the secret is, well, secret.
+ */
+export class Commitment {
+  free(): void;
+  __getClassname(): string;
+  /**
+   * Derives a commitment from an existing random secret.
+   */
+  static derive(random_secret: RandomSecret): Commitment;
+  /**
+   * Sums up multiple commitments into one aggregated commitment.
+   */
+  static sum(commitments: (Commitment | string | Uint8Array)[]): Commitment;
+  /**
+   * Parses a commitment from a {@link Commitment} instance, a hex string representation, or a byte array.
+   *
+   * Throws when a Commitment cannot be parsed from the argument.
+   */
+  static fromAny(commitment: Commitment | string | Uint8Array): Commitment;
+  /**
+   * Deserializes a commitment from a byte array.
+   *
+   * Throws when the byte array contains less than 32 bytes.
+   */
+  static deserialize(bytes: Uint8Array): Commitment;
+  /**
+   * Creates a new commitment from a byte array.
+   *
+   * Throws when the byte array is not exactly 32 bytes long.
+   */
+  constructor(bytes: Uint8Array);
+  /**
+   * Serializes the commitment to a byte array.
+   */
+  serialize(): Uint8Array;
+  /**
+   * Parses a commitment from its hex representation.
+   *
+   * Throws when the string is not valid hex format or when it represents less than 32 bytes.
+   */
+  static fromHex(hex: string): Commitment;
+  /**
+   * Formats the commitment into a hex string.
+   */
+  toHex(): string;
+  /**
+   * Returns if this commitment is equal to the other commitment.
+   */
+  equals(other: Commitment): boolean;
+  static readonly SIZE: number;
+  readonly serializedSize: number;
+}
+/**
+ * A structure holding both a random secret and its corresponding public commitment.
+ * This is similar to a `KeyPair`.
+ */
+export class CommitmentPair {
+  free(): void;
+  __getClassname(): string;
+  /**
+   * Parses a commitment pair from a {@link CommitmentPair} instance, a hex string representation, or a byte array.
+   *
+   * Throws when a CommitmentPair cannot be parsed from the argument.
+   */
+  static fromAny(pair: CommitmentPair | string | Uint8Array): CommitmentPair;
+  /**
+   * Deserializes a commitment pair from a byte array.
+   *
+   * Throws when the byte array contains less than 32 bytes.
+   */
+  static deserialize(bytes: Uint8Array): CommitmentPair;
+  static generate(): CommitmentPair;
+  /**
+   * Derives a commitment pair from an existing random secret.
+   */
+  static derive(random_secret: RandomSecret): CommitmentPair;
+  constructor(random_secret: RandomSecret, commitment: Commitment);
+  /**
+   * Serializes the commitment pair to a byte array.
+   */
+  serialize(): Uint8Array;
+  /**
+   * Parses a commitment pair from its hex representation.
+   *
+   * Throws when the string is not valid hex format or when it represents less than 32 bytes.
+   */
+  static fromHex(hex: string): CommitmentPair;
+  /**
+   * Formats the commitment pair into a hex string.
+   */
+  toHex(): string;
+  /**
+   * Returns if this commitment pair is equal to the other commitment pair.
+   */
+  equals(other: CommitmentPair): boolean;
+  static readonly SIZE: number;
+  readonly serializedSize: number;
+  readonly secret: RandomSecret;
+  readonly commitment: Commitment;
+}
 export class CryptoUtils {
+  private constructor();
   free(): void;
   /**
    * Generates a secure random byte array of the given length.
-   * @param {number} length
-   * @returns {Uint8Array}
    */
   static getRandomValues(length: number): Uint8Array;
   /**
    * Computes a 64-byte [HMAC]-SHA512 hash from the input key and data.
    *
    * [HMAC]: https://en.wikipedia.org/wiki/HMAC
-   * @param {Uint8Array} key
-   * @param {Uint8Array} data
-   * @returns {Uint8Array}
    */
   static computeHmacSha512(key: Uint8Array, data: Uint8Array): Uint8Array;
   /**
    * Computes a [PBKDF2]-over-SHA512 key from the password with the given parameters.
    *
    * [PBKDF2]: https://en.wikipedia.org/wiki/PBKDF2
-   * @param {Uint8Array} password
-   * @param {Uint8Array} salt
-   * @param {number} iterations
-   * @param {number} derived_key_length
-   * @returns {Uint8Array}
    */
   static computePBKDF2sha512(password: Uint8Array, salt: Uint8Array, iterations: number, derived_key_length: number): Uint8Array;
   /**
@@ -1150,11 +1154,6 @@ export class CryptoUtils {
    *
    * [OTP]: https://en.wikipedia.org/wiki/One-time_pad
    * [KDF]: https://en.wikipedia.org/wiki/Key_derivation_function
-   * @param {Uint8Array} message
-   * @param {Uint8Array} key
-   * @param {Uint8Array} salt
-   * @param {number} iterations
-   * @returns {Promise<Uint8Array>}
    */
   static otpKdf(message: Uint8Array, key: Uint8Array, salt: Uint8Array, iterations: number): Promise<Uint8Array>;
 }
@@ -1163,35 +1162,23 @@ export class CryptoUtils {
  */
 export class ES256PublicKey {
   free(): void;
-  /**
-   * @returns {string}
-   */
   __getClassname(): string;
   /**
    * Verifies that a signature is valid for this public key and the provided data.
-   * @param {ES256Signature} signature
-   * @param {Uint8Array} data
-   * @returns {boolean}
    */
   verify(signature: ES256Signature, data: Uint8Array): boolean;
   /**
    * Deserializes a public key from a byte array.
    *
    * Throws when the byte array contains less than 33 bytes.
-   * @param {Uint8Array} bytes
-   * @returns {ES256PublicKey}
    */
   static deserialize(bytes: Uint8Array): ES256PublicKey;
   /**
    * Deserializes a public key from its SPKI representation.
-   * @param {Uint8Array} spki_bytes
-   * @returns {ES256PublicKey}
    */
   static fromSpki(spki_bytes: Uint8Array): ES256PublicKey;
   /**
    * Deserializes a public key from its raw representation.
-   * @param {Uint8Array} raw_bytes
-   * @returns {ES256PublicKey}
    */
   static fromRaw(raw_bytes: Uint8Array): ES256PublicKey;
   /**
@@ -1216,36 +1203,28 @@ export class ES256PublicKey {
    * // Then create an instance of ES256PublicKey from the credential response:
    * const publicKey = new Nimiq.ES256PublicKey(new Uint8Array(cred.response.getPublicKey()));
    * ```
-   * @param {Uint8Array} bytes
    */
   constructor(bytes: Uint8Array);
   /**
    * Serializes the public key to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Parses a public key from its hex representation.
    *
    * Throws when the string is not valid hex format or when it represents less than 33 bytes.
-   * @param {string} hex
-   * @returns {ES256PublicKey}
    */
   static fromHex(hex: string): ES256PublicKey;
   /**
    * Formats the public key into a hex string.
-   * @returns {string}
    */
   toHex(): string;
   /**
    * Gets the public key's address.
-   * @returns {Address}
    */
   toAddress(): Address;
   /**
    * Returns if this public key is equal to the other public key.
-   * @param {ES256PublicKey} other
-   * @returns {boolean}
    */
   equals(other: ES256PublicKey): boolean;
   /**
@@ -1253,8 +1232,6 @@ export class ES256PublicKey {
    *
    * Returns -1 if this public key is smaller than the other public key, 0 if they are equal,
    * and 1 if this public key is larger than the other public key.
-   * @param {ES256PublicKey} other
-   * @returns {number}
    */
   compare(other: ES256PublicKey): number;
 }
@@ -1263,45 +1240,36 @@ export class ES256PublicKey {
  * It can be verified with the private key's public key.
  */
 export class ES256Signature {
+  private constructor();
   free(): void;
-  /**
-   * @returns {string}
-   */
   __getClassname(): string;
   /**
    * Deserializes an ES256 signature from a byte array.
    *
    * Throws when the byte array contains less than 64 bytes.
-   * @param {Uint8Array} bytes
-   * @returns {ES256Signature}
    */
   static deserialize(bytes: Uint8Array): ES256Signature;
   /**
    * Serializes the signature to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Parses an ES256 signature from its ASN.1 representation.
-   * @param {Uint8Array} bytes
-   * @returns {ES256Signature}
    */
   static fromAsn1(bytes: Uint8Array): ES256Signature;
   /**
    * Parses an ES256 signature from its hex representation.
    *
    * Throws when the string is not valid hex format or when it represents less than 64 bytes.
-   * @param {string} hex
-   * @returns {ES256Signature}
    */
   static fromHex(hex: string): ES256Signature;
   /**
    * Formats the signature into a hex string.
-   * @returns {string}
    */
   toHex(): string;
 }
 export class Hash {
+  private constructor();
   free(): void;
   /**
    * Computes a 32-byte [Blake2b] hash from the input data.
@@ -1309,24 +1277,18 @@ export class Hash {
    * Blake2b is used for example to compute a public key's address.
    *
    * [Blake2b]: https://en.wikipedia.org/wiki/BLAKE_(hash_function)
-   * @param {Uint8Array} data
-   * @returns {Uint8Array}
    */
   static computeBlake2b(data: Uint8Array): Uint8Array;
   /**
    * Computes a 32-byte [SHA256] hash from the input data.
    *
    * [SHA256]: https://en.wikipedia.org/wiki/SHA-2
-   * @param {Uint8Array} data
-   * @returns {Uint8Array}
    */
   static computeSha256(data: Uint8Array): Uint8Array;
   /**
    * Computes a 64-byte [SHA512] hash from the input data.
    *
    * [SHA512]: https://en.wikipedia.org/wiki/SHA-2
-   * @param {Uint8Array} data
-   * @returns {Uint8Array}
    */
   static computeSha512(data: Uint8Array): Uint8Array;
   /**
@@ -1340,11 +1302,6 @@ export class Hash {
    * `derived_key_length` specifies the number of bytes that are output.
    *
    * [Argon2d]: https://en.wikipedia.org/wiki/Argon2
-   * @param {Uint8Array} password
-   * @param {Uint8Array} salt
-   * @param {number} iterations
-   * @param {number} derived_key_length
-   * @returns {Uint8Array}
    */
   static computeNimiqArgon2d(password: Uint8Array, salt: Uint8Array, iterations: number, derived_key_length: number): Uint8Array;
   /**
@@ -1358,11 +1315,6 @@ export class Hash {
    * `derived_key_length` specifies the number of bytes that are output.
    *
    * [Argon2id]: https://en.wikipedia.org/wiki/Argon2
-   * @param {Uint8Array} password
-   * @param {Uint8Array} salt
-   * @param {number} iterations
-   * @param {number} derived_key_length
-   * @returns {Uint8Array}
    */
   static computeNimiqArgon2id(password: Uint8Array, salt: Uint8Array, iterations: number, derived_key_length: number): Uint8Array;
 }
@@ -1370,17 +1322,14 @@ export class Hash {
  * Utility class providing methods to parse Hashed Time Locked Contract transaction data and proofs.
  */
 export class HashedTimeLockedContract {
+  private constructor();
   free(): void;
   /**
    * Parses the data of a Hashed Time Locked Contract creation transaction into a plain object.
-   * @param {Uint8Array} data
-   * @returns {PlainTransactionRecipientData}
    */
   static dataToPlain(data: Uint8Array): PlainTransactionRecipientData;
   /**
    * Parses the proof of a Hashed Time Locked Contract settlement transaction into a plain object.
-   * @param {Uint8Array} proof
-   * @returns {PlainTransactionProof}
    */
   static proofToPlain(proof: Uint8Array): PlainTransactionProof;
 }
@@ -1392,223 +1341,211 @@ export class KeyPair {
   free(): void;
   /**
    * Generates a new keypair from secure randomness.
-   * @returns {KeyPair}
    */
   static generate(): KeyPair;
   /**
    * Derives a keypair from an existing private key.
-   * @param {PrivateKey} private_key
-   * @returns {KeyPair}
    */
   static derive(private_key: PrivateKey): KeyPair;
   /**
    * Parses a keypair from its hex representation.
    *
    * Throws when the string is not valid hex format or when it represents less than 64 bytes.
-   * @param {string} hex
-   * @returns {KeyPair}
    */
   static fromHex(hex: string): KeyPair;
   /**
    * Deserializes a keypair from a byte array.
    *
    * Throws when the byte array contains less than 64 bytes.
-   * @param {Uint8Array} bytes
-   * @returns {KeyPair}
    */
   static deserialize(bytes: Uint8Array): KeyPair;
-  /**
-   * @param {PrivateKey} private_key
-   * @param {PublicKey} public_key
-   */
   constructor(private_key: PrivateKey, public_key: PublicKey);
   /**
    * Serializes the keypair to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Signs arbitrary data, returns a signature object.
-   * @param {Uint8Array} data
-   * @returns {Signature}
    */
   sign(data: Uint8Array): Signature;
   /**
    * Signs a transaction and sets the signature proof on the transaction object.
-   * @param {Transaction} transaction
    */
   signTransaction(transaction: Transaction): void;
   /**
    * Gets the keypair's address.
-   * @returns {Address}
    */
   toAddress(): Address;
   /**
    * Formats the keypair into a hex string.
-   * @returns {string}
    */
   toHex(): string;
-/**
- * Gets the keypair's private key.
- */
+  /**
+   * Gets the keypair's private key.
+   */
   readonly privateKey: PrivateKey;
-/**
- * Gets the keypair's public key.
- */
+  /**
+   * Gets the keypair's public key.
+   */
   readonly publicKey: PublicKey;
 }
 /**
  * The Merkle tree is a data structure that allows for efficient verification of the membership of an element in a set.
  */
 export class MerkleTree {
+  private constructor();
   free(): void;
   /**
    * Computes the root of a Merkle tree from a list of Uint8Arrays.
-   * @param {(Uint8Array)[]} values
-   * @returns {Uint8Array}
    */
-  static computeRoot(values: (Uint8Array)[]): Uint8Array;
+  static computeRoot(values: Uint8Array[]): Uint8Array;
+}
+/**
+ * A partial signature is a signature of one of the co-signers in a multisig.
+ * Combining all partial signatures yields the full signature (combining is done through summation).
+ */
+export class PartialSignature {
+  free(): void;
+  __getClassname(): string;
+  /**
+   * Parses a partial signature from a {@link PartialSignature} instance, a hex string representation, or a byte array.
+   *
+   * Throws when a PartialSignature cannot be parsed from the argument.
+   */
+  static fromAny(secret: PartialSignature | string | Uint8Array): PartialSignature;
+  /**
+   * Deserializes a partial signature from a byte array.
+   *
+   * Throws when the byte array contains less than 32 bytes.
+   */
+  static deserialize(bytes: Uint8Array): PartialSignature;
+  /**
+   * Creates a new partial signature from a byte array.
+   *
+   * Throws when the byte array is not exactly 32 bytes long.
+   */
+  constructor(bytes: Uint8Array);
+  static create(own_private_key: PrivateKey, own_public_key: PublicKey, own_commitment_pairs: (CommitmentPair | string | Uint8Array)[], other_public_keys: (PublicKey | string | Uint8Array)[], other_commitments: (Commitment | string | Uint8Array)[][], data: Uint8Array): PartialSignature;
+  /**
+   * Serializes the partial signature to a byte array.
+   */
+  serialize(): Uint8Array;
+  /**
+   * Parses a partial signature from its hex representation.
+   *
+   * Throws when the string is not valid hex format or when it represents less than 32 bytes.
+   */
+  static fromHex(hex: string): PartialSignature;
+  /**
+   * Formats the partial signature into a hex string.
+   */
+  toHex(): string;
+  /**
+   * Returns if this partial signature is equal to the other partial signature.
+   */
+  equals(other: PartialSignature): boolean;
+  static readonly SIZE: number;
+  readonly serializedSize: number;
 }
 export class Policy {
+  private constructor();
   free(): void;
   /**
    * Returns the epoch number at a given block number (height).
-   * @param {number} block_number
-   * @returns {number}
    */
   static epochAt(block_number: number): number;
   /**
    * Returns the epoch index at a given block number. The epoch index is the number of a block relative
    * to the epoch it is in. For example, the first block of any epoch always has an epoch index of 0.
-   * @param {number} block_number
-   * @returns {number}
    */
   static epochIndexAt(block_number: number): number;
   /**
    * Returns the batch number at a given `block_number` (height)
-   * @param {number} block_number
-   * @returns {number}
    */
   static batchAt(block_number: number): number;
   /**
    * Returns the batch index at a given block number. The batch index is the number of a block relative
    * to the batch it is in. For example, the first block of any batch always has an batch index of 0.
-   * @param {number} block_number
-   * @returns {number}
    */
   static batchIndexAt(block_number: number): number;
   /**
    * Returns the number (height) of the next election macro block after a given block number (height).
-   * @param {number} block_number
-   * @returns {number}
    */
   static electionBlockAfter(block_number: number): number;
   /**
    * Returns the block number (height) of the preceding election macro block before a given block number (height).
    * If the given block number is an election macro block, it returns the election macro block before it.
-   * @param {number} block_number
-   * @returns {number}
    */
   static electionBlockBefore(block_number: number): number;
   /**
    * Returns the block number (height) of the last election macro block at a given block number (height).
    * If the given block number is an election macro block, then it returns that block number.
-   * @param {number} block_number
-   * @returns {number}
    */
   static lastElectionBlock(block_number: number): number;
   /**
    * Returns a boolean expressing if the block at a given block number (height) is an election macro block.
-   * @param {number} block_number
-   * @returns {boolean}
    */
   static isElectionBlockAt(block_number: number): boolean;
   /**
    * Returns the block number (height) of the next macro block after a given block number (height).
    * If the given block number is a macro block, it returns the macro block after it.
-   * @param {number} block_number
-   * @returns {number}
    */
   static macroBlockAfter(block_number: number): number;
   /**
    * Returns the block number (height) of the preceding macro block before a given block number (height).
    * If the given block number is a macro block, it returns the macro block before it.
-   * @param {number} block_number
-   * @returns {number}
    */
   static macroBlockBefore(block_number: number): number;
   /**
    * Returns the block number (height) of the last macro block at a given block number (height).
    * If the given block number is a macro block, then it returns that block number.
-   * @param {number} block_number
-   * @returns {number}
    */
   static lastMacroBlock(block_number: number): number;
   /**
    * Returns a boolean expressing if the block at a given block number (height) is a macro block.
-   * @param {number} block_number
-   * @returns {boolean}
    */
   static isMacroBlockAt(block_number: number): boolean;
   /**
    * Returns a boolean expressing if the block at a given block number (height) is a micro block.
-   * @param {number} block_number
-   * @returns {boolean}
    */
   static isMicroBlockAt(block_number: number): boolean;
   /**
    * Returns the block number of the first block of the given epoch (which is always a micro block).
    * If the index is out of bounds, None is returned
-   * @param {number} epoch
-   * @returns {number | undefined}
    */
   static firstBlockOf(epoch: number): number | undefined;
   /**
    * Returns the block number of the first block of the given batch (which is always a micro block).
    * If the index is out of bounds, None is returned
-   * @param {number} batch
-   * @returns {number | undefined}
    */
   static firstBlockOfBatch(batch: number): number | undefined;
   /**
    * Returns the block number of the election macro block of the given epoch (which is always the last block).
    * If the index is out of bounds, None is returned
-   * @param {number} epoch
-   * @returns {number | undefined}
    */
   static electionBlockOf(epoch: number): number | undefined;
   /**
    * Returns the block number of the macro block (checkpoint or election) of the given batch (which
    * is always the last block).
    * If the index is out of bounds, None is returned
-   * @param {number} batch
-   * @returns {number | undefined}
    */
   static macroBlockOf(batch: number): number | undefined;
   /**
    * Returns a boolean expressing if the batch at a given block number (height) is the first batch
    * of the epoch.
-   * @param {number} block_number
-   * @returns {boolean}
    */
   static firstBatchOfEpoch(block_number: number): boolean;
   /**
    * Returns the block height for the last block of the reporting window of a given block number.
    * Note: This window is meant for reporting malicious behaviour (aka `jailable` behaviour).
-   * @param {number} block_number
-   * @returns {number}
    */
   static lastBlockOfReportingWindow(block_number: number): number;
   /**
    * Returns the first block after the reporting window of a given block number has ended.
-   * @param {number} block_number
-   * @returns {number}
    */
   static blockAfterReportingWindow(block_number: number): number;
   /**
    * Returns the first block after the jail period of a given block number has ended.
-   * @param {number} block_number
-   * @returns {number}
    */
   static blockAfterJail(block_number: number): number;
   /**
@@ -1619,10 +1556,6 @@ export class Policy {
    * ```
    * Where t is the time in milliseconds since the PoS genesis block and `genesis_supply` is the supply at
    * the genesis of the Nimiq 2.0 chain.
-   * @param {bigint} genesis_supply
-   * @param {bigint} genesis_time
-   * @param {bigint} current_time
-   * @returns {bigint}
    */
   static supplyAt(genesis_supply: bigint, genesis_time: bigint, current_time: bigint): bigint;
   /**
@@ -1631,122 +1564,120 @@ export class Policy {
    * I.e 1 means that the full rewards should be given, whereas 0.5 means that half of the rewards should be given
    * The input to this function is the batch delay, in milliseconds
    * The function is: [(1 - MINIMUM_REWARDS_PERCENTAGE) * BLOCKS_DELAY_DECAY ^ (t^2)] + MINIMUM_REWARDS_PERCENTAGE
-   * @param {bigint} delay
-   * @returns {number}
    */
   static batchDelayPenalty(delay: bigint): number;
-/**
- * How many batches constitute an epoch
- */
-  static readonly BATCHES_PER_EPOCH: number;
-/**
- * Length of a batch including the macro block
- */
-  static readonly BLOCKS_PER_BATCH: number;
-/**
- * Length of an epoch including the election block
- */
-  static readonly BLOCKS_PER_EPOCH: number;
-/**
- * The optimal time in milliseconds between blocks (1s)
- */
-  static readonly BLOCK_SEPARATION_TIME: bigint;
-/**
- * The maximum size of the BLS public key cache.
- */
-  static readonly BLS_CACHE_MAX_CAPACITY: number;
-/**
- * This is the address for the coinbase. Note that this is not a real account, it is just the
- * address we use to denote that some coins originated from a coinbase event.
- */
-  static readonly COINBASE_ADDRESS: string;
-/**
- * Calculates f+1 slots which is the minimum number of slots necessary to be guaranteed to have at
- * least one honest slots. That's because from a total of 3f+1 slots at most f will be malicious.
- * It is calculated as `ceil(SLOTS/3)` and we use the formula `ceil(x/y) = (x+y-1)/y` for the
- * ceiling division.
- */
-  static readonly F_PLUS_ONE: number;
-/**
- * Genesis block number
- */
-  static readonly GENESIS_BLOCK_NUMBER: number;
-/**
- * Maximum size of history chunks.
- * 25 MB.
- */
-  static readonly HISTORY_CHUNKS_MAX_SIZE: bigint;
-/**
- * The number of epochs a validator is put in jail for. The jailing only happens for severe offenses.
- */
-  static readonly JAIL_EPOCHS: number;
-/**
- * The maximum allowed size, in bytes, for a micro block body.
- */
-  static readonly MAX_SIZE_MICRO_BODY: number;
-/**
- * The minimum rewards percentage that we allow
- */
-  static readonly MINIMUM_REWARDS_PERCENTAGE: number;
-/**
- * Minimum number of epochs that the ChainStore will store fully
- */
-  static readonly MIN_EPOCHS_STORED: number;
-/**
- * The minimum timeout in milliseconds for a validator to produce a block (4s)
- */
-  static readonly MIN_PRODUCER_TIMEOUT: bigint;
-/**
- * Number of available validator slots. Note that a single validator may own several validator slots.
- */
-  static readonly SLOTS: number;
-/**
- * This is the address for the staking contract.
- */
-  static readonly STAKING_CONTRACT_ADDRESS: string;
-/**
- * Maximum size of accounts trie chunks.
- */
-  static readonly STATE_CHUNKS_MAX_SIZE: number;
-/**
- * The maximum drift, in milliseconds, that is allowed between any block's timestamp and the node's
- * system time. We only care about drifting to the future.
- */
-  static readonly TIMESTAMP_MAX_DRIFT: bigint;
-/**
- * Total supply in units.
- */
-  static readonly TOTAL_SUPPLY: bigint;
-/**
- * Number of batches a transaction is valid with Albatross consensus.
- */
+  /**
+   * Number of batches a transaction is valid with Albatross consensus.
+   */
   static readonly TRANSACTION_VALIDITY_WINDOW: number;
-/**
- * Number of blocks a transaction is valid with Albatross consensus.
- */
+  /**
+   * Number of blocks a transaction is valid with Albatross consensus.
+   */
   static readonly TRANSACTION_VALIDITY_WINDOW_BLOCKS: number;
-/**
- * Calculates 2f+1 slots which is the minimum number of slots necessary to produce a macro block,
- * a skip block and other actions.
- * It is also the minimum number of slots necessary to be guaranteed to have a majority of honest
- * slots. That's because from a total of 3f+1 slots at most f will be malicious. If in a group of
- * 2f+1 slots we have f malicious ones (which is the worst case scenario), that still leaves us
- * with f+1 honest slots. Which is more than the f slots that are not in this group (which must all
- * be honest).
- * It is calculated as `ceil(SLOTS*2/3)` and we use the formula `ceil(x/y) = (x+y-1)/y` for the
- * ceiling division.
- */
-  static readonly TWO_F_PLUS_ONE: number;
-/**
- * The deposit necessary to create a validator in Lunas (1 NIM = 100,000 Lunas).
- * A validator is someone who actually participates in block production. They are akin to miners
- * in proof-of-work.
- */
-  static readonly VALIDATOR_DEPOSIT: bigint;
-/**
- * The current version number of the protocol. Changing this always results in a hard fork.
- */
+  /**
+   * How many batches constitute an epoch
+   */
+  static readonly BATCHES_PER_EPOCH: number;
+  /**
+   * Length of a batch including the macro block
+   */
+  static readonly BLOCKS_PER_BATCH: number;
+  /**
+   * Length of an epoch including the election block
+   */
+  static readonly BLOCKS_PER_EPOCH: number;
+  /**
+   * Genesis block number
+   */
+  static readonly GENESIS_BLOCK_NUMBER: number;
+  /**
+   * Maximum size of accounts trie chunks.
+   */
+  static readonly STATE_CHUNKS_MAX_SIZE: number;
+  /**
+   * This is the address for the staking contract.
+   */
+  static readonly STAKING_CONTRACT_ADDRESS: string;
+  /**
+   * This is the address for the coinbase. Note that this is not a real account, it is just the
+   * address we use to denote that some coins originated from a coinbase event.
+   */
+  static readonly COINBASE_ADDRESS: string;
+  /**
+   * The maximum allowed size, in bytes, for a micro block body.
+   */
+  static readonly MAX_SIZE_MICRO_BODY: number;
+  /**
+   * The current version number of the protocol. Changing this always results in a hard fork.
+   */
   static readonly VERSION: number;
+  /**
+   * Number of available validator slots. Note that a single validator may own several validator slots.
+   */
+  static readonly SLOTS: number;
+  /**
+   * Calculates 2f+1 slots which is the minimum number of slots necessary to produce a macro block,
+   * a skip block and other actions.
+   * It is also the minimum number of slots necessary to be guaranteed to have a majority of honest
+   * slots. That's because from a total of 3f+1 slots at most f will be malicious. If in a group of
+   * 2f+1 slots we have f malicious ones (which is the worst case scenario), that still leaves us
+   * with f+1 honest slots. Which is more than the f slots that are not in this group (which must all
+   * be honest).
+   * It is calculated as `ceil(SLOTS*2/3)` and we use the formula `ceil(x/y) = (x+y-1)/y` for the
+   * ceiling division.
+   */
+  static readonly TWO_F_PLUS_ONE: number;
+  /**
+   * Calculates f+1 slots which is the minimum number of slots necessary to be guaranteed to have at
+   * least one honest slots. That's because from a total of 3f+1 slots at most f will be malicious.
+   * It is calculated as `ceil(SLOTS/3)` and we use the formula `ceil(x/y) = (x+y-1)/y` for the
+   * ceiling division.
+   */
+  static readonly F_PLUS_ONE: number;
+  /**
+   * The minimum timeout in milliseconds for a validator to produce a block (4s)
+   */
+  static readonly MIN_PRODUCER_TIMEOUT: bigint;
+  /**
+   * The optimal time in milliseconds between blocks (1s)
+   */
+  static readonly BLOCK_SEPARATION_TIME: bigint;
+  /**
+   * Minimum number of epochs that the ChainStore will store fully
+   */
+  static readonly MIN_EPOCHS_STORED: number;
+  /**
+   * The maximum drift, in milliseconds, that is allowed between any block's timestamp and the node's
+   * system time. We only care about drifting to the future.
+   */
+  static readonly TIMESTAMP_MAX_DRIFT: bigint;
+  /**
+   * The minimum rewards percentage that we allow
+   */
+  static readonly MINIMUM_REWARDS_PERCENTAGE: number;
+  /**
+   * The deposit necessary to create a validator in Lunas (1 NIM = 100,000 Lunas).
+   * A validator is someone who actually participates in block production. They are akin to miners
+   * in proof-of-work.
+   */
+  static readonly VALIDATOR_DEPOSIT: bigint;
+  /**
+   * The number of epochs a validator is put in jail for. The jailing only happens for severe offenses.
+   */
+  static readonly JAIL_EPOCHS: number;
+  /**
+   * Total supply in units.
+   */
+  static readonly TOTAL_SUPPLY: bigint;
+  /**
+   * The maximum size of the BLS public key cache.
+   */
+  static readonly BLS_CACHE_MAX_CAPACITY: number;
+  /**
+   * Maximum size of history chunks.
+   * 25 MB.
+   */
+  static readonly HISTORY_CHUNKS_MAX_SIZE: bigint;
 }
 /**
  * The secret (private) part of an asymmetric key pair that is typically used to digitally sign or decrypt data.
@@ -1755,46 +1686,36 @@ export class PrivateKey {
   free(): void;
   /**
    * Generates a new private key from secure randomness.
-   * @returns {PrivateKey}
    */
   static generate(): PrivateKey;
   /**
    * Deserializes a private key from a byte array.
    *
    * Throws when the byte array contains less than 32 bytes.
-   * @param {Uint8Array} bytes
-   * @returns {PrivateKey}
    */
   static deserialize(bytes: Uint8Array): PrivateKey;
   /**
    * Creates a new private key from a byte array.
    *
    * Throws when the byte array is not exactly 32 bytes long.
-   * @param {Uint8Array} bytes
    */
   constructor(bytes: Uint8Array);
   /**
    * Serializes the private key to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Parses a private key from its hex representation.
    *
    * Throws when the string is not valid hex format or when it represents less than 32 bytes.
-   * @param {string} hex
-   * @returns {PrivateKey}
    */
   static fromHex(hex: string): PrivateKey;
   /**
    * Formats the private key into a hex string.
-   * @returns {string}
    */
   toHex(): string;
   /**
    * Returns if this private key is equal to the other private key.
-   * @param {PrivateKey} other
-   * @returns {boolean}
    */
   equals(other: PrivateKey): boolean;
   static readonly PURPOSE_ID: number;
@@ -1806,85 +1727,61 @@ export class PrivateKey {
  */
 export class PublicKey {
   free(): void;
-  /**
-   * @returns {string}
-   */
   __getClassname(): string;
   /**
    * Derives a public key from an existing private key.
-   * @param {PrivateKey} private_key
-   * @returns {PublicKey}
    */
   static derive(private_key: PrivateKey): PublicKey;
   /**
    * Parses a public key from a {@link PublicKey} instance, a hex string representation, or a byte array.
    *
    * Throws when an PublicKey cannot be parsed from the argument.
-   * @param {PublicKey | string | Uint8Array} addr
-   * @returns {PublicKey}
    */
-  static fromAny(addr: PublicKey | string | Uint8Array): PublicKey;
+  static fromAny(key: PublicKey | string | Uint8Array): PublicKey;
   /**
    * Verifies that a signature is valid for this public key and the provided data.
-   * @param {Signature} signature
-   * @param {Uint8Array} data
-   * @returns {boolean}
    */
   verify(signature: Signature, data: Uint8Array): boolean;
   /**
    * Deserializes a public key from a byte array.
    *
    * Throws when the byte array contains less than 32 bytes.
-   * @param {Uint8Array} bytes
-   * @returns {PublicKey}
    */
   static deserialize(bytes: Uint8Array): PublicKey;
   /**
    * Deserializes a public key from its SPKI representation.
-   * @param {Uint8Array} spki_bytes
-   * @returns {PublicKey}
    */
   static fromSpki(spki_bytes: Uint8Array): PublicKey;
   /**
    * Deserializes a public key from its raw representation.
-   * @param {Uint8Array} raw_bytes
-   * @returns {PublicKey}
    */
   static fromRaw(raw_bytes: Uint8Array): PublicKey;
   /**
    * Creates a new public key from a byte array.
    *
    * Throws when the byte array is not exactly 32 bytes long.
-   * @param {Uint8Array} bytes
    */
   constructor(bytes: Uint8Array);
   /**
    * Serializes the public key to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Parses a public key from its hex representation.
    *
    * Throws when the string is not valid hex format or when it represents less than 32 bytes.
-   * @param {string} hex
-   * @returns {PublicKey}
    */
   static fromHex(hex: string): PublicKey;
   /**
    * Formats the public key into a hex string.
-   * @returns {string}
    */
   toHex(): string;
   /**
    * Gets the public key's address.
-   * @returns {Address}
    */
   toAddress(): Address;
   /**
    * Returns if this public key is equal to the other public key.
-   * @param {PublicKey} other
-   * @returns {boolean}
    */
   equals(other: PublicKey): boolean;
   /**
@@ -1892,10 +1789,54 @@ export class PublicKey {
    *
    * Returns -1 if this public key is smaller than the other public key, 0 if they are equal,
    * and 1 if this public key is larger than the other public key.
-   * @param {PublicKey} other
-   * @returns {number}
    */
   compare(other: PublicKey): number;
+  static readonly SIZE: number;
+  readonly serializedSize: number;
+}
+/**
+ * A random secret that proves a {@link Commitment} for signing multisignature transactions.
+ * It is supposed to be kept secret (similar to a private key).
+ */
+export class RandomSecret {
+  free(): void;
+  __getClassname(): string;
+  /**
+   * Parses a random secret from a {@link RandomSecret} instance, a hex string representation, or a byte array.
+   *
+   * Throws when a RandomSecret cannot be parsed from the argument.
+   */
+  static fromAny(secret: RandomSecret | string | Uint8Array): RandomSecret;
+  /**
+   * Deserializes a random secret from a byte array.
+   *
+   * Throws when the byte array contains less than 32 bytes.
+   */
+  static deserialize(bytes: Uint8Array): RandomSecret;
+  /**
+   * Creates a new random secret from a byte array.
+   *
+   * Throws when the byte array is not exactly 32 bytes long.
+   */
+  constructor(bytes: Uint8Array);
+  /**
+   * Serializes the random secret to a byte array.
+   */
+  serialize(): Uint8Array;
+  /**
+   * Parses a random secret from its hex representation.
+   *
+   * Throws when the string is not valid hex format or when it represents less than 32 bytes.
+   */
+  static fromHex(hex: string): RandomSecret;
+  /**
+   * Formats the random secret into a hex string.
+   */
+  toHex(): string;
+  /**
+   * Returns if this random secret is equal to the other random secret.
+   */
+  equals(other: RandomSecret): boolean;
   static readonly SIZE: number;
   readonly serializedSize: number;
 }
@@ -1904,49 +1845,35 @@ export class PublicKey {
  * It can be verified with the private key's public key.
  */
 export class Signature {
+  private constructor();
   free(): void;
-  /**
-   * @returns {string}
-   */
   __getClassname(): string;
   /**
    * Deserializes an Ed25519 signature from a byte array.
    *
    * Throws when the byte array contains less than 64 bytes.
-   * @param {Uint8Array} bytes
-   * @returns {Signature}
    */
   static deserialize(bytes: Uint8Array): Signature;
   /**
    * Serializes the signature to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Create a signature from a private key and its public key over byte data.
-   * @param {PrivateKey} private_key
-   * @param {PublicKey} public_key
-   * @param {Uint8Array} data
-   * @returns {Signature}
    */
   static create(private_key: PrivateKey, public_key: PublicKey, data: Uint8Array): Signature;
   /**
    * Parses an Ed25519 signature from its ASN.1 representation.
-   * @param {Uint8Array} bytes
-   * @returns {Signature}
    */
   static fromAsn1(bytes: Uint8Array): Signature;
   /**
    * Parses an Ed25519 signature from its hex representation.
    *
    * Throws when the string is not valid hex format or when it represents less than 64 bytes.
-   * @param {string} hex
-   * @returns {Signature}
    */
   static fromHex(hex: string): Signature;
   /**
    * Formats the signature into a hex string.
-   * @returns {string}
    */
   toHex(): string;
 }
@@ -1955,96 +1882,68 @@ export class Signature {
  * It is used as the proof for transactions.
  */
 export class SignatureProof {
+  private constructor();
   free(): void;
   /**
    * Creates a Ed25519/Schnorr signature proof for a single-sig signature.
-   * @param {PublicKey} public_key
-   * @param {Signature} signature
-   * @returns {SignatureProof}
    */
   static singleSig(public_key: PublicKey, signature: Signature): SignatureProof;
   /**
    * Creates a Ed25519/Schnorr signature proof for a multi-sig signature.
    * The public keys can also include ES256 keys.
-   * @param {PublicKey} signer_key
-   * @param {(PublicKey | ES256PublicKey)[]} public_keys
-   * @param {Signature} signature
-   * @returns {SignatureProof}
    */
   static multiSig(signer_key: PublicKey, public_keys: (PublicKey | ES256PublicKey)[], signature: Signature): SignatureProof;
   /**
    * Creates a Webauthn signature proof for a single-sig signature.
-   * @param {PublicKey | ES256PublicKey} public_key
-   * @param {Signature | ES256Signature} signature
-   * @param {Uint8Array} authenticator_data
-   * @param {Uint8Array} client_data_json
-   * @returns {SignatureProof}
    */
   static webauthnSingleSig(public_key: PublicKey | ES256PublicKey, signature: Signature | ES256Signature, authenticator_data: Uint8Array, client_data_json: Uint8Array): SignatureProof;
   /**
    * Creates a Webauthn signature proof for a multi-sig signature.
-   * @param {PublicKey | ES256PublicKey} signer_key
-   * @param {(PublicKey | ES256PublicKey)[]} public_keys
-   * @param {Signature | ES256Signature} signature
-   * @param {Uint8Array} authenticator_data
-   * @param {Uint8Array} client_data_json
-   * @returns {SignatureProof}
    */
   static webauthnMultiSig(signer_key: PublicKey | ES256PublicKey, public_keys: (PublicKey | ES256PublicKey)[], signature: Signature | ES256Signature, authenticator_data: Uint8Array, client_data_json: Uint8Array): SignatureProof;
   /**
    * Verifies the signature proof against the provided data.
-   * @param {Uint8Array} data
-   * @returns {boolean}
    */
   verify(data: Uint8Array): boolean;
   /**
    * Checks if the signature proof is signed by the provided address.
-   * @param {Address} sender
-   * @returns {boolean}
    */
   isSignedBy(sender: Address): boolean;
   /**
    * Serializes the proof to a byte array, e.g. for assigning it to a `transaction.proof` field.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Creates a JSON-compatible plain object representing the signature proof.
-   * @returns {PlainTransactionProof}
    */
   toPlain(): PlainTransactionProof;
   /**
    * Deserializes a signature proof from a byte array.
-   * @param {Uint8Array} bytes
-   * @returns {SignatureProof}
    */
   static deserialize(bytes: Uint8Array): SignatureProof;
-  static readonly ES256_SINGLE_SIG_SIZE: number;
   static readonly SINGLE_SIG_SIZE: number;
-/**
- * The embedded public key.
- */
-  readonly publicKey: PublicKey | ES256PublicKey;
-/**
- * The embedded signature.
- */
+  static readonly ES256_SINGLE_SIG_SIZE: number;
+  /**
+   * The embedded signature.
+   */
   readonly signature: Signature | ES256Signature;
+  /**
+   * The embedded public key.
+   */
+  readonly publicKey: PublicKey | ES256PublicKey;
 }
 /**
  * Utility class providing methods to parse Staking Contract transaction data and proofs.
  */
 export class StakingContract {
+  private constructor();
   free(): void;
   /**
    * Parses the data of a Staking Contract incoming transaction into a plain object.
-   * @param {Uint8Array} data
-   * @returns {PlainTransactionRecipientData}
    */
   static dataToPlain(data: Uint8Array): PlainTransactionRecipientData;
   /**
    * Parses the proof of a Staking Contract outgoing transaction into a plain object.
-   * @param {Uint8Array} proof
-   * @returns {PlainTransactionProof}
    */
   static proofToPlain(proof: Uint8Array): PlainTransactionProof;
 }
@@ -2059,9 +1958,6 @@ export class StakingContract {
  */
 export class Transaction {
   free(): void;
-  /**
-   * @returns {string}
-   */
   __getClassname(): string;
   /**
    * Creates a new unsigned transaction that transfers `value` amount of luna (NIM's smallest unit)
@@ -2092,19 +1988,8 @@ export class Transaction {
    * Throws when an account type is unknown, the numbers given for value and fee do not fit
    * within a u64 or the networkId is unknown. Also throws when no data or recipient type is
    * given for contract creation transactions, or no data is given for signaling transactions.
-   * @param {Address} sender
-   * @param {number | undefined} sender_type
-   * @param {Uint8Array | undefined} sender_data
-   * @param {Address} recipient
-   * @param {number | undefined} recipient_type
-   * @param {Uint8Array | undefined} recipient_data
-   * @param {bigint} value
-   * @param {bigint} fee
-   * @param {number | undefined} flags
-   * @param {number} validity_start_height
-   * @param {number} network_id
    */
-  constructor(sender: Address, sender_type: number | undefined, sender_data: Uint8Array | undefined, recipient: Address, recipient_type: number | undefined, recipient_data: Uint8Array | undefined, value: bigint, fee: bigint, flags: number | undefined, validity_start_height: number, network_id: number);
+  constructor(sender: Address, sender_type: number | null | undefined, sender_data: Uint8Array | null | undefined, recipient: Address, recipient_type: number | null | undefined, recipient_data: Uint8Array | null | undefined, value: bigint, fee: bigint, flags: number | null | undefined, validity_start_height: number, network_id: number);
   /**
    * Signs the transaction with the provided key pair. Automatically determines the format
    * of the signature proof required for the transaction.
@@ -2114,12 +1999,10 @@ export class Transaction {
    * - For transaction to the staking contract, both signatures are made with the same keypair,
    *   so it is not possible to interact with a staker that is different from the sender address
    *   or using a different cold or signing key for validator transactions.
-   * @param {KeyPair} key_pair
    */
   sign(key_pair: KeyPair): void;
   /**
    * Computes the transaction's hash, which is used as its unique identifier on the blockchain.
-   * @returns {string}
    */
   hash(): string;
   /**
@@ -2129,44 +2012,34 @@ export class Transaction {
    * **Throws with any transaction validity error.** Returns without exception if the transaction is valid.
    *
    * Throws when the given networkId is unknown.
-   * @param {number | undefined} [network_id]
    */
-  verify(network_id?: number): void;
+  verify(network_id?: number | null): void;
   /**
    * Tests if the transaction is valid at the specified block height.
-   * @param {number} block_height
-   * @returns {boolean}
    */
   isValidAt(block_height: number): boolean;
   /**
    * Returns the address of the contract that is created with this transaction.
-   * @returns {Address}
    */
   getContractCreationAddress(): Address;
   /**
    * Serializes the transaction's content to be used for creating its signature.
-   * @returns {Uint8Array}
    */
   serializeContent(): Uint8Array;
   /**
    * Serializes the transaction to a byte array.
-   * @returns {Uint8Array}
    */
   serialize(): Uint8Array;
   /**
    * Serializes the transaction into a HEX string.
-   * @returns {string}
    */
   toHex(): string;
   /**
    * Creates a JSON-compatible plain object representing the transaction.
-   * @returns {PlainTransaction}
    */
-  toPlain(): PlainTransaction;
+  toPlain(genesis_block_number?: number | null, genesis_timestamp?: bigint | null): PlainTransaction;
   /**
    * Deserializes a transaction from a byte array.
-   * @param {Uint8Array} bytes
-   * @returns {Transaction}
    */
   static deserialize(bytes: Uint8Array): Transaction;
   /**
@@ -2174,84 +2047,81 @@ export class Transaction {
    * representation, or a byte array.
    *
    * Throws when a transaction cannot be parsed from the argument.
-   * @param {Transaction | PlainTransaction | string | Uint8Array} tx
-   * @returns {Transaction}
    */
   static fromAny(tx: Transaction | PlainTransaction | string | Uint8Array): Transaction;
   /**
    * Parses a transaction from a plain object.
    *
    * Throws when a transaction cannot be parsed from the argument.
-   * @param {PlainTransaction} plain
-   * @returns {Transaction}
    */
   static fromPlain(plain: PlainTransaction): Transaction;
-/**
- * The transaction's data as a byte array.
- */
-  data: Uint8Array;
-/**
- * The transaction's fee in luna (NIM's smallest unit).
- */
-  readonly fee: bigint;
-/**
- * The transaction's fee per byte in luna (NIM's smallest unit).
- */
-  readonly feePerByte: number;
-/**
- * The transaction's flags: `0b1` = contract creation, `0b10` = signaling.
- */
-  readonly flags: TransactionFlag;
-/**
- * The transaction's {@link TransactionFormat}.
- */
+  /**
+   * The transaction's {@link TransactionFormat}.
+   */
   readonly format: TransactionFormat;
-/**
- * The transaction's network ID.
- */
-  readonly networkId: number;
-/**
- * The transaction's signature proof as a byte array.
- */
-  proof: Uint8Array;
-/**
- * The transaction's recipient address.
- */
-  readonly recipient: Address;
-/**
- * The transaction's recipient {@link AccountType}.
- */
-  readonly recipientType: AccountType;
-/**
- * The transaction's sender address.
- */
+  /**
+   * The transaction's sender address.
+   */
   readonly sender: Address;
-/**
- * The transaction's sender data as a byte array.
- */
-  readonly senderData: Uint8Array;
-/**
- * The transaction's sender {@link AccountType}.
- */
+  /**
+   * The transaction's sender {@link AccountType}.
+   */
   readonly senderType: AccountType;
-/**
- * The transaction's byte size.
- */
-  readonly serializedSize: number;
-/**
- * The transaction's validity-start height. The transaction is valid for 2 hours after this block height.
- */
-  readonly validityStartHeight: number;
-/**
- * The transaction's value in luna (NIM's smallest unit).
- */
+  /**
+   * The transaction's recipient address.
+   */
+  readonly recipient: Address;
+  /**
+   * The transaction's recipient {@link AccountType}.
+   */
+  readonly recipientType: AccountType;
+  /**
+   * The transaction's value in luna (NIM's smallest unit).
+   */
   readonly value: bigint;
+  /**
+   * The transaction's fee in luna (NIM's smallest unit).
+   */
+  readonly fee: bigint;
+  /**
+   * The transaction's fee per byte in luna (NIM's smallest unit).
+   */
+  readonly feePerByte: number;
+  /**
+   * The transaction's validity-start height. The transaction is valid for 2 hours after this block height.
+   */
+  readonly validityStartHeight: number;
+  /**
+   * The transaction's network ID.
+   */
+  readonly networkId: number;
+  /**
+   * The transaction's flags: `0b1` = contract creation, `0b10` = signaling.
+   */
+  readonly flags: TransactionFlag;
+  /**
+   * The transaction's data as a byte array.
+   */
+  data: Uint8Array;
+  /**
+   * The transaction's sender data as a byte array.
+   */
+  readonly senderData: Uint8Array;
+  /**
+   * The transaction's signature proof as a byte array.
+   */
+  proof: Uint8Array;
+  /**
+   * The transaction's byte size.
+   */
+  readonly serializedSize: number;
 }
 /**
  * The TransactionBuilder class provides helper methods to easily create standard types of transactions.
  * It can only be instantiated from a Client with `client.transactionBuilder()`.
  */
 export class TransactionBuilder {
+  private constructor();
   free(): void;
   /**
    * Creates a basic transaction that transfers `value` amount of luna (NIM's smallest unit) from the
@@ -2260,15 +2130,8 @@ export class TransactionBuilder {
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the numbers given for value and fee do not fit within a u64 or the networkId is unknown.
-   * @param {Address} sender
-   * @param {Address} recipient
-   * @param {bigint} value
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newBasic(sender: Address, recipient: Address, value: bigint, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newBasic(sender: Address, recipient: Address, value: bigint, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Creates a basic transaction that transfers `value` amount of luna (NIM's smallest unit) from the
    * sender to the recipient. It can include arbitrary `data`, up to 64 bytes.
@@ -2276,16 +2139,8 @@ export class TransactionBuilder {
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the numbers given for value and fee do not fit within a u64 or the networkId is unknown.
-   * @param {Address} sender
-   * @param {Address} recipient
-   * @param {Uint8Array} data
-   * @param {bigint} value
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newBasicWithData(sender: Address, recipient: Address, data: Uint8Array, value: bigint, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newBasicWithData(sender: Address, recipient: Address, data: Uint8Array, value: bigint, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Creates a new staker in the staking contract and transfers `value` amount of luna (NIM's smallest unit)
    * from the sender account to this new staker.
@@ -2293,15 +2148,8 @@ export class TransactionBuilder {
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the numbers given for value and fee do not fit within a u64 or the networkId is unknown.
-   * @param {Address} sender
-   * @param {Address} delegation
-   * @param {bigint} value
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newCreateStaker(sender: Address, delegation: Address, value: bigint, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newCreateStaker(sender: Address, delegation: Address, value: bigint, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Adds stake to a staker in the staking contract and transfers `value` amount of luna (NIM's smallest unit)
    * from the sender account to this staker.
@@ -2309,15 +2157,8 @@ export class TransactionBuilder {
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the numbers given for value and fee do not fit within a u64 or the networkId is unknown.
-   * @param {Address} sender
-   * @param {Address} staker_address
-   * @param {bigint} value
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newAddStake(sender: Address, staker_address: Address, value: bigint, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newAddStake(sender: Address, staker_address: Address, value: bigint, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Updates a staker in the staking contract to stake for a different validator. This is a
    * signaling transaction and as such does not transfer any value.
@@ -2325,15 +2166,8 @@ export class TransactionBuilder {
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the number given for fee does not fit within a u64 or the networkId is unknown.
-   * @param {Address} sender
-   * @param {Address} new_delegation
-   * @param {boolean} reactivate_all_stake
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newUpdateStaker(sender: Address, new_delegation: Address, reactivate_all_stake: boolean, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newUpdateStaker(sender: Address, new_delegation: Address, reactivate_all_stake: boolean, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Sets the active stake balance of the staker. This is a
    * signaling transaction and as such does not transfer any value.
@@ -2341,14 +2175,8 @@ export class TransactionBuilder {
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the numbers given for fee and `new_active_balance` do not fit within a u64 or the networkId is unknown.
-   * @param {Address} sender
-   * @param {bigint} new_active_balance
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newSetActiveStake(sender: Address, new_active_balance: bigint, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newSetActiveStake(sender: Address, new_active_balance: bigint, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Retires a portion of the inactive stake balance of the staker. This is a
    * signaling transaction and as such does not transfer any value.
@@ -2356,14 +2184,8 @@ export class TransactionBuilder {
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the numbers given for fee and `retire_stake` do not fit within a u64 or the networkId is unknown.
-   * @param {Address} sender
-   * @param {bigint} retire_stake
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newRetireStake(sender: Address, retire_stake: bigint, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newRetireStake(sender: Address, retire_stake: bigint, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Removes stake from the staking contract and transfers `value` amount of luna (NIM's smallest unit)
    * from the staker to the recipient.
@@ -2371,104 +2193,61 @@ export class TransactionBuilder {
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the numbers given for value and fee do not fit within a u64 or the networkId is unknown.
-   * @param {Address} recipient
-   * @param {bigint} value
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newRemoveStake(recipient: Address, value: bigint, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newRemoveStake(recipient: Address, value: bigint, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Registers a new validator in the staking contract.
    *
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
-   * @param {Address} sender
-   * @param {Address} reward_address
-   * @param {PublicKey} signing_key
-   * @param {BLSKeyPair} voting_key_pair
-   * @param {string | undefined} signal_data
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newCreateValidator(sender: Address, reward_address: Address, signing_key: PublicKey, voting_key_pair: BLSKeyPair, signal_data: string | undefined, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newCreateValidator(sender: Address, reward_address: Address, signing_key: PublicKey, voting_key_pair: BLSKeyPair, signal_data: string | null | undefined, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Updates parameters of a validator in the staking contract.
    *
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
-   * @param {Address} sender
-   * @param {Address | undefined} reward_address
-   * @param {PublicKey | undefined} signing_key
-   * @param {BLSKeyPair | undefined} voting_key_pair
-   * @param {string | undefined} signal_data
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newUpdateValidator(sender: Address, reward_address: Address | undefined, signing_key: PublicKey | undefined, voting_key_pair: BLSKeyPair | undefined, signal_data: string | undefined, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newUpdateValidator(sender: Address, reward_address: Address | null | undefined, signing_key: PublicKey | null | undefined, voting_key_pair: BLSKeyPair | null | undefined, signal_data: string | null | undefined, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Deactivates a validator in the staking contract.
    *
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
-   * @param {Address} sender
-   * @param {Address} validator
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newDeactivateValidator(sender: Address, validator: Address, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newDeactivateValidator(sender: Address, validator: Address, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Deleted a validator the staking contract. The deposit is returned to the Sender
    *
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
-   * @param {Address} sender
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newDeleteValidator(sender: Address, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newDeleteValidator(sender: Address, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
   /**
    * Retires a validator in the staking contract.
    *
    * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
    *
    * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
-   * @param {Address} sender
-   * @param {bigint | undefined} fee
-   * @param {number} validity_start_height
-   * @param {number} network_id
-   * @returns {Transaction}
    */
-  static newRetireValidator(sender: Address, fee: bigint | undefined, validity_start_height: number, network_id: number): Transaction;
+  static newRetireValidator(sender: Address, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
 }
 /**
  * Utility class providing methods to parse Vesting Contract transaction data and proofs.
  */
 export class VestingContract {
+  private constructor();
   free(): void;
   /**
    * Parses the data of a Vesting Contract creation transaction into a plain object.
-   * @param {Uint8Array} data
-   * @returns {PlainTransactionRecipientData}
    */
-  static dataToPlain(data: Uint8Array): PlainTransactionRecipientData;
+  static dataToPlain(data: Uint8Array, tx_value: bigint): PlainTransactionRecipientData;
   /**
    * Parses the proof of a Vesting Contract claiming transaction into a plain object.
-   * @param {Uint8Array} proof
-   * @returns {PlainTransactionProof}
    */
   static proofToPlain(proof: Uint8Array): PlainTransactionProof;
 }

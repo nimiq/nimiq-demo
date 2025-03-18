@@ -7,16 +7,13 @@ A very light Nimiq Proof-of-Stake client for browsers and NodeJS, compiled from 
 
 ## 📦 Installation
 
-You need to install this package from the `next` tag:
+You need to install this package from npm:
 
 ```sh
-npm install @nimiq/core@next
-```
-
-or
-
-```sh
-yarn add @nimiq/core@next
+# Depending on your package manager:
+npm install @nimiq/core
+yarn add @nimiq/core
+pnpm install @nimiq/core
 ```
 
 ## 🛠️ Usage
@@ -34,7 +31,8 @@ If you use any bundler for your project, like Webpack or Vite, you should probab
 
 > [!IMPORTANT]
 > For Vite:
-> - Use the [`vite-plugin-wasm`](https://www.npmjs.com/package/vite-plugin-wasm) plugin.
+> - Add [`vite-plugin-wasm`](https://www.npmjs.com/package/vite-plugin-wasm) to your `plugins` in Vite's config.
+> - Also add it to the `worker.plugins` list.
 > - Exclude this package from Vite's dependency optimization:
 > ```ts
 > // vite.config.ts
@@ -45,7 +43,8 @@ If you use any bundler for your project, like Webpack or Vite, you should probab
 
 > [!IMPORTANT]
 > For Nuxt:
-> - Use the [`vite-plugin-wasm`](https://www.npmjs.com/package/vite-plugin-wasm) plugin.
+> - Add [`vite-plugin-wasm`](https://www.npmjs.com/package/vite-plugin-wasm) to the `vite.plugins` list in Nuxt's config.
+> - Also add it to the `vite.worker.plugins` list.
 > - Exclude this package from Vite's dependency optimization:
 > ```ts
 > // nuxt.config.ts
@@ -69,10 +68,10 @@ const config = new Nimiq.ClientConfiguration();
 // Change the config, if necessary:
 // --------------------------------
 // Specify the network to use:
-// Optional, default is 'testalbatross'
+// Optional, default is 'mainalbatross'
 config.network('testalbatross');
 // Specify the seed nodes to initially connect to:
-// Optional, default is ['/dns4/seed1.pos.nimiq-testnet.com/tcp/8443/wss']
+// Optional, default is the mainnet seed list
 config.seedNodes(['/dns4/seed1.pos.nimiq-testnet.com/tcp/8443/wss']);
 // Change the lowest log level that is output to the console:
 // Optional, default is 'info'
@@ -126,8 +125,6 @@ main();
 ```
 
 ## 🐛 Issues, Bugs and Feedback
-
-This is an early version of the client code compiled to WebAssembly and as such there can be problems and friction, especially now that more people try it out in more environments than we could ever test ourselves.
 
 If you encounter issues or you find a bug, please open an issue in our Github at https://github.com/nimiq/core-rs-albatross.
 
