@@ -20,267 +20,6 @@ export enum TransactionFormat {
   Basic = 0,
   Extended = 1,
 }
-export interface PlainBasicAccount {
-    balance: number;
-}
-
-export interface PlainVestingContract {
-    balance: number;
-    owner: string;
-    startTime: number;
-    timeStep: number;
-    stepAmount: number;
-    totalAmount: number;
-}
-
-export interface PlainHtlcContract {
-    balance: number;
-    sender: string;
-    recipient: string;
-    hashAlgorithm: string;
-    hashRoot: string;
-    hashCount: number;
-    timeout: number;
-    totalAmount: number;
-}
-
-export interface PlainStakingContract {
-    balance: number;
-    activeValidators: [string, number][];
-    currentEpochDisabledSlots: [string, number[]][];
-    previousDisabledSlots: number[];
-}
-
-export type PlainAccount = ({ type: "basic" } & PlainBasicAccount) | ({ type: "vesting" } & PlainVestingContract) | ({ type: "htlc" } & PlainHtlcContract) | ({ type: "staking" } & PlainStakingContract);
-
-/**
- * JSON-compatible and human-readable format of a staker. E.g. delegation addresses are presented in their
- * human-readable format.
- */
-export interface PlainStaker {
-    /**
-     * The staker\'s active balance.
-     */
-    balance: number;
-    /**
-     * The address of the validator for which the staker is delegating its stake for. If it is not
-     * delegating to any validator, this will be set to None.
-     */
-    delegation: string | undefined;
-    /**
-     * The staker\'s inactive balance. Only released inactive balance can be withdrawn from the staking contract.
-     * Stake can only be re-delegated if the whole balance of the staker is inactive and released
-     * (or if there was no prior delegation). For inactive balance to be released, the maximum of
-     * the inactive and the validator\'s jailed periods must have passed.
-     */
-    inactiveBalance: number;
-    /**
-     * The block number at which the inactive balance was last inactivated.
-     * If the stake is currently delegated to a jailed validator, the maximum of its jail release
-     * and the inactive release is taken. Re-delegation requires the whole balance of the staker to be inactive.
-     * The stake can only effectively become inactive on the next election block. Thus, this may contain a
-     * future block height.
-     */
-    inactiveFrom: number | undefined;
-    /**
-     * The block number from which the staker\'s `inactive_balance` gets released, e.g. for retirement.
-     * Re-delegation requires the whole balance of the staker to be inactive and released, as well as
-     * its delegated validator to not currently be jailed.
-     */
-    inactiveRelease: number | undefined;
-    /**
-     * The staker\'s retired balance. Retired balance can only be withdrawn, thus retiring is irreversible.
-     * Only released inactive balance can be retired, so the maximum of the inactive and the validator\'s jailed
-     * periods must have passed.
-     * Once retired, the funds are immediately available to be withdrawn (removed).
-     */
-    retiredBalance: number;
-}
-
-/**
- * JSON-compatible and human-readable format of a validator. E.g. reward addresses and public keys are presented in
- * their human-readable format.
- */
-export interface PlainValidator {
-    /**
-     * The public key used to sign blocks. It is also used to retire and reactivate the validator.
-     */
-    signingPublicKey: string;
-    /**
-     * The voting public key, it is used to vote for skip and macro blocks.
-     */
-    votingPublicKey: string;
-    /**
-     * The reward address of the validator. All the block rewards are paid to this address.
-     */
-    rewardAddress: string;
-    /**
-     * Signaling field. Can be used to do chain upgrades or for any other purpose that requires
-     * validators to coordinate among themselves.
-     */
-    signalData: string | undefined;
-    /**
-     * The total stake assigned to this validator. It includes the validator deposit as well as the
-     * coins delegated to him by stakers.
-     */
-    totalStake: number;
-    /**
-     * The amount of coins deposited by this validator. The initial deposit is a fixed amount,
-     * however this value can be decremented by failing staking transactions due to fees.
-     */
-    deposit: number;
-    /**
-     * The number of stakers that are delegating to this validator.
-     */
-    numStakers: number;
-    /**
-     * An option indicating if the validator is marked as inactive. If it is, then it contains the
-     * block height at which it becomes inactive.
-     * A validator can only effectively become inactive on the next election block. Thus, this may
-     * contain a block height in the future.
-     */
-    inactiveFrom: number | undefined;
-    /**
-     * An option indicating if the validator is marked as inactive. If it is, then it contains the
-     * block height at which the inactive stake gets released and the validator can be retired.
-     */
-    inactiveRelease: number | undefined;
-    /**
-     * A flag indicating if the validator is retired.
-     */
-    retired: boolean;
-    /**
-     * An option indicating if the validator is jailed. If it is, then it contains the
-     * block height at which it became jailed.
-     * Opposed to `inactive_from`, jailing can and should take effect immediately to prevent
-     * the validator and its stakers from modifying their funds and or delegation.
-     */
-    jailedFrom: number | undefined;
-    /**
-     * An option indicating if the validator is jailed. If it is, then it contains the
-     * block height at which the jail period ends and the validator becomes interactive again.
-     */
-    jailedRelease: number | undefined;
-}
-
-/**
- * Describes the state of consensus of the client.
- */
-export type ConsensusState = "connecting" | "syncing" | "established";
-
-/**
- * JSON-compatible and human-readable format of blocks.
- */
-export interface PlainBlockCommonFields {
-    /**
-     * The block\'s unique hash, used as its identifier, in HEX format.
-     */
-    hash: string;
-    /**
-     * The block\'s on-chain size, in bytes.
-     */
-    size: number;
-    /**
-     * The block\'s block height, also called block number.
-     */
-    height: number;
-    /**
-     * The batch number that the block is in.
-     */
-    batch: number;
-    /**
-     * The epoch number that the block is in.
-     */
-    epoch: number;
-    /**
-     * The timestamp of the block. It follows the Unix time and has millisecond precision.
-     */
-    timestamp: number;
-    /**
-     * The network that this block is valid for.
-     */
-    network: string;
-    /**
-     * The protocol version that this block is valid for.
-     */
-    version: number;
-    /**
-     * The hash of the header of the immediately preceding block (either micro or macro), in HEX format.
-     */
-    prevHash: string;
-    /**
-     * The seed of the block. This is the BLS signature of the seed of the immediately preceding
-     * block (either micro or macro) using the validator key of the block producer.
-     */
-    seed: string;
-    /**
-     * The extra data of the block, in HEX format. Up to 32 raw bytes.
-     *
-     * In the genesis block, it encodes the initial supply as a big-endian `u64`.
-     *
-     * No planned use otherwise.
-     */
-    extraData: string;
-    /**
-     * The root of the Merkle tree of the blockchain state, in HEX format. It acts as a commitment to the state.
-     */
-    stateHash: string;
-    /**
-     * The root of the Merkle tree of the body, in HEX format. It acts as a commitment to the body.
-     */
-    bodyHash: string;
-    /**
-     * A Merkle root over all of the transactions that happened in the current epoch, in HEX format.
-     */
-    historyHash: string;
-}
-
-export interface PlainMacroBlock extends PlainBlockCommonFields {
-    /**
-     * If true, this macro block is an election block finalizing an epoch.
-     */
-    isElectionBlock: boolean;
-    /**
-     * The round number this block was proposed in.
-     */
-    round: number;
-    /**
-     * The hash of the header of the preceding election macro block, in HEX format.
-     */
-    prevElectionHash: string;
-}
-
-export interface PlainMicroBlock extends PlainBlockCommonFields {}
-
-export type PlainBlock = ({ type: "macro" } & PlainMacroBlock) | ({ type: "micro" } & PlainMicroBlock);
-
-/**
- * Information about a networking peer.
- */
-export interface PlainPeerInfo {
-    /**
-     * A libp2p peer ID
-     */
-    peerId: string;
-    /**
-     * Address of the peer in `Multiaddr` format
-     */
-    address: string;
-    /**
-     * Node type of the peer
-     */
-    type: 'full' | 'history' | 'light';
-    /**
-     * List of services the peer is providing
-     */
-    services: PlainService[];
-}
-
-/**
- * Available peer service flags
- */
-export type PlainService = "full-blocks" | "history" | "accounts-proof" | "accounts-chunk" | "mempool" | "transaction-index" | "validator" | "pre-genesis-transactions" | "unknown";
-
 export interface PlainClientConfiguration {
     networkId?: string;
     seedNodes?: string[];
@@ -606,9 +345,270 @@ export interface PlainTransactionReceipt {
     blockHeight: number;
 }
 
-export type PlainTransactionFormat = "basic" | "extended";
+export interface PlainBasicAccount {
+    balance: number;
+}
 
-export type PlainAccountType = "basic" | "vesting" | "htlc" | "staking";
+export interface PlainVestingContract {
+    balance: number;
+    owner: string;
+    startTime: number;
+    timeStep: number;
+    stepAmount: number;
+    totalAmount: number;
+}
+
+export interface PlainHtlcContract {
+    balance: number;
+    sender: string;
+    recipient: string;
+    hashAlgorithm: string;
+    hashRoot: string;
+    hashCount: number;
+    timeout: number;
+    totalAmount: number;
+}
+
+export interface PlainStakingContract {
+    balance: number;
+    activeValidators: [string, number][];
+    currentEpochDisabledSlots: [string, number[]][];
+    previousDisabledSlots: number[];
+}
+
+export type PlainAccount = ({ type: "basic" } & PlainBasicAccount) | ({ type: "vesting" } & PlainVestingContract) | ({ type: "htlc" } & PlainHtlcContract) | ({ type: "staking" } & PlainStakingContract);
+
+/**
+ * JSON-compatible and human-readable format of a staker. E.g. delegation addresses are presented in their
+ * human-readable format.
+ */
+export interface PlainStaker {
+    /**
+     * The staker\'s active balance.
+     */
+    balance: number;
+    /**
+     * The address of the validator for which the staker is delegating its stake for. If it is not
+     * delegating to any validator, this will be set to None.
+     */
+    delegation: string | undefined;
+    /**
+     * The staker\'s inactive balance. Only released inactive balance can be withdrawn from the staking contract.
+     * Stake can only be re-delegated if the whole balance of the staker is inactive and released
+     * (or if there was no prior delegation). For inactive balance to be released, the maximum of
+     * the inactive and the validator\'s jailed periods must have passed.
+     */
+    inactiveBalance: number;
+    /**
+     * The block number at which the inactive balance was last inactivated.
+     * If the stake is currently delegated to a jailed validator, the maximum of its jail release
+     * and the inactive release is taken. Re-delegation requires the whole balance of the staker to be inactive.
+     * The stake can only effectively become inactive on the next election block. Thus, this may contain a
+     * future block height.
+     */
+    inactiveFrom: number | undefined;
+    /**
+     * The block number from which the staker\'s `inactive_balance` gets released, e.g. for retirement.
+     * Re-delegation requires the whole balance of the staker to be inactive and released, as well as
+     * its delegated validator to not currently be jailed.
+     */
+    inactiveRelease: number | undefined;
+    /**
+     * The staker\'s retired balance. Retired balance can only be withdrawn, thus retiring is irreversible.
+     * Only released inactive balance can be retired, so the maximum of the inactive and the validator\'s jailed
+     * periods must have passed.
+     * Once retired, the funds are immediately available to be withdrawn (removed).
+     */
+    retiredBalance: number;
+}
+
+/**
+ * JSON-compatible and human-readable format of a validator. E.g. reward addresses and public keys are presented in
+ * their human-readable format.
+ */
+export interface PlainValidator {
+    /**
+     * The public key used to sign blocks. It is also used to retire and reactivate the validator.
+     */
+    signingPublicKey: string;
+    /**
+     * The voting public key, it is used to vote for skip and macro blocks.
+     */
+    votingPublicKey: string;
+    /**
+     * The reward address of the validator. All the block rewards are paid to this address.
+     */
+    rewardAddress: string;
+    /**
+     * Signaling field. Can be used to do chain upgrades or for any other purpose that requires
+     * validators to coordinate among themselves.
+     */
+    signalData: string | undefined;
+    /**
+     * The total stake assigned to this validator. It includes the validator deposit as well as the
+     * coins delegated to him by stakers.
+     */
+    totalStake: number;
+    /**
+     * The amount of coins deposited by this validator. The initial deposit is a fixed amount,
+     * however this value can be decremented by failing staking transactions due to fees.
+     */
+    deposit: number;
+    /**
+     * The number of stakers that are delegating to this validator.
+     */
+    numStakers: number;
+    /**
+     * An option indicating if the validator is marked as inactive. If it is, then it contains the
+     * block height at which it becomes inactive.
+     * A validator can only effectively become inactive on the next election block. Thus, this may
+     * contain a block height in the future.
+     */
+    inactiveFrom: number | undefined;
+    /**
+     * An option indicating if the validator is marked as inactive. If it is, then it contains the
+     * block height at which the inactive stake gets released and the validator can be retired.
+     */
+    inactiveRelease: number | undefined;
+    /**
+     * A flag indicating if the validator is retired.
+     */
+    retired: boolean;
+    /**
+     * An option indicating if the validator is jailed. If it is, then it contains the
+     * block height at which it became jailed.
+     * Opposed to `inactive_from`, jailing can and should take effect immediately to prevent
+     * the validator and its stakers from modifying their funds and or delegation.
+     */
+    jailedFrom: number | undefined;
+    /**
+     * An option indicating if the validator is jailed. If it is, then it contains the
+     * block height at which the jail period ends and the validator becomes interactive again.
+     */
+    jailedRelease: number | undefined;
+}
+
+/**
+ * JSON-compatible and human-readable format of blocks.
+ */
+export interface PlainBlockCommonFields {
+    /**
+     * The block\'s unique hash, used as its identifier, in HEX format.
+     */
+    hash: string;
+    /**
+     * The block\'s on-chain size, in bytes.
+     */
+    size: number;
+    /**
+     * The block\'s block height, also called block number.
+     */
+    height: number;
+    /**
+     * The batch number that the block is in.
+     */
+    batch: number;
+    /**
+     * The epoch number that the block is in.
+     */
+    epoch: number;
+    /**
+     * The timestamp of the block. It follows the Unix time and has millisecond precision.
+     */
+    timestamp: number;
+    /**
+     * The network that this block is valid for.
+     */
+    network: string;
+    /**
+     * The protocol version that this block is valid for.
+     */
+    version: number;
+    /**
+     * The hash of the header of the immediately preceding block (either micro or macro), in HEX format.
+     */
+    prevHash: string;
+    /**
+     * The seed of the block. This is the BLS signature of the seed of the immediately preceding
+     * block (either micro or macro) using the validator key of the block producer.
+     */
+    seed: string;
+    /**
+     * The extra data of the block, in HEX format. Up to 32 raw bytes.
+     *
+     * In the genesis block, it encodes the initial supply as a big-endian `u64`.
+     *
+     * No planned use otherwise.
+     */
+    extraData: string;
+    /**
+     * The root of the Merkle tree of the blockchain state, in HEX format. It acts as a commitment to the state.
+     */
+    stateHash: string;
+    /**
+     * The root of the Merkle tree of the body, in HEX format. It acts as a commitment to the body.
+     */
+    bodyHash: string;
+    /**
+     * A Merkle root over all of the transactions that happened in the current epoch, in HEX format.
+     */
+    historyHash: string;
+}
+
+export interface PlainMacroBlock extends PlainBlockCommonFields {
+    /**
+     * If true, this macro block is an election block finalizing an epoch.
+     */
+    isElectionBlock: boolean;
+    /**
+     * The round number this block was proposed in.
+     */
+    round: number;
+    /**
+     * The hash of the header of the preceding election macro block, in HEX format.
+     */
+    prevElectionHash: string;
+}
+
+export interface PlainMicroBlock extends PlainBlockCommonFields {}
+
+export type PlainBlock = ({ type: "macro" } & PlainMacroBlock) | ({ type: "micro" } & PlainMicroBlock);
+
+/**
+ * Information about a networking peer.
+ */
+export interface PlainPeerInfo {
+    /**
+     * A libp2p peer ID
+     */
+    peerId: string;
+    /**
+     * Address of the peer in `Multiaddr` format
+     */
+    address: string;
+    /**
+     * Node type of the peer
+     */
+    type: 'full' | 'history' | 'light';
+    /**
+     * List of services the peer is providing
+     */
+    services: PlainService[];
+}
+
+/**
+ * Available peer service flags
+ */
+export type PlainService = "full-blocks" | "history" | "accounts-proof" | "accounts-chunk" | "mempool" | "transaction-index" | "validator" | "pre-genesis-transactions" | "unknown";
+
+/**
+ * Describes the state of consensus of the client.
+ */
+export type ConsensusState = "connecting" | "syncing" | "established";
+
+export type TransactionFormat = "basic" | "extended";
+
+export type AccountType = "basic" | "vesting" | "htlc" | "staking";
 
 /**
  * An object representing a Nimiq address.

@@ -229,7 +229,7 @@ export function __wbindgen_cb_drop(arg0) {
     return ret;
 };
 
-export function __wbindgen_closure_wrapper45(arg0, arg1, arg2) {
+export function __wbindgen_closure_wrapper60(arg0, arg1, arg2) {
     const ret = makeMutClosure(arg0, arg1, 13, __wbg_adapter_20);
     return ret;
 };
