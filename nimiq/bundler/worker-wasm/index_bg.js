@@ -1,288 +1,3 @@
-let wasm;
-export function __wbg_set_wasm(val) {
-    wasm = val;
-}
-
-
-let WASM_VECTOR_LEN = 0;
-
-let cachedUint8ArrayMemory0 = null;
-
-function getUint8ArrayMemory0() {
-    if (cachedUint8ArrayMemory0 === null || cachedUint8ArrayMemory0.byteLength === 0) {
-        cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
-    }
-    return cachedUint8ArrayMemory0;
-}
-
-const lTextEncoder = typeof TextEncoder === 'undefined' ? (0, module.require)('util').TextEncoder : TextEncoder;
-
-let cachedTextEncoder = new lTextEncoder('utf-8');
-
-const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
-    ? function (arg, view) {
-    return cachedTextEncoder.encodeInto(arg, view);
-}
-    : function (arg, view) {
-    const buf = cachedTextEncoder.encode(arg);
-    view.set(buf);
-    return {
-        read: arg.length,
-        written: buf.length
-    };
-});
-
-function passStringToWasm0(arg, malloc, realloc) {
-
-    if (realloc === undefined) {
-        const buf = cachedTextEncoder.encode(arg);
-        const ptr = malloc(buf.length, 1) >>> 0;
-        getUint8ArrayMemory0().subarray(ptr, ptr + buf.length).set(buf);
-        WASM_VECTOR_LEN = buf.length;
-        return ptr;
-    }
-
-    let len = arg.length;
-    let ptr = malloc(len, 1) >>> 0;
-
-    const mem = getUint8ArrayMemory0();
-
-    let offset = 0;
-
-    for (; offset < len; offset++) {
-        const code = arg.charCodeAt(offset);
-        if (code > 0x7F) break;
-        mem[ptr + offset] = code;
-    }
-
-    if (offset !== len) {
-        if (offset !== 0) {
-            arg = arg.slice(offset);
-        }
-        ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
-        const view = getUint8ArrayMemory0().subarray(ptr + offset, ptr + len);
-        const ret = encodeString(arg, view);
-
-        offset += ret.written;
-        ptr = realloc(ptr, len, offset, 1) >>> 0;
-    }
-
-    WASM_VECTOR_LEN = offset;
-    return ptr;
-}
-
-let cachedDataViewMemory0 = null;
-
-function getDataViewMemory0() {
-    if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer.detached === true || (cachedDataViewMemory0.buffer.detached === undefined && cachedDataViewMemory0.buffer !== wasm.memory.buffer)) {
-        cachedDataViewMemory0 = new DataView(wasm.memory.buffer);
-    }
-    return cachedDataViewMemory0;
-}
-
-const lTextDecoder = typeof TextDecoder === 'undefined' ? (0, module.require)('util').TextDecoder : TextDecoder;
-
-let cachedTextDecoder = new lTextDecoder('utf-8', { ignoreBOM: true, fatal: true });
-
-cachedTextDecoder.decode();
-
-function getStringFromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
-}
-
-function addToExternrefTable0(obj) {
-    const idx = wasm.__externref_table_alloc();
-    wasm.__wbindgen_export_4.set(idx, obj);
-    return idx;
-}
-
-function handleError(f, args) {
-    try {
-        return f.apply(this, args);
-    } catch (e) {
-        const idx = addToExternrefTable0(e);
-        wasm.__wbindgen_exn_store(idx);
-    }
-}
-
-function isLikeNone(x) {
-    return x === undefined || x === null;
-}
-
-function getArrayU8FromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
-}
-
-const CLOSURE_DTORS = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(state => {
-    wasm.__wbindgen_export_5.get(state.dtor)(state.a, state.b)
-});
-
-function makeMutClosure(arg0, arg1, dtor, f) {
-    const state = { a: arg0, b: arg1, cnt: 1, dtor };
-    const real = (...args) => {
-        // First up with a closure we increment the internal reference
-        // count. This ensures that the Rust closure environment won't
-        // be deallocated while we're invoking it.
-        state.cnt++;
-        const a = state.a;
-        state.a = 0;
-        try {
-            return f(a, state.b, ...args);
-        } finally {
-            if (--state.cnt === 0) {
-                wasm.__wbindgen_export_5.get(state.dtor)(a, state.b);
-                CLOSURE_DTORS.unregister(state);
-            } else {
-                state.a = a;
-            }
-        }
-    };
-    real.original = state;
-    CLOSURE_DTORS.register(real, state, state);
-    return real;
-}
-
-function makeClosure(arg0, arg1, dtor, f) {
-    const state = { a: arg0, b: arg1, cnt: 1, dtor };
-    const real = (...args) => {
-        // First up with a closure we increment the internal reference
-        // count. This ensures that the Rust closure environment won't
-        // be deallocated while we're invoking it.
-        state.cnt++;
-        try {
-            return f(state.a, state.b, ...args);
-        } finally {
-            if (--state.cnt === 0) {
-                wasm.__wbindgen_export_5.get(state.dtor)(state.a, state.b);
-                state.a = 0;
-                CLOSURE_DTORS.unregister(state);
-            }
-        }
-    };
-    real.original = state;
-    CLOSURE_DTORS.register(real, state, state);
-    return real;
-}
-
-function debugString(val) {
-    // primitive types
-    const type = typeof val;
-    if (type == 'number' || type == 'boolean' || val == null) {
-        return  `${val}`;
-    }
-    if (type == 'string') {
-        return `"${val}"`;
-    }
-    if (type == 'symbol') {
-        const description = val.description;
-        if (description == null) {
-            return 'Symbol';
-        } else {
-            return `Symbol(${description})`;
-        }
-    }
-    if (type == 'function') {
-        const name = val.name;
-        if (typeof name == 'string' && name.length > 0) {
-            return `Function(${name})`;
-        } else {
-            return 'Function';
-        }
-    }
-    // objects
-    if (Array.isArray(val)) {
-        const length = val.length;
-        let debug = '[';
-        if (length > 0) {
-            debug += debugString(val[0]);
-        }
-        for(let i = 1; i < length; i++) {
-            debug += ', ' + debugString(val[i]);
-        }
-        debug += ']';
-        return debug;
-    }
-    // Test for built-in
-    const builtInMatches = /\[object ([^\]]+)\]/.exec(toString.call(val));
-    let className;
-    if (builtInMatches && builtInMatches.length > 1) {
-        className = builtInMatches[1];
-    } else {
-        // Failed to match the standard '[object ClassName]'
-        return toString.call(val);
-    }
-    if (className == 'Object') {
-        // we're a user defined class or Object
-        // JSON.stringify avoids problems with cycles, and is generally much
-        // easier than looping through ownProperties of `val`.
-        try {
-            return 'Object(' + JSON.stringify(val) + ')';
-        } catch (_) {
-            return 'Object';
-        }
-    }
-    // errors
-    if (val instanceof Error) {
-        return `${val.name}: ${val.message}\n${val.stack}`;
-    }
-    // TODO we could test for more things here, like `Set`s and `Map`s.
-    return className;
-}
-
-function passArray8ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 1, 1) >>> 0;
-    getUint8ArrayMemory0().set(arg, ptr / 1);
-    WASM_VECTOR_LEN = arg.length;
-    return ptr;
-}
-
-function takeFromExternrefTable0(idx) {
-    const value = wasm.__wbindgen_export_4.get(idx);
-    wasm.__externref_table_dealloc(idx);
-    return value;
-}
-
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
-}
-function __wbg_adapter_54(arg0, arg1, arg2) {
-    wasm.closure861_externref_shim(arg0, arg1, arg2);
-}
-
-function __wbg_adapter_57(arg0, arg1, arg2) {
-    wasm.closure863_externref_shim(arg0, arg1, arg2);
-}
-
-function __wbg_adapter_60(arg0, arg1, arg2) {
-    wasm.closure1730_externref_shim(arg0, arg1, arg2);
-}
-
-function __wbg_adapter_67(arg0, arg1) {
-    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h57a3662dbb3c4669(arg0, arg1);
-}
-
-function __wbg_adapter_70(arg0, arg1) {
-    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hc72e56d240b9010b(arg0, arg1);
-}
-
-function __wbg_adapter_73(arg0, arg1, arg2) {
-    wasm.closure2369_externref_shim(arg0, arg1, arg2);
-}
-
-function __wbg_adapter_76(arg0, arg1, arg2) {
-    wasm.closure2692_externref_shim(arg0, arg1, arg2);
-}
-
-function __wbg_adapter_424(arg0, arg1, arg2, arg3) {
-    wasm.closure2877_externref_shim(arg0, arg1, arg2, arg3);
-}
-
 /**
  * @enum {0 | 1 | 2 | 3}
  */
@@ -292,38 +7,12 @@ export const AccountType = Object.freeze({
     HTLC: 2, "2": "HTLC",
     Staking: 3, "3": "Staking",
 });
-/**
- * A transaction flag signals a special purpose of the transaction. `ContractCreation` must be set
- * to create new vesting contracts or HTLCs. `Signaling` must be set to interact with the staking
- * contract for non-value transactions. All other transactions' flag is set to `None`.
- * @enum {0 | 1 | 2}
- */
-export const TransactionFlag = Object.freeze({
-    None: 0, "0": "None",
-    ContractCreation: 1, "1": "ContractCreation",
-    Signaling: 2, "2": "Signaling",
-});
-/**
- * @enum {0 | 1}
- */
-export const TransactionFormat = Object.freeze({
-    Basic: 0, "0": "Basic",
-    Extended: 1, "1": "Extended",
-});
 
-const __wbindgen_enum_BinaryType = ["blob", "arraybuffer"];
-
-const __wbindgen_enum_IdbTransactionMode = ["readonly", "readwrite", "versionchange", "readwriteflush", "cleanup"];
-
-const AddressFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_address_free(ptr >>> 0, 1));
 /**
  * An object representing a Nimiq address.
  * Offers methods to parse and format addresses from and to strings.
  */
 export class Address {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Address.prototype);
@@ -331,31 +20,15 @@ export class Address {
         AddressFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AddressFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_address_free(ptr, 0);
-    }
-    /**
-     * @param {Uint8Array} bytes
-     */
-    constructor(bytes) {
-        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.address_new(ptr0, len0);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        this.__wbg_ptr = ret[0] >>> 0;
-        AddressFinalization.register(this, this.__wbg_ptr, this);
-        return this;
     }
     /**
      * Deserializes an address from a byte array.
@@ -402,6 +75,28 @@ export class Address {
         return Address.__wrap(ret[0]);
     }
     /**
+     * @param {Uint8Array} bytes
+     */
+    constructor(bytes) {
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.address_new(ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        this.__wbg_ptr = ret[0] >>> 0;
+        AddressFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * The all-zeroes burn address.
+     * @returns {Address}
+     */
+    static get NULL() {
+        const ret = wasm.address_null();
+        return Address.__wrap(ret);
+    }
+    /**
      * Formats the address into a plain string format.
      * @returns {string}
      */
@@ -418,10 +113,8 @@ export class Address {
         }
     }
 }
+if (Symbol.dispose) Address.prototype[Symbol.dispose] = Address.prototype.free;
 
-const ClientFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_client_free(ptr >>> 0, 1));
 /**
  * Nimiq Albatross client that runs in browsers via WASM and is exposed to Javascript.
  *
@@ -438,7 +131,6 @@ const ClientFinalization = (typeof FinalizationRegistry === 'undefined')
  * ```
  */
 export class Client {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Client.prototype);
@@ -446,26 +138,15 @@ export class Client {
         ClientFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ClientFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_client_free(ptr, 0);
-    }
-    /**
-     * Creates a new Client that automatically starts connecting to the network.
-     * @param {PlainClientConfiguration} config
-     * @returns {Promise<Client>}
-     */
-    static create(config) {
-        const ret = wasm.client_create(config);
-        return ret;
     }
     /**
      * Adds an event listener for consensus-change events, such as when consensus is established or lost.
@@ -507,61 +188,57 @@ export class Client {
         return ret;
     }
     /**
-     * Removes an event listener by its handle.
-     * @param {number} handle
+     * This function is used to tell the network to (re)start connecting to peers.
+     * This is could be used to tell the network to restart connection operations after
+     * disconnect network is called.
      * @returns {Promise<void>}
      */
-    removeListener(handle) {
-        const ret = wasm.client_removeListener(this.__wbg_ptr, handle);
+    connectNetwork() {
+        const ret = wasm.client_connectNetwork(this.__wbg_ptr);
         return ret;
     }
     /**
-     * Returns the network ID that the client is connecting to.
-     * @returns {Promise<number>}
+     * Creates a new Client that automatically starts connecting to the network.
+     * @param {PlainClientConfiguration} config
+     * @returns {Promise<Client>}
      */
-    getNetworkId() {
-        const ret = wasm.client_getNetworkId(this.__wbg_ptr);
+    static create(config) {
+        const ret = wasm.client_create(config);
         return ret;
     }
     /**
-     * Returns if the client currently has consensus with the network.
-     * @returns {Promise<boolean>}
-     */
-    isConsensusEstablished() {
-        const ret = wasm.client_isConsensusEstablished(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * Returns a promise that resolves when the client has established consensus with the network.
+     * This function is used to tell the network to disconnect from every connected
+     * peer and stop trying to connect to other peers.
+     *
+     * **Important**: this function returns when the signal to disconnect was sent,
+     * before all peers actually disconnect. This means that in order to ensure the
+     * network is disconnected, wait for all peers to disappear after calling.
      * @returns {Promise<void>}
      */
-    waitForConsensusEstablished() {
-        const ret = wasm.client_waitForConsensusEstablished(this.__wbg_ptr);
+    disconnectNetwork() {
+        const ret = wasm.client_disconnectNetwork(this.__wbg_ptr);
         return ret;
     }
     /**
-     * Returns the block hash of the current blockchain head.
-     * @returns {Promise<string>}
+     * Fetches the account for the provided address from the network.
+     *
+     * Throws if the address cannot be parsed and on network errors.
+     * @param {string | Uint8Array} address
+     * @returns {Promise<PlainAccount>}
      */
-    getHeadHash() {
-        const ret = wasm.client_getHeadHash(this.__wbg_ptr);
+    getAccount(address) {
+        const ret = wasm.client_getAccount(this.__wbg_ptr, address);
         return ret;
     }
     /**
-     * Returns the block number of the current blockchain head.
-     * @returns {Promise<number>}
+     * Fetches the accounts for the provided addresses from the network.
+     *
+     * Throws if an address cannot be parsed and on network errors.
+     * @param {(string | Uint8Array)[]} addresses
+     * @returns {Promise<PlainAccount[]>}
      */
-    getHeadHeight() {
-        const ret = wasm.client_getHeadHeight(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * Returns the current blockchain head block.
-     * Note that the web client is a light client and does not have block bodies, i.e. no transactions.
-     * @returns {Promise<PlainBlock>}
-     */
-    getHeadBlock() {
-        const ret = wasm.client_getHeadBlock(this.__wbg_ptr);
+    getAccounts(addresses) {
+        const ret = wasm.client_getAccounts(this.__wbg_ptr, addresses);
         return ret;
     }
     /**
@@ -604,25 +281,59 @@ export class Client {
         return ret;
     }
     /**
-     * Fetches the account for the provided address from the network.
+     * Returns the validators elected for the current epoch, together with the number of validator
+     * slots assigned to each of them.
      *
-     * Throws if the address cannot be parsed and on network errors.
-     * @param {string | Uint8Array} address
-     * @returns {Promise<PlainAccount>}
+     * The slot distribution is fixed for the duration of an epoch and is the metric used on-chain
+     * to evaluate support for protocol upgrades. Combine this with {@link Client.getValidators} to
+     * relate slot counts to each validator's stake and signal data.
+     *
+     * Throws if the elected validators are not available (e.g. before consensus is established).
+     * @returns {Promise<PlainElectedValidator[]>}
      */
-    getAccount(address) {
-        const ret = wasm.client_getAccount(this.__wbg_ptr, address);
+    getElectedValidators() {
+        const ret = wasm.client_getElectedValidators(this.__wbg_ptr);
         return ret;
     }
     /**
-     * Fetches the accounts for the provided addresses from the network.
-     *
-     * Throws if an address cannot be parsed and on network errors.
-     * @param {(string | Uint8Array)[]} addresses
-     * @returns {Promise<PlainAccount[]>}
+     * Returns the current blockchain head block.
+     * Note that the web client is a light client and does not have block bodies, i.e. no transactions.
+     * @returns {Promise<PlainBlock>}
      */
-    getAccounts(addresses) {
-        const ret = wasm.client_getAccounts(this.__wbg_ptr, addresses);
+    getHeadBlock() {
+        const ret = wasm.client_getHeadBlock(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Returns the block hash of the current blockchain head.
+     * @returns {Promise<string>}
+     */
+    getHeadHash() {
+        const ret = wasm.client_getHeadHash(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Returns the block number of the current blockchain head.
+     * @returns {Promise<number>}
+     */
+    getHeadHeight() {
+        const ret = wasm.client_getHeadHeight(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Returns the network ID that the client is connecting to.
+     * @returns {Promise<number>}
+     */
+    getNetworkId() {
+        const ret = wasm.client_getNetworkId(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Returns the blockchain protocol version the client currently uses to verify transactions.
+     * @returns {Promise<number>}
+     */
+    getProtocolVersion() {
+        const ret = wasm.client_getProtocolVersion(this.__wbg_ptr);
         return ret;
     }
     /**
@@ -645,39 +356,6 @@ export class Client {
      */
     getStakers(addresses) {
         const ret = wasm.client_getStakers(this.__wbg_ptr, addresses);
-        return ret;
-    }
-    /**
-     * Fetches the validator for the provided address from the network.
-     *
-     * Throws if the address cannot be parsed and on network errors.
-     * @param {string | Uint8Array} address
-     * @returns {Promise<PlainValidator | undefined>}
-     */
-    getValidator(address) {
-        const ret = wasm.client_getValidator(this.__wbg_ptr, address);
-        return ret;
-    }
-    /**
-     * Fetches the validators for the provided addresses from the network.
-     *
-     * Throws if an address cannot be parsed and on network errors.
-     * @param {(string | Uint8Array)[]} addresses
-     * @returns {Promise<(PlainValidator | undefined)[]>}
-     */
-    getValidators(addresses) {
-        const ret = wasm.client_getValidators(this.__wbg_ptr, addresses);
-        return ret;
-    }
-    /**
-     * Sends a transaction to the network and returns {@link PlainTransactionDetails}.
-     *
-     * Throws in case of network errors.
-     * @param {PlainTransaction | string | Uint8Array} transaction
-     * @returns {Promise<PlainTransactionDetails>}
-     */
-    sendTransaction(transaction) {
-        const ret = wasm.client_sendTransaction(this.__wbg_ptr, transaction);
         return ret;
     }
     /**
@@ -748,105 +426,237 @@ export class Client {
         return ret;
     }
     /**
-     * This function is used to tell the network to disconnect from every connected
-     * peer and stop trying to connect to other peers.
+     * Fetches the validator for the provided address from the network.
      *
-     * **Important**: this function returns when the signal to disconnect was sent,
-     * before all peers actually disconnect. This means that in order to ensure the
-     * network is disconnected, wait for all peers to disappear after calling.
-     * @returns {Promise<void>}
+     * Throws if the address cannot be parsed and on network errors.
+     * @param {string | Uint8Array} address
+     * @returns {Promise<PlainValidator | undefined>}
      */
-    disconnectNetwork() {
-        const ret = wasm.client_disconnectNetwork(this.__wbg_ptr);
+    getValidator(address) {
+        const ret = wasm.client_getValidator(this.__wbg_ptr, address);
         return ret;
     }
     /**
-     * This function is used to tell the network to (re)start connecting to peers.
-     * This is could be used to tell the network to restart connection operations after
-     * disconnect network is called.
+     * Fetches the validators for the provided addresses from the network.
+     *
+     * Throws if an address cannot be parsed and on network errors.
+     * @param {(string | Uint8Array)[]} addresses
+     * @returns {Promise<(PlainValidator | undefined)[]>}
+     */
+    getValidators(addresses) {
+        const ret = wasm.client_getValidators(this.__wbg_ptr, addresses);
+        return ret;
+    }
+    /**
+     * Returns the version of the web client, including a `+dirty` build-metadata
+     * suffix when it was built from a Git work tree with uncommitted changes.
+     * @returns {Promise<string>}
+     */
+    getVersion() {
+        const ret = wasm.client_getVersion(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Returns if the client currently has consensus with the network.
+     * @returns {Promise<boolean>}
+     */
+    isConsensusEstablished() {
+        const ret = wasm.client_isConsensusEstablished(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Removes an event listener by its handle.
+     * @param {number} handle
      * @returns {Promise<void>}
      */
-    connectNetwork() {
-        const ret = wasm.client_connectNetwork(this.__wbg_ptr);
+    removeListener(handle) {
+        const ret = wasm.client_removeListener(this.__wbg_ptr, handle);
+        return ret;
+    }
+    /**
+     * Sends a transaction to the network and returns {@link PlainTransactionDetails}.
+     *
+     * Throws in case of network errors.
+     * @param {PlainTransaction | string | Uint8Array} transaction
+     * @returns {Promise<PlainTransactionDetails>}
+     */
+    sendTransaction(transaction) {
+        const ret = wasm.client_sendTransaction(this.__wbg_ptr, transaction);
+        return ret;
+    }
+    /**
+     * Returns a promise that resolves when the client has established consensus with the network.
+     * @returns {Promise<void>}
+     */
+    waitForConsensusEstablished() {
+        const ret = wasm.client_waitForConsensusEstablished(this.__wbg_ptr);
         return ret;
     }
 }
+if (Symbol.dispose) Client.prototype[Symbol.dispose] = Client.prototype.free;
 
-const ClientConfigurationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_clientconfiguration_free(ptr >>> 0, 1));
 /**
  * Use this to provide initialization-time configuration to the Client.
  * This is a simplified version of the configuration that is used for regular nodes,
  * since not all configuration knobs are available when running inside a browser.
  */
 export class ClientConfiguration {
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ClientConfigurationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_clientconfiguration_free(ptr, 0);
     }
 }
+if (Symbol.dispose) ClientConfiguration.prototype[Symbol.dispose] = ClientConfiguration.prototype.free;
 
-const HashedTimeLockedContractFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_hashedtimelockedcontract_free(ptr >>> 0, 1));
 /**
  * Utility class providing methods to parse Hashed Time Locked Contract transaction data and proofs.
  */
 export class HashedTimeLockedContract {
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         HashedTimeLockedContractFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_hashedtimelockedcontract_free(ptr, 0);
     }
 }
+if (Symbol.dispose) HashedTimeLockedContract.prototype[Symbol.dispose] = HashedTimeLockedContract.prototype.free;
 
-const PolicyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_policy_free(ptr >>> 0, 1));
+/**
+ * A Merkle path consisting of a sequence of hashes that can be used to verify the inclusion of a leaf in a Merkle tree.
+ */
+export class MerklePath {
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(MerklePath.prototype);
+        obj.__wbg_ptr = ptr;
+        MerklePathFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        MerklePathFinalization.unregister(this);
+        return ptr;
+    }
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_merklepath_free(ptr, 0);
+    }
+    /**
+     * Computes the Merkle root of the path given a leaf hash.
+     * @param {Uint8Array} leaf
+     * @returns {Uint8Array}
+     */
+    computeRoot(leaf) {
+        const ptr0 = passArray8ToWasm0(leaf, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.merklepath_computeRoot(this.__wbg_ptr, ptr0, len0);
+        if (ret[3]) {
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        return v2;
+    }
+    /**
+     * Deserializes a Merkle path from a byte array.
+     * @param {Uint8Array} data
+     * @returns {MerklePath}
+     */
+    static deserialize(data) {
+        const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.merklepath_deserialize(ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return MerklePath.__wrap(ret[0]);
+    }
+    /**
+     * Returns the hashes in the Merkle path.
+     * @returns {Uint8Array[]}
+     */
+    get hashes() {
+        const ret = wasm.merklepath_hashes(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * Returns the length of the Merkle path.
+     * @returns {number}
+     */
+    get length() {
+        const ret = wasm.merklepath_length(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * Serializes the Merkle path into a byte array.
+     * @returns {Uint8Array}
+     */
+    serialize() {
+        const ret = wasm.merklepath_serialize(this.__wbg_ptr);
+        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        return v1;
+    }
+}
+if (Symbol.dispose) MerklePath.prototype[Symbol.dispose] = MerklePath.prototype.free;
 
+/**
+ * Policy constants
+ */
 export class Policy {
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PolicyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_policy_free(ptr, 0);
     }
     /**
-     * Number of batches a transaction is valid with Albatross consensus.
+     * Returns the batch number at a given `block_number` (height)
+     * @param {number} block_number
      * @returns {number}
      */
-    static get TRANSACTION_VALIDITY_WINDOW() {
-        const ret = wasm.policy_transaction_validity_window();
+    static batchAt(block_number) {
+        const ret = wasm.policy_batchAt(block_number);
         return ret >>> 0;
     }
     /**
-     * Number of blocks a transaction is valid with Albatross consensus.
+     * Returns the percentage reduction that should be applied to the rewards due to a delayed batch.
+     * This function returns a float in the range [0, 1]
+     * I.e 1 means that the full rewards should be given, whereas 0.5 means that half of the rewards should be given
+     * The input to this function is the batch delay, in milliseconds
+     * The function is: [(1 - MINIMUM_REWARDS_PERCENTAGE) * BLOCKS_DELAY_DECAY ^ (t^2)] + MINIMUM_REWARDS_PERCENTAGE
+     * @param {bigint} delay
      * @returns {number}
      */
-    static get TRANSACTION_VALIDITY_WINDOW_BLOCKS() {
-        const ret = wasm.policy_transaction_validity_window_blocks();
+    static batchDelayPenalty(delay) {
+        const ret = wasm.policy_batchDelayPenalty(delay);
+        return ret;
+    }
+    /**
+     * Returns the batch index at a given block number. The batch index is the number of a block relative
+     * to the batch it is in. For example, the first block of any batch always has an batch index of 0.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static batchIndexAt(block_number) {
+        const ret = wasm.policy_batchIndexAt(block_number);
         return ret >>> 0;
     }
     /**
@@ -856,6 +666,24 @@ export class Policy {
     static get BATCHES_PER_EPOCH() {
         const ret = wasm.policy_batches_per_epoch();
         return ret;
+    }
+    /**
+     * Returns the first block after the jail period of a given block number has ended.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static blockAfterJail(block_number) {
+        const ret = wasm.policy_blockAfterJail(block_number);
+        return ret >>> 0;
+    }
+    /**
+     * Returns the first block after the reporting window of a given block number has ended.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static blockAfterReportingWindow(block_number) {
+        const ret = wasm.policy_blockAfterReportingWindow(block_number);
+        return ret >>> 0;
     }
     /**
      * Length of a batch including the macro block
@@ -871,60 +699,6 @@ export class Policy {
      */
     static get BLOCKS_PER_EPOCH() {
         const ret = wasm.policy_blocks_per_epoch();
-        return ret >>> 0;
-    }
-    /**
-     * Genesis block number
-     * @returns {number}
-     */
-    static get GENESIS_BLOCK_NUMBER() {
-        const ret = wasm.policy_genesis_block_number();
-        return ret >>> 0;
-    }
-    /**
-     * Maximum size of accounts trie chunks.
-     * @returns {number}
-     */
-    static get STATE_CHUNKS_MAX_SIZE() {
-        const ret = wasm.policy_state_chunks_max_size();
-        return ret >>> 0;
-    }
-    /**
-     * Returns the epoch number at a given block number (height).
-     * @param {number} block_number
-     * @returns {number}
-     */
-    static epochAt(block_number) {
-        const ret = wasm.policy_epochAt(block_number);
-        return ret >>> 0;
-    }
-    /**
-     * Returns the epoch index at a given block number. The epoch index is the number of a block relative
-     * to the epoch it is in. For example, the first block of any epoch always has an epoch index of 0.
-     * @param {number} block_number
-     * @returns {number}
-     */
-    static epochIndexAt(block_number) {
-        const ret = wasm.policy_epochIndexAt(block_number);
-        return ret >>> 0;
-    }
-    /**
-     * Returns the batch number at a given `block_number` (height)
-     * @param {number} block_number
-     * @returns {number}
-     */
-    static batchAt(block_number) {
-        const ret = wasm.policy_batchAt(block_number);
-        return ret >>> 0;
-    }
-    /**
-     * Returns the batch index at a given block number. The batch index is the number of a block relative
-     * to the batch it is in. For example, the first block of any batch always has an batch index of 0.
-     * @param {number} block_number
-     * @returns {number}
-     */
-    static batchIndexAt(block_number) {
-        const ret = wasm.policy_batchIndexAt(block_number);
         return ret >>> 0;
     }
     /**
@@ -947,70 +721,42 @@ export class Policy {
         return ret >>> 0;
     }
     /**
-     * Returns the block number (height) of the last election macro block at a given block number (height).
-     * If the given block number is an election macro block, then it returns that block number.
+     * Returns the block number of the election macro block of the given epoch (which is always the last block).
+     * If the index is out of bounds, None is returned
+     * @param {number} epoch
+     * @returns {number | undefined}
+     */
+    static electionBlockOf(epoch) {
+        const ret = wasm.policy_electionBlockOf(epoch);
+        return ret === 0x100000001 ? undefined : ret;
+    }
+    /**
+     * Returns the epoch number at a given block number (height).
      * @param {number} block_number
      * @returns {number}
      */
-    static lastElectionBlock(block_number) {
-        const ret = wasm.policy_lastElectionBlock(block_number);
+    static epochAt(block_number) {
+        const ret = wasm.policy_epochAt(block_number);
         return ret >>> 0;
     }
     /**
-     * Returns a boolean expressing if the block at a given block number (height) is an election macro block.
+     * Returns the epoch index at a given block number. The epoch index is the number of a block relative
+     * to the epoch it is in. For example, the first block of any epoch always has an epoch index of 0.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static epochIndexAt(block_number) {
+        const ret = wasm.policy_epochIndexAt(block_number);
+        return ret >>> 0;
+    }
+    /**
+     * Returns a boolean expressing if the batch at a given block number (height) is the first batch
+     * of the epoch.
      * @param {number} block_number
      * @returns {boolean}
      */
-    static isElectionBlockAt(block_number) {
-        const ret = wasm.policy_isElectionBlockAt(block_number);
-        return ret !== 0;
-    }
-    /**
-     * Returns the block number (height) of the next macro block after a given block number (height).
-     * If the given block number is a macro block, it returns the macro block after it.
-     * @param {number} block_number
-     * @returns {number}
-     */
-    static macroBlockAfter(block_number) {
-        const ret = wasm.policy_macroBlockAfter(block_number);
-        return ret >>> 0;
-    }
-    /**
-     * Returns the block number (height) of the preceding macro block before a given block number (height).
-     * If the given block number is a macro block, it returns the macro block before it.
-     * @param {number} block_number
-     * @returns {number}
-     */
-    static macroBlockBefore(block_number) {
-        const ret = wasm.policy_macroBlockBefore(block_number);
-        return ret >>> 0;
-    }
-    /**
-     * Returns the block number (height) of the last macro block at a given block number (height).
-     * If the given block number is a macro block, then it returns that block number.
-     * @param {number} block_number
-     * @returns {number}
-     */
-    static lastMacroBlock(block_number) {
-        const ret = wasm.policy_lastMacroBlock(block_number);
-        return ret >>> 0;
-    }
-    /**
-     * Returns a boolean expressing if the block at a given block number (height) is a macro block.
-     * @param {number} block_number
-     * @returns {boolean}
-     */
-    static isMacroBlockAt(block_number) {
-        const ret = wasm.policy_isMacroBlockAt(block_number);
-        return ret !== 0;
-    }
-    /**
-     * Returns a boolean expressing if the block at a given block number (height) is a micro block.
-     * @param {number} block_number
-     * @returns {boolean}
-     */
-    static isMicroBlockAt(block_number) {
-        const ret = wasm.policy_isMicroBlockAt(block_number);
+    static firstBatchOfEpoch(block_number) {
+        const ret = wasm.policy_firstBatchOfEpoch(block_number);
         return ret !== 0;
     }
     /**
@@ -1034,34 +780,38 @@ export class Policy {
         return ret === 0x100000001 ? undefined : ret;
     }
     /**
-     * Returns the block number of the election macro block of the given epoch (which is always the last block).
-     * If the index is out of bounds, None is returned
-     * @param {number} epoch
-     * @returns {number | undefined}
+     * Genesis block number
+     * @returns {number}
      */
-    static electionBlockOf(epoch) {
-        const ret = wasm.policy_electionBlockOf(epoch);
-        return ret === 0x100000001 ? undefined : ret;
+    static get GENESIS_BLOCK_NUMBER() {
+        const ret = wasm.policy_genesis_block_number();
+        return ret >>> 0;
     }
     /**
-     * Returns the block number of the macro block (checkpoint or election) of the given batch (which
-     * is always the last block).
-     * If the index is out of bounds, None is returned
-     * @param {number} batch
-     * @returns {number | undefined}
-     */
-    static macroBlockOf(batch) {
-        const ret = wasm.policy_macroBlockOf(batch);
-        return ret === 0x100000001 ? undefined : ret;
-    }
-    /**
-     * Returns a boolean expressing if the batch at a given block number (height) is the first batch
-     * of the epoch.
+     * Returns a boolean expressing if the block at a given block number (height) is an election macro block.
      * @param {number} block_number
      * @returns {boolean}
      */
-    static firstBatchOfEpoch(block_number) {
-        const ret = wasm.policy_firstBatchOfEpoch(block_number);
+    static isElectionBlockAt(block_number) {
+        const ret = wasm.policy_isElectionBlockAt(block_number);
+        return ret !== 0;
+    }
+    /**
+     * Returns a boolean expressing if the block at a given block number (height) is a macro block.
+     * @param {number} block_number
+     * @returns {boolean}
+     */
+    static isMacroBlockAt(block_number) {
+        const ret = wasm.policy_isMacroBlockAt(block_number);
+        return ret !== 0;
+    }
+    /**
+     * Returns a boolean expressing if the block at a given block number (height) is a micro block.
+     * @param {number} block_number
+     * @returns {boolean}
+     */
+    static isMicroBlockAt(block_number) {
+        const ret = wasm.policy_isMicroBlockAt(block_number);
         return ret !== 0;
     }
     /**
@@ -1075,21 +825,70 @@ export class Policy {
         return ret >>> 0;
     }
     /**
-     * Returns the first block after the reporting window of a given block number has ended.
+     * Returns the block number (height) of the last election macro block at a given block number (height).
+     * If the given block number is an election macro block, then it returns that block number.
      * @param {number} block_number
      * @returns {number}
      */
-    static blockAfterReportingWindow(block_number) {
-        const ret = wasm.policy_blockAfterReportingWindow(block_number);
+    static lastElectionBlock(block_number) {
+        const ret = wasm.policy_lastElectionBlock(block_number);
         return ret >>> 0;
     }
     /**
-     * Returns the first block after the jail period of a given block number has ended.
+     * Returns the block number (height) of the last macro block at a given block number (height).
+     * If the given block number is a macro block, then it returns that block number.
      * @param {number} block_number
      * @returns {number}
      */
-    static blockAfterJail(block_number) {
-        const ret = wasm.policy_blockAfterJail(block_number);
+    static lastMacroBlock(block_number) {
+        const ret = wasm.policy_lastMacroBlock(block_number);
+        return ret >>> 0;
+    }
+    /**
+     * Returns the block number (height) of the next macro block after a given block number (height).
+     * If the given block number is a macro block, it returns the macro block after it.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static macroBlockAfter(block_number) {
+        const ret = wasm.policy_macroBlockAfter(block_number);
+        return ret >>> 0;
+    }
+    /**
+     * Returns the block number (height) of the preceding macro block before a given block number (height).
+     * If the given block number is a macro block, it returns the macro block before it.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static macroBlockBefore(block_number) {
+        const ret = wasm.policy_macroBlockBefore(block_number);
+        return ret >>> 0;
+    }
+    /**
+     * Returns the block number of the macro block (checkpoint or election) of the given batch (which
+     * is always the last block).
+     * If the index is out of bounds, None is returned
+     * @param {number} batch
+     * @returns {number | undefined}
+     */
+    static macroBlockOf(batch) {
+        const ret = wasm.policy_macroBlockOf(batch);
+        return ret === 0x100000001 ? undefined : ret;
+    }
+    /**
+     * Maximum supported protocol version
+     * @returns {number}
+     */
+    static get MAX_SUPPORTED_VERSION() {
+        const ret = wasm.policy_max_supported_version();
+        return ret;
+    }
+    /**
+     * Maximum size of accounts trie chunks.
+     * @returns {number}
+     */
+    static get STATE_CHUNKS_MAX_SIZE() {
+        const ret = wasm.policy_state_chunks_max_size();
         return ret >>> 0;
     }
     /**
@@ -1110,33 +909,36 @@ export class Policy {
         return BigInt.asUintN(64, ret);
     }
     /**
-     * Returns the percentage reduction that should be applied to the rewards due to a delayed batch.
-     * This function returns a float in the range [0, 1]
-     * I.e 1 means that the full rewards should be given, whereas 0.5 means that half of the rewards should be given
-     * The input to this function is the batch delay, in milliseconds
-     * The function is: [(1 - MINIMUM_REWARDS_PERCENTAGE) * BLOCKS_DELAY_DECAY ^ (t^2)] + MINIMUM_REWARDS_PERCENTAGE
-     * @param {bigint} delay
+     * Number of batches a transaction is valid with Albatross consensus.
      * @returns {number}
      */
-    static batchDelayPenalty(delay) {
-        const ret = wasm.policy_batchDelayPenalty(delay);
-        return ret;
+    static get TRANSACTION_VALIDITY_WINDOW() {
+        const ret = wasm.policy_transaction_validity_window();
+        return ret >>> 0;
     }
     /**
-     * This is the address for the staking contract.
-     * @returns {string}
+     * Number of blocks a transaction is valid with Albatross consensus.
+     * @returns {number}
      */
-    static get STAKING_CONTRACT_ADDRESS() {
-        let deferred1_0;
-        let deferred1_1;
-        try {
-            const ret = wasm.policy_wasm_staking_contract_address();
-            deferred1_0 = ret[0];
-            deferred1_1 = ret[1];
-            return getStringFromWasm0(ret[0], ret[1]);
-        } finally {
-            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-        }
+    static get TRANSACTION_VALIDITY_WINDOW_BLOCKS() {
+        const ret = wasm.policy_transaction_validity_window_blocks();
+        return ret >>> 0;
+    }
+    /**
+     * The optimal time in milliseconds between blocks (1s)
+     * @returns {bigint}
+     */
+    static get BLOCK_SEPARATION_TIME() {
+        const ret = wasm.policy_wasm_block_separation_time();
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+     * The maximum size of the BLS public key cache.
+     * @returns {number}
+     */
+    static get BLS_CACHE_MAX_CAPACITY() {
+        const ret = wasm.policy_wasm_bls_cache_max_capacity();
+        return ret >>> 0;
     }
     /**
      * This is the address for the coinbase. Note that this is not a real account, it is just the
@@ -1156,6 +958,34 @@ export class Policy {
         }
     }
     /**
+     * Calculates f+1 slots which is the minimum number of slots necessary to be guaranteed to have at
+     * least one honest slots. That's because from a total of 3f+1 slots at most f will be malicious.
+     * It is calculated as `ceil(SLOTS/3)` and we use the formula `ceil(x/y) = (x+y-1)/y` for the
+     * ceiling division.
+     * @returns {number}
+     */
+    static get F_PLUS_ONE() {
+        const ret = wasm.policy_wasm_f_plus_one();
+        return ret;
+    }
+    /**
+     * Maximum size of history chunks.
+     * 25 MB.
+     * @returns {bigint}
+     */
+    static get HISTORY_CHUNKS_MAX_SIZE() {
+        const ret = wasm.policy_wasm_history_chunks_max_size();
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+     * The number of epochs a validator is put in jail for. The jailing only happens for severe offenses.
+     * @returns {number}
+     */
+    static get JAIL_EPOCHS() {
+        const ret = wasm.policy_wasm_jail_epochs();
+        return ret >>> 0;
+    }
+    /**
      * The maximum allowed size, in bytes, for a micro block body.
      * @returns {number}
      */
@@ -1164,11 +994,27 @@ export class Policy {
         return ret >>> 0;
     }
     /**
-     * The current version number of the protocol. Changing this always results in a hard fork.
+     * The minimum timeout in milliseconds for a validator to produce a block (4s)
+     * @returns {bigint}
+     */
+    static get MIN_PRODUCER_TIMEOUT() {
+        const ret = wasm.policy_wasm_min_block_producer_timeout();
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+     * Minimum number of epochs that the ChainStore will store fully
      * @returns {number}
      */
-    static get VERSION() {
+    static get MIN_EPOCHS_STORED() {
         const ret = wasm.policy_wasm_min_epochs_stored();
+        return ret >>> 0;
+    }
+    /**
+     * The minimum rewards percentage that we allow
+     * @returns {number}
+     */
+    static get MINIMUM_REWARDS_PERCENTAGE() {
+        const ret = wasm.policy_wasm_minimum_rewards_percentage();
         return ret;
     }
     /**
@@ -1178,6 +1024,39 @@ export class Policy {
     static get SLOTS() {
         const ret = wasm.policy_wasm_slots();
         return ret;
+    }
+    /**
+     * This is the address for the staking contract.
+     * @returns {string}
+     */
+    static get STAKING_CONTRACT_ADDRESS() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.policy_wasm_staking_contract_address();
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * The maximum drift, in milliseconds, that is allowed between any block's timestamp and the node's
+     * system time. We only care about drifting to the future.
+     * @returns {bigint}
+     */
+    static get TIMESTAMP_MAX_DRIFT() {
+        const ret = wasm.policy_wasm_timestamp_max_drift();
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+     * Total supply in units.
+     * @returns {bigint}
+     */
+    static get TOTAL_SUPPLY() {
+        const ret = wasm.policy_wasm_total_supply();
+        return BigInt.asUintN(64, ret);
     }
     /**
      * Calculates 2f+1 slots which is the minimum number of slots necessary to produce a macro block,
@@ -1196,58 +1075,6 @@ export class Policy {
         return ret;
     }
     /**
-     * Calculates f+1 slots which is the minimum number of slots necessary to be guaranteed to have at
-     * least one honest slots. That's because from a total of 3f+1 slots at most f will be malicious.
-     * It is calculated as `ceil(SLOTS/3)` and we use the formula `ceil(x/y) = (x+y-1)/y` for the
-     * ceiling division.
-     * @returns {number}
-     */
-    static get F_PLUS_ONE() {
-        const ret = wasm.policy_wasm_f_plus_one();
-        return ret;
-    }
-    /**
-     * The minimum timeout in milliseconds for a validator to produce a block (4s)
-     * @returns {bigint}
-     */
-    static get MIN_PRODUCER_TIMEOUT() {
-        const ret = wasm.policy_wasm_min_block_producer_timeout();
-        return BigInt.asUintN(64, ret);
-    }
-    /**
-     * The optimal time in milliseconds between blocks (1s)
-     * @returns {bigint}
-     */
-    static get BLOCK_SEPARATION_TIME() {
-        const ret = wasm.policy_wasm_block_separation_time();
-        return BigInt.asUintN(64, ret);
-    }
-    /**
-     * Minimum number of epochs that the ChainStore will store fully
-     * @returns {number}
-     */
-    static get MIN_EPOCHS_STORED() {
-        const ret = wasm.policy_wasm_min_epochs_stored();
-        return ret >>> 0;
-    }
-    /**
-     * The maximum drift, in milliseconds, that is allowed between any block's timestamp and the node's
-     * system time. We only care about drifting to the future.
-     * @returns {bigint}
-     */
-    static get TIMESTAMP_MAX_DRIFT() {
-        const ret = wasm.policy_wasm_timestamp_max_drift();
-        return BigInt.asUintN(64, ret);
-    }
-    /**
-     * The minimum rewards percentage that we allow
-     * @returns {number}
-     */
-    static get MINIMUM_REWARDS_PERCENTAGE() {
-        const ret = wasm.policy_wasm_minimum_rewards_percentage();
-        return ret;
-    }
-    /**
      * The deposit necessary to create a validator in Lunas (1 NIM = 100,000 Lunas).
      * A validator is someone who actually participates in block production. They are akin to miners
      * in proof-of-work.
@@ -1257,50 +1084,14 @@ export class Policy {
         const ret = wasm.policy_wasm_validator_deposit();
         return BigInt.asUintN(64, ret);
     }
-    /**
-     * The number of epochs a validator is put in jail for. The jailing only happens for severe offenses.
-     * @returns {number}
-     */
-    static get JAIL_EPOCHS() {
-        const ret = wasm.policy_wasm_jail_epochs();
-        return ret >>> 0;
-    }
-    /**
-     * Total supply in units.
-     * @returns {bigint}
-     */
-    static get TOTAL_SUPPLY() {
-        const ret = wasm.policy_wasm_total_supply();
-        return BigInt.asUintN(64, ret);
-    }
-    /**
-     * The maximum size of the BLS public key cache.
-     * @returns {number}
-     */
-    static get BLS_CACHE_MAX_CAPACITY() {
-        const ret = wasm.policy_wasm_bls_cache_max_capacity();
-        return ret >>> 0;
-    }
-    /**
-     * Maximum size of history chunks.
-     * 25 MB.
-     * @returns {bigint}
-     */
-    static get HISTORY_CHUNKS_MAX_SIZE() {
-        const ret = wasm.policy_wasm_history_chunks_max_size();
-        return BigInt.asUintN(64, ret);
-    }
 }
+if (Symbol.dispose) Policy.prototype[Symbol.dispose] = Policy.prototype.free;
 
-const SignatureProofFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_signatureproof_free(ptr >>> 0, 1));
 /**
  * A signature proof represents a signature together with its public key and the public key's merkle path.
  * It is used as the proof for transactions.
  */
 export class SignatureProof {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(SignatureProof.prototype);
@@ -1308,14 +1099,12 @@ export class SignatureProof {
         SignatureProofFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         SignatureProofFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_signatureproof_free(ptr, 0);
@@ -1335,31 +1124,25 @@ export class SignatureProof {
         return SignatureProof.__wrap(ret[0]);
     }
 }
+if (Symbol.dispose) SignatureProof.prototype[Symbol.dispose] = SignatureProof.prototype.free;
 
-const StakingContractFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_stakingcontract_free(ptr >>> 0, 1));
 /**
  * Utility class providing methods to parse Staking Contract transaction data and proofs.
  */
 export class StakingContract {
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         StakingContractFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_stakingcontract_free(ptr, 0);
     }
 }
+if (Symbol.dispose) StakingContract.prototype[Symbol.dispose] = StakingContract.prototype.free;
 
-const TransactionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_transaction_free(ptr >>> 0, 1));
 /**
  * Transactions describe a transfer of value, usually from the sender to the recipient.
  * However, transactions can also have no value, when they are used to _signal_ a change in the staking contract.
@@ -1370,7 +1153,6 @@ const TransactionFinalization = (typeof FinalizationRegistry === 'undefined')
  * Furthermore, transactions are only valid for 2 hours after their validity-start block height.
  */
 export class Transaction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Transaction.prototype);
@@ -1378,17 +1160,143 @@ export class Transaction {
         TransactionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transaction_free(ptr, 0);
+    }
+    /**
+     * The transaction's data as a byte array.
+     * @returns {Uint8Array}
+     */
+    get data() {
+        const ret = wasm.transaction_data(this.__wbg_ptr);
+        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        return v1;
+    }
+    /**
+     * Deserializes a transaction from a byte array.
+     * @param {Uint8Array} bytes
+     * @returns {Transaction}
+     */
+    static deserialize(bytes) {
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.transaction_deserialize(ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return Transaction.__wrap(ret[0]);
+    }
+    /**
+     * The transaction's fee in luna (NIM's smallest unit).
+     * @returns {bigint}
+     */
+    get fee() {
+        const ret = wasm.transaction_fee(this.__wbg_ptr);
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+     * The transaction's fee per byte in luna (NIM's smallest unit).
+     * @returns {number}
+     */
+    get feePerByte() {
+        const ret = wasm.transaction_feePerByte(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * The transaction's flags: `0b1` = contract creation, `0b10` = signaling.
+     * Bit patterns outside the known variants collapse to `None`.
+     * Inspect `toPlain().flags` for the raw value.
+     * @returns {TransactionFlag}
+     */
+    get flags() {
+        const ret = wasm.transaction_flags(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * The transaction's {@link TransactionFormat}.
+     * @returns {TransactionFormat}
+     */
+    get format() {
+        const ret = wasm.transaction_format(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Parses a transaction from a {@link Transaction} instance, a plain object, a hex string
+     * representation, or a byte array.
+     *
+     * Throws when a transaction cannot be parsed from the argument.
+     * @param {PlainTransaction | string | Uint8Array} tx
+     * @returns {Transaction}
+     */
+    static fromAny(tx) {
+        const ret = wasm.transaction_fromAny(tx);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return Transaction.__wrap(ret[0]);
+    }
+    /**
+     * Parses a transaction from a plain object.
+     *
+     * Throws when a transaction cannot be parsed from the argument.
+     * @param {PlainTransaction} plain
+     * @returns {Transaction}
+     */
+    static fromPlain(plain) {
+        const ret = wasm.transaction_fromPlain(plain);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return Transaction.__wrap(ret[0]);
+    }
+    /**
+     * Returns the address of the contract that is created with this transaction.
+     * @returns {Address}
+     */
+    getContractCreationAddress() {
+        const ret = wasm.transaction_getContractCreationAddress(this.__wbg_ptr);
+        return Address.__wrap(ret);
+    }
+    /**
+     * Computes the transaction's hash, which is used as its unique identifier on the blockchain.
+     * @returns {string}
+     */
+    hash() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.transaction_hash(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * Tests if the transaction is valid at the specified block height.
+     * @param {number} block_height
+     * @returns {boolean}
+     */
+    isValidAt(block_height) {
+        const ret = wasm.transaction_isValidAt(this.__wbg_ptr, block_height);
+        return ret !== 0;
+    }
+    /**
+     * The transaction's network ID.
+     * @returns {number}
+     */
+    get networkId() {
+        const ret = wasm.transaction_networkId(this.__wbg_ptr);
+        return ret;
     }
     /**
      * Creates a new unsigned transaction that transfers `value` amount of luna (NIM's smallest unit)
@@ -1447,96 +1355,14 @@ export class Transaction {
         return this;
     }
     /**
-     * Computes the transaction's hash, which is used as its unique identifier on the blockchain.
-     * @returns {string}
-     */
-    hash() {
-        let deferred1_0;
-        let deferred1_1;
-        try {
-            const ret = wasm.transaction_hash(this.__wbg_ptr);
-            deferred1_0 = ret[0];
-            deferred1_1 = ret[1];
-            return getStringFromWasm0(ret[0], ret[1]);
-        } finally {
-            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-        }
-    }
-    /**
-     * Verifies that a transaction has valid properties and a valid signature proof.
-     * Optionally checks if the transaction is valid on the provided network.
-     *
-     * **Throws with any transaction validity error.** Returns without exception if the transaction is valid.
-     *
-     * Throws when the given networkId is unknown.
-     * @param {number | null} [network_id]
-     */
-    verify(network_id) {
-        const ret = wasm.transaction_verify(this.__wbg_ptr, isLikeNone(network_id) ? 0xFFFFFF : network_id);
-        if (ret[1]) {
-            throw takeFromExternrefTable0(ret[0]);
-        }
-    }
-    /**
-     * Tests if the transaction is valid at the specified block height.
-     * @param {number} block_height
-     * @returns {boolean}
-     */
-    isValidAt(block_height) {
-        const ret = wasm.transaction_isValidAt(this.__wbg_ptr, block_height);
-        return ret !== 0;
-    }
-    /**
-     * Returns the address of the contract that is created with this transaction.
-     * @returns {Address}
-     */
-    getContractCreationAddress() {
-        const ret = wasm.transaction_getContractCreationAddress(this.__wbg_ptr);
-        return Address.__wrap(ret);
-    }
-    /**
-     * Serializes the transaction's content to be used for creating its signature.
+     * The transaction's signature proof as a byte array.
      * @returns {Uint8Array}
      */
-    serializeContent() {
-        const ret = wasm.transaction_serializeContent(this.__wbg_ptr);
+    get proof() {
+        const ret = wasm.transaction_proof(this.__wbg_ptr);
         var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
         wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
         return v1;
-    }
-    /**
-     * Serializes the transaction to a byte array.
-     * @returns {Uint8Array}
-     */
-    serialize() {
-        const ret = wasm.transaction_serialize(this.__wbg_ptr);
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
-    }
-    /**
-     * The transaction's {@link TransactionFormat}.
-     * @returns {TransactionFormat}
-     */
-    get format() {
-        const ret = wasm.transaction_format(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * The transaction's sender address.
-     * @returns {Address}
-     */
-    get sender() {
-        const ret = wasm.transaction_sender(this.__wbg_ptr);
-        return Address.__wrap(ret);
-    }
-    /**
-     * The transaction's sender {@link AccountType}.
-     * @returns {AccountType}
-     */
-    get senderType() {
-        const ret = wasm.transaction_senderType(this.__wbg_ptr);
-        return ret;
     }
     /**
      * The transaction's recipient address.
@@ -1555,71 +1381,12 @@ export class Transaction {
         return ret;
     }
     /**
-     * The transaction's value in luna (NIM's smallest unit).
-     * @returns {bigint}
+     * The transaction's sender address.
+     * @returns {Address}
      */
-    get value() {
-        const ret = wasm.transaction_value(this.__wbg_ptr);
-        return BigInt.asUintN(64, ret);
-    }
-    /**
-     * The transaction's fee in luna (NIM's smallest unit).
-     * @returns {bigint}
-     */
-    get fee() {
-        const ret = wasm.transaction_fee(this.__wbg_ptr);
-        return BigInt.asUintN(64, ret);
-    }
-    /**
-     * The transaction's fee per byte in luna (NIM's smallest unit).
-     * @returns {number}
-     */
-    get feePerByte() {
-        const ret = wasm.transaction_feePerByte(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * The transaction's validity-start height. The transaction is valid for 2 hours after this block height.
-     * @returns {number}
-     */
-    get validityStartHeight() {
-        const ret = wasm.transaction_validityStartHeight(this.__wbg_ptr);
-        return ret >>> 0;
-    }
-    /**
-     * The transaction's network ID.
-     * @returns {number}
-     */
-    get networkId() {
-        const ret = wasm.transaction_networkId(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * The transaction's flags: `0b1` = contract creation, `0b10` = signaling.
-     * @returns {TransactionFlag}
-     */
-    get flags() {
-        const ret = wasm.transaction_flags(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * The transaction's data as a byte array.
-     * @returns {Uint8Array}
-     */
-    get data() {
-        const ret = wasm.transaction_data(this.__wbg_ptr);
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
-    }
-    /**
-     * Set the transaction's data
-     * @param {Uint8Array} data
-     */
-    set data(data) {
-        const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.transaction_set_data(this.__wbg_ptr, ptr0, len0);
+    get sender() {
+        const ret = wasm.transaction_sender(this.__wbg_ptr);
+        return Address.__wrap(ret);
     }
     /**
      * The transaction's sender data as a byte array.
@@ -1632,14 +1399,49 @@ export class Transaction {
         return v1;
     }
     /**
-     * The transaction's signature proof as a byte array.
+     * The transaction's sender {@link AccountType}.
+     * @returns {AccountType}
+     */
+    get senderType() {
+        const ret = wasm.transaction_senderType(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Serializes the transaction to a byte array.
      * @returns {Uint8Array}
      */
-    get proof() {
-        const ret = wasm.transaction_proof(this.__wbg_ptr);
+    serialize() {
+        const ret = wasm.transaction_serialize(this.__wbg_ptr);
         var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
         wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
         return v1;
+    }
+    /**
+     * Serializes the transaction's content to be used for creating its signature.
+     * @returns {Uint8Array}
+     */
+    serializeContent() {
+        const ret = wasm.transaction_serializeContent(this.__wbg_ptr);
+        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        return v1;
+    }
+    /**
+     * The transaction's byte size.
+     * @returns {number}
+     */
+    get serializedSize() {
+        const ret = wasm.transaction_serializedSize(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * Set the transaction's data
+     * @param {Uint8Array} data
+     */
+    set data(data) {
+        const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.transaction_set_data(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * Set the transaction's signature proof.
@@ -1649,14 +1451,6 @@ export class Transaction {
         const ptr0 = passArray8ToWasm0(proof, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         wasm.transaction_set_proof(this.__wbg_ptr, ptr0, len0);
-    }
-    /**
-     * The transaction's byte size.
-     * @returns {number}
-     */
-    get serializedSize() {
-        const ret = wasm.transaction_serializedSize(this.__wbg_ptr);
-        return ret >>> 0;
     }
     /**
      * Serializes the transaction into a HEX string.
@@ -1688,293 +1482,344 @@ export class Transaction {
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * Deserializes a transaction from a byte array.
-     * @param {Uint8Array} bytes
-     * @returns {Transaction}
+     * The transaction's validity-start height. The transaction is valid for 2 hours after this block height.
+     * @returns {number}
      */
-    static deserialize(bytes) {
-        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.transaction_deserialize(ptr0, len0);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        return Transaction.__wrap(ret[0]);
+    get validityStartHeight() {
+        const ret = wasm.transaction_validityStartHeight(this.__wbg_ptr);
+        return ret >>> 0;
     }
     /**
-     * Parses a transaction from a {@link Transaction} instance, a plain object, a hex string
-     * representation, or a byte array.
-     *
-     * Throws when a transaction cannot be parsed from the argument.
-     * @param {PlainTransaction | string | Uint8Array} tx
-     * @returns {Transaction}
+     * The transaction's value in luna (NIM's smallest unit).
+     * @returns {bigint}
      */
-    static fromAny(tx) {
-        const ret = wasm.transaction_fromAny(tx);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        return Transaction.__wrap(ret[0]);
+    get value() {
+        const ret = wasm.transaction_value(this.__wbg_ptr);
+        return BigInt.asUintN(64, ret);
     }
     /**
-     * Parses a transaction from a plain object.
+     * Verifies that a transaction has valid properties and a valid signature proof for the
+     * provided `protocol_version`.
+     * Optionally checks if the transaction is valid on the provided network.
      *
-     * Throws when a transaction cannot be parsed from the argument.
-     * @param {PlainTransaction} plain
-     * @returns {Transaction}
+     * **Throws with any transaction validity error.** Returns without exception if the transaction is valid.
+     *
+     * A `protocol_version` of `0` is accepted for backwards-compatible pre-upgrade validation.
+     * Throws when the given networkId is unknown.
+     * @param {number} protocol_version
+     * @param {number | null} [network_id]
      */
-    static fromPlain(plain) {
-        const ret = wasm.transaction_fromPlain(plain);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
+    verify(protocol_version, network_id) {
+        const ret = wasm.transaction_verify(this.__wbg_ptr, protocol_version, isLikeNone(network_id) ? 0xFFFFFF : network_id);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
         }
-        return Transaction.__wrap(ret[0]);
     }
 }
+if (Symbol.dispose) Transaction.prototype[Symbol.dispose] = Transaction.prototype.free;
 
-const VestingContractFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_vestingcontract_free(ptr >>> 0, 1));
+/**
+ * A transaction flag signals a special purpose of the transaction. `ContractCreation` must be set
+ * to create new vesting contracts or HTLCs. `Signaling` must be set to interact with the staking
+ * contract for non-value transactions. All other transactions' flag is set to `None`.
+ * @enum {0 | 1 | 2}
+ */
+export const TransactionFlag = Object.freeze({
+    None: 0, "0": "None",
+    ContractCreation: 1, "1": "ContractCreation",
+    Signaling: 2, "2": "Signaling",
+});
+
+/**
+ * @enum {0 | 1}
+ */
+export const TransactionFormat = Object.freeze({
+    Basic: 0, "0": "Basic",
+    Extended: 1, "1": "Extended",
+});
+
 /**
  * Utility class providing methods to parse Vesting Contract transaction data and proofs.
  */
 export class VestingContract {
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VestingContractFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_vestingcontract_free(ptr, 0);
     }
 }
-
-export function __wbg_String_8f0eb39a4a4c2f66(arg0, arg1) {
+if (Symbol.dispose) VestingContract.prototype[Symbol.dispose] = VestingContract.prototype.free;
+export function __wbg_Error_960c155d3d49e4c2(arg0, arg1) {
+    const ret = Error(getStringFromWasm0(arg0, arg1));
+    return ret;
+}
+export function __wbg_Number_32bf70a599af1d4b(arg0) {
+    const ret = Number(arg0);
+    return ret;
+}
+export function __wbg_String_8564e559799eccda(arg0, arg1) {
     const ret = String(arg1);
     const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
     getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
     getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
-};
-
-export function __wbg_WorkerGlobalScope_68dbbc2404209578(arg0) {
+}
+export function __wbg_WorkerGlobalScope_0f395e12ab05d182(arg0) {
     const ret = arg0.WorkerGlobalScope;
     return ret;
-};
-
-export function __wbg_addEventListener_80a602a44dbd0d06() { return handleError(function (arg0, arg1, arg2, arg3) {
+}
+export function __wbg___wbindgen_bigint_get_as_i64_3d3aba5d616c6a51(arg0, arg1) {
+    const v = arg1;
+    const ret = typeof(v) === 'bigint' ? v : undefined;
+    getDataViewMemory0().setBigInt64(arg0 + 8 * 1, isLikeNone(ret) ? BigInt(0) : ret, true);
+    getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
+}
+export function __wbg___wbindgen_boolean_get_6ea149f0a8dcc5ff(arg0) {
+    const v = arg0;
+    const ret = typeof(v) === 'boolean' ? v : undefined;
+    return isLikeNone(ret) ? 0xFFFFFF : ret ? 1 : 0;
+}
+export function __wbg___wbindgen_debug_string_ab4b34d23d6778bd(arg0, arg1) {
+    const ret = debugString(arg1);
+    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
+    getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
+}
+export function __wbg___wbindgen_in_a5d8b22e52b24dd1(arg0, arg1) {
+    const ret = arg0 in arg1;
+    return ret;
+}
+export function __wbg___wbindgen_is_bigint_ec25c7f91b4d9e93(arg0) {
+    const ret = typeof(arg0) === 'bigint';
+    return ret;
+}
+export function __wbg___wbindgen_is_function_3baa9db1a987f47d(arg0) {
+    const ret = typeof(arg0) === 'function';
+    return ret;
+}
+export function __wbg___wbindgen_is_null_52ff4ec04186736f(arg0) {
+    const ret = arg0 === null;
+    return ret;
+}
+export function __wbg___wbindgen_is_object_63322ec0cd6ea4ef(arg0) {
+    const val = arg0;
+    const ret = typeof(val) === 'object' && val !== null;
+    return ret;
+}
+export function __wbg___wbindgen_is_string_6df3bf7ef1164ed3(arg0) {
+    const ret = typeof(arg0) === 'string';
+    return ret;
+}
+export function __wbg___wbindgen_is_undefined_29a43b4d42920abd(arg0) {
+    const ret = arg0 === undefined;
+    return ret;
+}
+export function __wbg___wbindgen_jsval_eq_d3465d8a07697228(arg0, arg1) {
+    const ret = arg0 === arg1;
+    return ret;
+}
+export function __wbg___wbindgen_jsval_loose_eq_cac3565e89b4134c(arg0, arg1) {
+    const ret = arg0 == arg1;
+    return ret;
+}
+export function __wbg___wbindgen_number_get_c7f42aed0525c451(arg0, arg1) {
+    const obj = arg1;
+    const ret = typeof(obj) === 'number' ? obj : undefined;
+    getDataViewMemory0().setFloat64(arg0 + 8 * 1, isLikeNone(ret) ? 0 : ret, true);
+    getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
+}
+export function __wbg___wbindgen_string_get_7ed5322991caaec5(arg0, arg1) {
+    const obj = arg1;
+    const ret = typeof(obj) === 'string' ? obj : undefined;
+    var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
+    getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
+}
+export function __wbg___wbindgen_throw_6b64449b9b9ed33c(arg0, arg1) {
+    throw new Error(getStringFromWasm0(arg0, arg1));
+}
+export function __wbg__wbg_cb_unref_b46c9b5a9f08ec37(arg0) {
+    arg0._wbg_cb_unref();
+}
+export function __wbg_addEventListener_6288145a3c991a96() { return handleError(function (arg0, arg1, arg2, arg3) {
     arg0.addEventListener(getStringFromWasm0(arg1, arg2), arg3);
-}, arguments) };
-
-export function __wbg_apply_36be6a55257c99bf() { return handleError(function (arg0, arg1, arg2) {
+}, arguments); }
+export function __wbg_apply_4c35bd236dda9c14() { return handleError(function (arg0, arg1, arg2) {
     const ret = arg0.apply(arg1, arg2);
     return ret;
-}, arguments) };
-
-export function __wbg_buffer_609cc3eee51ed158(arg0) {
-    const ret = arg0.buffer;
-    return ret;
-};
-
-export function __wbg_bufferedAmount_a482960ac51b25e8(arg0) {
+}, arguments); }
+export function __wbg_bufferedAmount_58e0ecdc18cc66ba(arg0) {
     const ret = arg0.bufferedAmount;
     return ret;
-};
-
-export function __wbg_call_672a4d21634d4a24() { return handleError(function (arg0, arg1) {
+}
+export function __wbg_call_14b169f759b26747() { return handleError(function (arg0, arg1) {
     const ret = arg0.call(arg1);
     return ret;
-}, arguments) };
-
-export function __wbg_call_7cccdd69e0791ae2() { return handleError(function (arg0, arg1, arg2) {
+}, arguments); }
+export function __wbg_call_a24592a6f349a97e() { return handleError(function (arg0, arg1, arg2) {
     const ret = arg0.call(arg1, arg2);
     return ret;
-}, arguments) };
-
-export function __wbg_clearInterval_ad2594253cc39c4b(arg0, arg1) {
-    arg0.clearInterval(arg1);
-};
-
-export function __wbg_clearInterval_dd1e598f425db353(arg0) {
+}, arguments); }
+export function __wbg_clearInterval_26ba580547547579(arg0) {
     const ret = clearInterval(arg0);
     return ret;
-};
-
-export function __wbg_clearInterval_eba67734fd13a7f1(arg0, arg1) {
+}
+export function __wbg_clearInterval_b38e6d81cfcc0b27(arg0, arg1) {
     arg0.clearInterval(arg1);
-};
-
-export function __wbg_clearTimeout_5a54f8841c30079a(arg0) {
+}
+export function __wbg_clearInterval_d04d8e0ff92c4c05(arg0, arg1) {
+    arg0.clearInterval(arg1);
+}
+export function __wbg_clearTimeout_01406e55473040f6(arg0) {
     const ret = clearTimeout(arg0);
     return ret;
-};
-
-export function __wbg_clearTimeout_96804de0ab838f26(arg0) {
+}
+export function __wbg_clearTimeout_3629d6209dfcc46e(arg0) {
     const ret = clearTimeout(arg0);
     return ret;
-};
-
+}
 export function __wbg_client_new(arg0) {
     const ret = Client.__wrap(arg0);
     return ret;
-};
-
-export function __wbg_close_26fc2e6856d8567a(arg0) {
+}
+export function __wbg_close_a7d2c11ae747c112(arg0) {
     arg0.close();
-};
-
-export function __wbg_close_e1253d480ed93ce3() { return handleError(function (arg0, arg1, arg2, arg3) {
+}
+export function __wbg_close_ea1755acd462497f() { return handleError(function (arg0, arg1, arg2, arg3) {
     arg0.close(arg1, getStringFromWasm0(arg2, arg3));
-}, arguments) };
-
-export function __wbg_createIndex_873ac48adc772309() { return handleError(function (arg0, arg1, arg2, arg3, arg4) {
+}, arguments); }
+export function __wbg_createIndex_b7dc3a4f19fc4231() { return handleError(function (arg0, arg1, arg2, arg3, arg4) {
     const ret = arg0.createIndex(getStringFromWasm0(arg1, arg2), arg3, arg4);
     return ret;
-}, arguments) };
-
-export function __wbg_createIndex_fcfd513cf4581834() { return handleError(function (arg0, arg1, arg2, arg3) {
+}, arguments); }
+export function __wbg_createIndex_b9253d2f61b19445() { return handleError(function (arg0, arg1, arg2, arg3) {
     const ret = arg0.createIndex(getStringFromWasm0(arg1, arg2), arg3);
     return ret;
-}, arguments) };
-
-export function __wbg_createObjectStore_d2f9e1016f4d81b9() { return handleError(function (arg0, arg1, arg2, arg3) {
+}, arguments); }
+export function __wbg_createObjectStore_9cf3048eb7b47bc2() { return handleError(function (arg0, arg1, arg2, arg3) {
     const ret = arg0.createObjectStore(getStringFromWasm0(arg1, arg2), arg3);
     return ret;
-}, arguments) };
-
-export function __wbg_crypto_ed58b8e10a292839(arg0) {
+}, arguments); }
+export function __wbg_crypto_48300657fced39f9(arg0) {
     const ret = arg0.crypto;
     return ret;
-};
-
-export function __wbg_data_432d9c3df2630942(arg0) {
+}
+export function __wbg_data_bb9dffdd1e99cf2d(arg0) {
     const ret = arg0.data;
     return ret;
-};
-
-export function __wbg_debug_3cb59063b29f58c1(arg0) {
-    console.debug(arg0);
-};
-
-export function __wbg_debug_e17b51583ca6a632(arg0, arg1, arg2, arg3) {
+}
+export function __wbg_debug_4e190d233ee2e0d8(arg0, arg1, arg2, arg3) {
     console.debug(arg0, arg1, arg2, arg3);
-};
-
-export function __wbg_deleteIndex_e6717aa0e9691894() { return handleError(function (arg0, arg1, arg2) {
+}
+export function __wbg_debug_c014a160490283dc(arg0) {
+    console.debug(arg0);
+}
+export function __wbg_deleteIndex_99722fe825533212() { return handleError(function (arg0, arg1, arg2) {
     arg0.deleteIndex(getStringFromWasm0(arg1, arg2));
-}, arguments) };
-
-export function __wbg_deleteObjectStore_3f08ae00cd288224() { return handleError(function (arg0, arg1, arg2) {
+}, arguments); }
+export function __wbg_deleteObjectStore_081280ffb13f9792() { return handleError(function (arg0, arg1, arg2) {
     arg0.deleteObjectStore(getStringFromWasm0(arg1, arg2));
-}, arguments) };
-
-export function __wbg_done_769e5ede4b31c67b(arg0) {
+}, arguments); }
+export function __wbg_done_9158f7cc8751ba32(arg0) {
     const ret = arg0.done;
     return ret;
-};
-
-export function __wbg_entries_3265d4158b33e5dc(arg0) {
+}
+export function __wbg_entries_e0b73aa8571ddb56(arg0) {
     const ret = Object.entries(arg0);
     return ret;
-};
-
-export function __wbg_error_524f506f44df1645(arg0) {
+}
+export function __wbg_error_176f747c592e7ba3(arg0) {
+    const ret = arg0.error;
+    return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
+}
+export function __wbg_error_2001591ad2463697(arg0) {
     console.error(arg0);
-};
-
-export function __wbg_error_80de38b3f7cc3c3c(arg0, arg1, arg2, arg3) {
+}
+export function __wbg_error_43690a185e0311ac() { return handleError(function (arg0) {
+    const ret = arg0.error;
+    return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
+}, arguments); }
+export function __wbg_error_a6a4bb2525a88971(arg0, arg1, arg2, arg3) {
     console.error(arg0, arg1, arg2, arg3);
-};
-
-export function __wbg_error_e9332df4e7a14612(arg0) {
-    const ret = arg0.error;
-    return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
-};
-
-export function __wbg_error_ff4ddaabdfc5dbb3() { return handleError(function (arg0) {
-    const ret = arg0.error;
-    return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
-}, arguments) };
-
-export function __wbg_from_2a5d3e218e67aa85(arg0) {
+}
+export function __wbg_from_0dbf29f09e7fb200(arg0) {
     const ret = Array.from(arg0);
     return ret;
-};
-
-export function __wbg_getAll_1de5635a99f2dae8() { return handleError(function (arg0) {
-    const ret = arg0.getAll();
-    return ret;
-}, arguments) };
-
-export function __wbg_getAll_e1f497a121218ab5() { return handleError(function (arg0, arg1, arg2) {
-    const ret = arg0.getAll(arg1, arg2 >>> 0);
-    return ret;
-}, arguments) };
-
-export function __wbg_getAll_e6903c610babcd42() { return handleError(function (arg0, arg1) {
+}
+export function __wbg_getAll_1050a25926d2df6c() { return handleError(function (arg0, arg1) {
     const ret = arg0.getAll(arg1);
     return ret;
-}, arguments) };
-
-export function __wbg_getRandomValues_21a0191e74d0e1d3() { return handleError(function (arg0, arg1) {
-    globalThis.crypto.getRandomValues(getArrayU8FromWasm0(arg0, arg1));
-}, arguments) };
-
-export function __wbg_getRandomValues_bcb4912f16000dc4() { return handleError(function (arg0, arg1) {
+}, arguments); }
+export function __wbg_getAll_7f3a9865edd84fcd() { return handleError(function (arg0, arg1, arg2) {
+    const ret = arg0.getAll(arg1, arg2 >>> 0);
+    return ret;
+}, arguments); }
+export function __wbg_getAll_a898878594f5e590() { return handleError(function (arg0) {
+    const ret = arg0.getAll();
+    return ret;
+}, arguments); }
+export function __wbg_getRandomValues_263d0aa5464054ee() { return handleError(function (arg0, arg1) {
     arg0.getRandomValues(arg1);
-}, arguments) };
-
-export function __wbg_getTime_46267b1c24877e30(arg0) {
+}, arguments); }
+export function __wbg_getRandomValues_3f44b700395062e5() { return handleError(function (arg0, arg1) {
+    globalThis.crypto.getRandomValues(getArrayU8FromWasm0(arg0, arg1));
+}, arguments); }
+export function __wbg_getRandomValues_cc7f052a444bb2ce() { return handleError(function (arg0, arg1) {
+    globalThis.crypto.getRandomValues(getArrayU8FromWasm0(arg0, arg1));
+}, arguments); }
+export function __wbg_getTime_da7c55f52b71e8c6(arg0) {
     const ret = arg0.getTime();
     return ret;
-};
-
-export function __wbg_get_4f73335ab78445db(arg0, arg1, arg2) {
+}
+export function __wbg_get_1affdbdd5573b16a() { return handleError(function (arg0, arg1) {
+    const ret = Reflect.get(arg0, arg1);
+    return ret;
+}, arguments); }
+export function __wbg_get_59664ef421721a7e(arg0, arg1, arg2) {
     const ret = arg1[arg2 >>> 0];
     var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len1 = WASM_VECTOR_LEN;
     getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
     getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
-};
-
-export function __wbg_get_67b2ba62fc30de12() { return handleError(function (arg0, arg1) {
+}
+export function __wbg_get_6011fa3a58f61074() { return handleError(function (arg0, arg1) {
     const ret = Reflect.get(arg0, arg1);
     return ret;
-}, arguments) };
-
-export function __wbg_get_b9b93047fe3cf45b(arg0, arg1) {
+}, arguments); }
+export function __wbg_get_8360291721e2339f(arg0, arg1) {
     const ret = arg0[arg1 >>> 0];
     return ret;
-};
-
-export function __wbg_getwithrefkey_1dc361bd10053bfe(arg0, arg1) {
+}
+export function __wbg_get_unchecked_17f53dad852b9588(arg0, arg1) {
+    const ret = arg0[arg1 >>> 0];
+    return ret;
+}
+export function __wbg_get_with_ref_key_6412cf3094599694(arg0, arg1) {
     const ret = arg0[arg1];
     return ret;
-};
-
-export function __wbg_indexNames_0ed82a19d7d88aa3(arg0) {
+}
+export function __wbg_indexNames_3e19d9cfe84e3093(arg0) {
     const ret = arg0.indexNames;
     return ret;
-};
-
-export function __wbg_index_e00ca5fff206ee3e() { return handleError(function (arg0, arg1, arg2) {
+}
+export function __wbg_index_072be17bcbd46242() { return handleError(function (arg0, arg1, arg2) {
     const ret = arg0.index(getStringFromWasm0(arg1, arg2));
     return ret;
-}, arguments) };
-
-export function __wbg_info_033d8b8a0838f1d3(arg0, arg1, arg2, arg3) {
-    console.info(arg0, arg1, arg2, arg3);
-};
-
-export function __wbg_info_3daf2e093e091b66(arg0) {
+}, arguments); }
+export function __wbg_info_7479429238bffbce(arg0) {
     console.info(arg0);
-};
-
-export function __wbg_instanceof_ArrayBuffer_e14585432e3737fc(arg0) {
+}
+export function __wbg_info_e1c3400f7bf783dc(arg0, arg1, arg2, arg3) {
+    console.info(arg0, arg1, arg2, arg3);
+}
+export function __wbg_instanceof_ArrayBuffer_7c8433c6ed14ffe3(arg0) {
     let result;
     try {
         result = arg0 instanceof ArrayBuffer;
@@ -1983,9 +1828,8 @@ export function __wbg_instanceof_ArrayBuffer_e14585432e3737fc(arg0) {
     }
     const ret = result;
     return ret;
-};
-
-export function __wbg_instanceof_IdbDatabase_a3ef009ca00059f9(arg0) {
+}
+export function __wbg_instanceof_IdbDatabase_3b6930bc25a91170(arg0) {
     let result;
     try {
         result = arg0 instanceof IDBDatabase;
@@ -1994,9 +1838,8 @@ export function __wbg_instanceof_IdbDatabase_a3ef009ca00059f9(arg0) {
     }
     const ret = result;
     return ret;
-};
-
-export function __wbg_instanceof_IdbFactory_12eaba3366f4302f(arg0) {
+}
+export function __wbg_instanceof_IdbFactory_8af6762731f44f3b(arg0) {
     let result;
     try {
         result = arg0 instanceof IDBFactory;
@@ -2005,9 +1848,8 @@ export function __wbg_instanceof_IdbFactory_12eaba3366f4302f(arg0) {
     }
     const ret = result;
     return ret;
-};
-
-export function __wbg_instanceof_IdbOpenDbRequest_a3416e156c9db893(arg0) {
+}
+export function __wbg_instanceof_IdbOpenDbRequest_d0071b8c6aae51ff(arg0) {
     let result;
     try {
         result = arg0 instanceof IDBOpenDBRequest;
@@ -2016,9 +1858,8 @@ export function __wbg_instanceof_IdbOpenDbRequest_a3416e156c9db893(arg0) {
     }
     const ret = result;
     return ret;
-};
-
-export function __wbg_instanceof_IdbRequest_4813c3f207666aa4(arg0) {
+}
+export function __wbg_instanceof_IdbRequest_cb20b218916840b2(arg0) {
     let result;
     try {
         result = arg0 instanceof IDBRequest;
@@ -2027,9 +1868,8 @@ export function __wbg_instanceof_IdbRequest_4813c3f207666aa4(arg0) {
     }
     const ret = result;
     return ret;
-};
-
-export function __wbg_instanceof_IdbTransaction_746ea660d347650d(arg0) {
+}
+export function __wbg_instanceof_IdbTransaction_30097053aa3abb1e(arg0) {
     let result;
     try {
         result = arg0 instanceof IDBTransaction;
@@ -2038,9 +1878,8 @@ export function __wbg_instanceof_IdbTransaction_746ea660d347650d(arg0) {
     }
     const ret = result;
     return ret;
-};
-
-export function __wbg_instanceof_Map_f3469ce2244d2430(arg0) {
+}
+export function __wbg_instanceof_Map_1b76fd4635be43eb(arg0) {
     let result;
     try {
         result = arg0 instanceof Map;
@@ -2049,9 +1888,8 @@ export function __wbg_instanceof_Map_f3469ce2244d2430(arg0) {
     }
     const ret = result;
     return ret;
-};
-
-export function __wbg_instanceof_Uint8Array_17156bcf118086a9(arg0) {
+}
+export function __wbg_instanceof_Uint8Array_152ba1f289edcf3f(arg0) {
     let result;
     try {
         result = arg0 instanceof Uint8Array;
@@ -2060,9 +1898,8 @@ export function __wbg_instanceof_Uint8Array_17156bcf118086a9(arg0) {
     }
     const ret = result;
     return ret;
-};
-
-export function __wbg_instanceof_Window_def73ea0955fc569(arg0) {
+}
+export function __wbg_instanceof_Window_cc64c86c8ef9e02b(arg0) {
     let result;
     try {
         result = arg0 instanceof Window;
@@ -2071,71 +1908,79 @@ export function __wbg_instanceof_Window_def73ea0955fc569(arg0) {
     }
     const ret = result;
     return ret;
-};
-
-export function __wbg_isArray_a1eab7e0d067391b(arg0) {
+}
+export function __wbg_isArray_c3109d14ffc06469(arg0) {
     const ret = Array.isArray(arg0);
     return ret;
-};
-
-export function __wbg_isSafeInteger_343e2beeeece1bb0(arg0) {
+}
+export function __wbg_isSafeInteger_4fc213d1989d6d2a(arg0) {
     const ret = Number.isSafeInteger(arg0);
     return ret;
-};
-
-export function __wbg_is_c7481c65e7e5df9e(arg0, arg1) {
+}
+export function __wbg_is_8f7ba86b7f249abd(arg0, arg1) {
     const ret = Object.is(arg0, arg1);
     return ret;
-};
-
-export function __wbg_iterator_9a24c88df860dc65() {
+}
+export function __wbg_iterator_013bc09ec998c2a7() {
     const ret = Symbol.iterator;
     return ret;
-};
-
-export function __wbg_keyPath_443ecf3f74202169() { return handleError(function (arg0) {
+}
+export function __wbg_keyPath_7160d7cd96c58b79() { return handleError(function (arg0) {
     const ret = arg0.keyPath;
     return ret;
-}, arguments) };
-
-export function __wbg_length_52b6c4580c5ec934(arg0) {
+}, arguments); }
+export function __wbg_length_167a2db2c5f76499(arg0) {
     const ret = arg0.length;
     return ret;
-};
-
-export function __wbg_length_a446193dc22c12f8(arg0) {
+}
+export function __wbg_length_3d4ecd04bd8d22f1(arg0) {
     const ret = arg0.length;
     return ret;
-};
-
-export function __wbg_length_e2d2a49132c1b256(arg0) {
+}
+export function __wbg_length_9f1775224cf1d815(arg0) {
     const ret = arg0.length;
     return ret;
-};
-
-export function __wbg_msCrypto_0a36e2ec3a343d26(arg0) {
+}
+export function __wbg_msCrypto_8c6d45a75ef1d3da(arg0) {
     const ret = arg0.msCrypto;
     return ret;
-};
-
-export function __wbg_multiEntry_c146ebd38a5de9ea(arg0) {
+}
+export function __wbg_multiEntry_eb066895143c99c8(arg0) {
     const ret = arg0.multiEntry;
     return ret;
-};
-
-export function __wbg_new0_f788a2397c7ca929() {
+}
+export function __wbg_new_0_4d657201ced14de3() {
     const ret = new Date();
     return ret;
-};
-
-export function __wbg_new_23a2665fac83c611(arg0, arg1) {
+}
+export function __wbg_new_0c7403db6e782f19(arg0) {
+    const ret = new Uint8Array(arg0);
+    return ret;
+}
+export function __wbg_new_2a6e9133304ae2bf() { return handleError(function (arg0, arg1) {
+    const ret = new WebSocket(getStringFromWasm0(arg0, arg1));
+    return ret;
+}, arguments); }
+export function __wbg_new_682678e2f47e32bc() {
+    const ret = new Array();
+    return ret;
+}
+export function __wbg_new_aa8d0fa9762c29bd() {
+    const ret = new Object();
+    return ret;
+}
+export function __wbg_new_from_slice_b5ea43e23f6008c0(arg0, arg1) {
+    const ret = new Uint8Array(getArrayU8FromWasm0(arg0, arg1));
+    return ret;
+}
+export function __wbg_new_typed_323f37fd55ab048d(arg0, arg1) {
     try {
         var state0 = {a: arg0, b: arg1};
         var cb0 = (arg0, arg1) => {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_424(a, state0.b, arg0, arg1);
+                return wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___js_sys_7ff7cdb33730fe00___Function_fn_wasm_bindgen_8e56df5fa3736b7e___JsValue_____wasm_bindgen_8e56df5fa3736b7e___sys__Undefined___js_sys_7ff7cdb33730fe00___Function_fn_wasm_bindgen_8e56df5fa3736b7e___JsValue_____wasm_bindgen_8e56df5fa3736b7e___sys__Undefined_______true_(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2143,516 +1988,663 @@ export function __wbg_new_23a2665fac83c611(arg0, arg1) {
         const ret = new Promise(cb0);
         return ret;
     } finally {
-        state0.a = state0.b = 0;
+        state0.a = 0;
     }
-};
-
-export function __wbg_new_405e22f390576ce2() {
-    const ret = new Object();
-    return ret;
-};
-
-export function __wbg_new_78feb108b6472713() {
-    const ret = new Array();
-    return ret;
-};
-
-export function __wbg_new_92c54fc74574ef55() { return handleError(function (arg0, arg1) {
-    const ret = new WebSocket(getStringFromWasm0(arg0, arg1));
-    return ret;
-}, arguments) };
-
-export function __wbg_new_a12002a7f91c75be(arg0) {
-    const ret = new Uint8Array(arg0);
-    return ret;
-};
-
-export function __wbg_newnoargs_105ed471475aaf50(arg0, arg1) {
-    const ret = new Function(getStringFromWasm0(arg0, arg1));
-    return ret;
-};
-
-export function __wbg_newwithbyteoffsetandlength_d97e637ebe145a9a(arg0, arg1, arg2) {
-    const ret = new Uint8Array(arg0, arg1 >>> 0, arg2 >>> 0);
-    return ret;
-};
-
-export function __wbg_newwithlength_a381634e90c276d4(arg0) {
+}
+export function __wbg_new_with_length_8c854e41ea4dae9b(arg0) {
     const ret = new Uint8Array(arg0 >>> 0);
     return ret;
-};
-
-export function __wbg_next_25feadfc0913fea9(arg0) {
-    const ret = arg0.next;
-    return ret;
-};
-
-export function __wbg_next_6574e1a8a62d1055() { return handleError(function (arg0) {
+}
+export function __wbg_next_0340c4ae324393c3() { return handleError(function (arg0) {
     const ret = arg0.next();
     return ret;
-}, arguments) };
-
-export function __wbg_node_02999533c4ea02e3(arg0) {
+}, arguments); }
+export function __wbg_next_7646edaa39458ef7(arg0) {
+    const ret = arg0.next;
+    return ret;
+}
+export function __wbg_node_95beb7570492fd97(arg0) {
     const ret = arg0.node;
     return ret;
-};
-
-export function __wbg_now_2c95c9de01293173(arg0) {
+}
+export function __wbg_now_36a3148ac47c4ad7(arg0) {
     const ret = arg0.now();
     return ret;
-};
-
-export function __wbg_now_807e54c39636c349() {
+}
+export function __wbg_now_a9b7df1cbee90986() {
     const ret = Date.now();
     return ret;
-};
-
-export function __wbg_now_d18023d54d4e5500(arg0) {
+}
+export function __wbg_now_e7c6795a7f81e10f(arg0) {
     const ret = arg0.now();
     return ret;
-};
-
-export function __wbg_objectStoreNames_9bb1ab04a7012aaf(arg0) {
+}
+export function __wbg_objectStoreNames_c755717c02e8876b(arg0) {
     const ret = arg0.objectStoreNames;
     return ret;
-};
-
-export function __wbg_objectStore_21878d46d25b64b6() { return handleError(function (arg0, arg1, arg2) {
+}
+export function __wbg_objectStore_5942e8f91c946be8() { return handleError(function (arg0, arg1, arg2) {
     const ret = arg0.objectStore(getStringFromWasm0(arg1, arg2));
     return ret;
-}, arguments) };
-
-export function __wbg_open_88b1390d99a7c691() { return handleError(function (arg0, arg1, arg2) {
+}, arguments); }
+export function __wbg_open_0949b7cdde2ab99a() { return handleError(function (arg0, arg1, arg2) {
     const ret = arg0.open(getStringFromWasm0(arg1, arg2));
     return ret;
-}, arguments) };
-
-export function __wbg_open_e0c0b2993eb596e1() { return handleError(function (arg0, arg1, arg2, arg3) {
+}, arguments); }
+export function __wbg_open_90f4e40d36c2c9f5() { return handleError(function (arg0, arg1, arg2, arg3) {
     const ret = arg0.open(getStringFromWasm0(arg1, arg2), arg3 >>> 0);
     return ret;
-}, arguments) };
-
-export function __wbg_performance_7a3ffd0b17f663ad(arg0) {
+}, arguments); }
+export function __wbg_performance_3fcf6e32a7e1ed0a(arg0) {
     const ret = arg0.performance;
     return ret;
-};
-
-export function __wbg_process_5c1d670bc53614b8(arg0) {
+}
+export function __wbg_process_b2fea42461d03994(arg0) {
     const ret = arg0.process;
     return ret;
-};
-
-export function __wbg_push_737cfc8c1432c2c6(arg0, arg1) {
+}
+export function __wbg_prototypesetcall_a6b02eb00b0f4ce2(arg0, arg1, arg2) {
+    Uint8Array.prototype.set.call(getArrayU8FromWasm0(arg0, arg1), arg2);
+}
+export function __wbg_push_471a5b068a5295f6(arg0, arg1) {
     const ret = arg0.push(arg1);
     return ret;
-};
-
-export function __wbg_put_066faa31a6a88f5b() { return handleError(function (arg0, arg1, arg2) {
-    const ret = arg0.put(arg1, arg2);
-    return ret;
-}, arguments) };
-
-export function __wbg_put_9ef5363941008835() { return handleError(function (arg0, arg1) {
+}
+export function __wbg_put_2d1082795891ee40() { return handleError(function (arg0, arg1) {
     const ret = arg0.put(arg1);
     return ret;
-}, arguments) };
-
-export function __wbg_queueMicrotask_97d92b4fcc8a61c5(arg0) {
+}, arguments); }
+export function __wbg_put_fd02d3070a55994c() { return handleError(function (arg0, arg1, arg2) {
+    const ret = arg0.put(arg1, arg2);
+    return ret;
+}, arguments); }
+export function __wbg_queueMicrotask_5d15a957e6aa920e(arg0) {
     queueMicrotask(arg0);
-};
-
-export function __wbg_queueMicrotask_d3219def82552485(arg0) {
+}
+export function __wbg_queueMicrotask_f8819e5ffc402f36(arg0) {
     const ret = arg0.queueMicrotask;
     return ret;
-};
-
-export function __wbg_randomFillSync_ab2cfe79ebbf2740() { return handleError(function (arg0, arg1) {
+}
+export function __wbg_randomFillSync_ca9f178fb14c88cb() { return handleError(function (arg0, arg1) {
     arg0.randomFillSync(arg1);
-}, arguments) };
-
-export function __wbg_readyState_7ef6e63c349899ed(arg0) {
+}, arguments); }
+export function __wbg_readyState_c78e609c7de3b381(arg0) {
     const ret = arg0.readyState;
     return ret;
-};
-
-export function __wbg_require_79b1e9274cde3c87() { return handleError(function () {
+}
+export function __wbg_require_7a9419e39d796c95() { return handleError(function () {
     const ret = module.require;
     return ret;
-}, arguments) };
-
-export function __wbg_resolve_4851785c9c5f573d(arg0) {
+}, arguments); }
+export function __wbg_resolve_e6c466bc1052f16c(arg0) {
     const ret = Promise.resolve(arg0);
     return ret;
-};
-
-export function __wbg_result_f29afabdf2c05826() { return handleError(function (arg0) {
+}
+export function __wbg_result_f782323755b96dc8() { return handleError(function (arg0) {
     const ret = arg0.result;
     return ret;
-}, arguments) };
-
-export function __wbg_send_fc0c204e8a1757f4() { return handleError(function (arg0, arg1, arg2) {
+}, arguments); }
+export function __wbg_send_186c85704c7f2d00() { return handleError(function (arg0, arg1, arg2) {
     arg0.send(getArrayU8FromWasm0(arg1, arg2));
-}, arguments) };
-
-export function __wbg_setInterval_83d54331ceeda644() { return handleError(function (arg0, arg1, arg2, arg3) {
+}, arguments); }
+export function __wbg_setInterval_0347baf41ab83f2c() { return handleError(function (arg0, arg1, arg2, arg3) {
     const ret = arg0.setInterval(arg1, arg2, ...arg3);
     return ret;
-}, arguments) };
-
-export function __wbg_setInterval_d4f8bdcc1d5b1da9() { return handleError(function (arg0, arg1, arg2, arg3) {
+}, arguments); }
+export function __wbg_setInterval_b8b5d059ed97f0e2() { return handleError(function (arg0, arg1, arg2, arg3) {
     const ret = arg0.setInterval(arg1, arg2, ...arg3);
     return ret;
-}, arguments) };
-
-export function __wbg_setInterval_ed3b5e3c3ebb8a6d() { return handleError(function (arg0, arg1) {
+}, arguments); }
+export function __wbg_setInterval_cbf1c35c6a692d37() { return handleError(function (arg0, arg1) {
     const ret = setInterval(arg0, arg1);
     return ret;
-}, arguments) };
-
-export function __wbg_setTimeout_db2dbaeefb6f39c7() { return handleError(function (arg0, arg1) {
+}, arguments); }
+export function __wbg_setTimeout_56bcdccbad22fd44() { return handleError(function (arg0, arg1) {
     const ret = setTimeout(arg0, arg1);
     return ret;
-}, arguments) };
-
-export function __wbg_setTimeout_eefe7f4c234b0c6b() { return handleError(function (arg0, arg1) {
+}, arguments); }
+export function __wbg_setTimeout_613a21b62dc655a1() { return handleError(function (arg0, arg1) {
     const ret = setTimeout(arg0, arg1);
     return ret;
-}, arguments) };
-
-export function __wbg_set_37837023f3d740e8(arg0, arg1, arg2) {
+}, arguments); }
+export function __wbg_set_3bf1de9fab0cd644(arg0, arg1, arg2) {
     arg0[arg1 >>> 0] = arg2;
-};
-
-export function __wbg_set_3f1d0b984ed272ed(arg0, arg1, arg2) {
+}
+export function __wbg_set_6be42768c690e380(arg0, arg1, arg2) {
     arg0[arg1] = arg2;
-};
-
-export function __wbg_set_65595bdd868b3009(arg0, arg1, arg2) {
-    arg0.set(arg1, arg2 >>> 0);
-};
-
-export function __wbg_setautoincrement_8b4327709e9ee7d9(arg0, arg1) {
+}
+export function __wbg_set_auto_increment_12f813bc0f283d18(arg0, arg1) {
     arg0.autoIncrement = arg1 !== 0;
-};
-
-export function __wbg_setbinaryType_92fa1ffd873b327c(arg0, arg1) {
+}
+export function __wbg_set_binaryType_770e68648ca5e83d(arg0, arg1) {
     arg0.binaryType = __wbindgen_enum_BinaryType[arg1];
-};
-
-export function __wbg_setkeypath_691179e313c26ae1(arg0, arg1) {
+}
+export function __wbg_set_key_path_23485c4a6cd0c2cf(arg0, arg1) {
     arg0.keyPath = arg1;
-};
-
-export function __wbg_setmultientry_4c4eee871f29837a(arg0, arg1) {
+}
+export function __wbg_set_multi_entry_bda3f2f33c69a070(arg0, arg1) {
     arg0.multiEntry = arg1 !== 0;
-};
-
-export function __wbg_setonabort_3bf4db6614fa98e9(arg0, arg1) {
+}
+export function __wbg_set_name_5d57bfb5969c422c(arg0, arg1, arg2) {
+    arg0.name = getStringFromWasm0(arg1, arg2);
+}
+export function __wbg_set_onabort_7eecdbabbc4fd5f8(arg0, arg1) {
     arg0.onabort = arg1;
-};
-
-export function __wbg_setonclose_14fc475a49d488fc(arg0, arg1) {
+}
+export function __wbg_set_onclose_17fa3bbcc4ba3541(arg0, arg1) {
     arg0.onclose = arg1;
-};
-
-export function __wbg_setoncomplete_4d19df0dadb7c4d4(arg0, arg1) {
+}
+export function __wbg_set_oncomplete_8c9c4dac8e331f19(arg0, arg1) {
     arg0.oncomplete = arg1;
-};
-
-export function __wbg_setonerror_8639efe354b947cd(arg0, arg1) {
+}
+export function __wbg_set_onerror_5cae5e3b994ad11f(arg0, arg1) {
     arg0.onerror = arg1;
-};
-
-export function __wbg_setonerror_b0d9d723b8fddbbb(arg0, arg1) {
+}
+export function __wbg_set_onerror_da99c4232662a084(arg0, arg1) {
     arg0.onerror = arg1;
-};
-
-export function __wbg_setonerror_d7e3056cc6e56085(arg0, arg1) {
+}
+export function __wbg_set_onerror_ed658d0b50b67e95(arg0, arg1) {
     arg0.onerror = arg1;
-};
-
-export function __wbg_setonmessage_6eccab530a8fb4c7(arg0, arg1) {
+}
+export function __wbg_set_onmessage_c1db358b9c38e3f1(arg0, arg1) {
     arg0.onmessage = arg1;
-};
-
-export function __wbg_setonopen_2da654e1f39745d5(arg0, arg1) {
+}
+export function __wbg_set_onopen_cd47b8fb1d92dee9(arg0, arg1) {
     arg0.onopen = arg1;
-};
-
-export function __wbg_setonsuccess_afa464ee777a396d(arg0, arg1) {
+}
+export function __wbg_set_onsuccess_bf03d6c06709ef09(arg0, arg1) {
     arg0.onsuccess = arg1;
-};
-
-export function __wbg_setonupgradeneeded_fcf7ce4f2eb0cb5f(arg0, arg1) {
+}
+export function __wbg_set_onupgradeneeded_3fc8649a687213f5(arg0, arg1) {
     arg0.onupgradeneeded = arg1;
-};
-
-export function __wbg_setonversionchange_6ee07fa49ee1e3a5(arg0, arg1) {
+}
+export function __wbg_set_onversionchange_10702a9be26be1d2(arg0, arg1) {
     arg0.onversionchange = arg1;
-};
-
-export function __wbg_setunique_dd24c422aa05df89(arg0, arg1) {
+}
+export function __wbg_set_unique_0a396b97f5b68657(arg0, arg1) {
     arg0.unique = arg1 !== 0;
-};
-
-export function __wbg_static_accessor_GLOBAL_88a902d13a557d07() {
+}
+export function __wbg_static_accessor_GLOBAL_8cfadc87a297ca02() {
     const ret = typeof global === 'undefined' ? null : global;
     return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
-};
-
-export function __wbg_static_accessor_GLOBAL_THIS_56578be7e9f832b0() {
+}
+export function __wbg_static_accessor_GLOBAL_THIS_602256ae5c8f42cf() {
     const ret = typeof globalThis === 'undefined' ? null : globalThis;
     return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
-};
-
-export function __wbg_static_accessor_SELF_37c5d418e4bf5819() {
+}
+export function __wbg_static_accessor_SELF_e445c1c7484aecc3() {
     const ret = typeof self === 'undefined' ? null : self;
     return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
-};
-
-export function __wbg_static_accessor_WINDOW_5de37043a91a9c40() {
+}
+export function __wbg_static_accessor_WINDOW_f20e8576ef1e0f17() {
     const ret = typeof window === 'undefined' ? null : window;
     return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
-};
-
-export function __wbg_subarray_aa9065fa9dc5df96(arg0, arg1, arg2) {
+}
+export function __wbg_subarray_f8ca46a25b1f5e0d(arg0, arg1, arg2) {
     const ret = arg0.subarray(arg1 >>> 0, arg2 >>> 0);
     return ret;
-};
-
-export function __wbg_target_0a62d9d79a2a1ede(arg0) {
+}
+export function __wbg_target_6d97e221d11b71b6(arg0) {
     const ret = arg0.target;
     return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
-};
-
-export function __wbg_then_44b73946d2fb3e7d(arg0, arg1) {
+}
+export function __wbg_then_8e16ee11f05e4827(arg0, arg1) {
     const ret = arg0.then(arg1);
     return ret;
-};
-
-export function __wbg_toString_5285597960676b7b(arg0) {
+}
+export function __wbg_toString_306ed0b9f320c1ca(arg0) {
     const ret = arg0.toString();
     return ret;
-};
-
-export function __wbg_transaction_d6d07c3c9963c49e() { return handleError(function (arg0, arg1, arg2) {
-    const ret = arg0.transaction(arg1, __wbindgen_enum_IdbTransactionMode[arg2]);
-    return ret;
-}, arguments) };
-
-export function __wbg_transaction_e713aa7b07ccaedd(arg0) {
+}
+export function __wbg_transaction_246d4ade615944eb(arg0) {
     const ret = arg0.transaction;
     return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
-};
-
-export function __wbg_unique_23ddfed89bddb31d(arg0) {
+}
+export function __wbg_transaction_9af5475ca3bd3fa9() { return handleError(function (arg0, arg1, arg2) {
+    const ret = arg0.transaction(arg1, __wbindgen_enum_IdbTransactionMode[arg2]);
+    return ret;
+}, arguments); }
+export function __wbg_unique_55295e4c3d09c162(arg0) {
     const ret = arg0.unique;
     return ret;
-};
-
-export function __wbg_value_cd1ffa7b1ab794f1(arg0) {
+}
+export function __wbg_value_ee3a06f4579184fa(arg0) {
     const ret = arg0.value;
     return ret;
-};
-
-export function __wbg_versions_c71aa1626a93e0a1(arg0) {
+}
+export function __wbg_versions_215a3ab1c9d5745a(arg0) {
     const ret = arg0.versions;
     return ret;
-};
-
-export function __wbg_warn_4ca3906c248c47c4(arg0) {
+}
+export function __wbg_warn_3cc416af27dbdc02(arg0) {
     console.warn(arg0);
-};
-
-export function __wbg_warn_aaf1f4664a035bd6(arg0, arg1, arg2, arg3) {
+}
+export function __wbg_warn_ad997e36628bd23a(arg0, arg1, arg2, arg3) {
     console.warn(arg0, arg1, arg2, arg3);
-};
-
-export function __wbindgen_as_number(arg0) {
-    const ret = +arg0;
+}
+export function __wbindgen_cast_0000000000000001(arg0, arg1) {
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 2802, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
+    const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___wasm_bindgen_8e56df5fa3736b7e___JsValue__core_9b3796e30d99ddb7___result__Result_____wasm_bindgen_8e56df5fa3736b7e___JsError___true_);
     return ret;
-};
-
-export function __wbindgen_bigint_from_i64(arg0) {
+}
+export function __wbindgen_cast_0000000000000002(arg0, arg1) {
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("CloseEvent")], shim_idx: 1753, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+    const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true_);
+    return ret;
+}
+export function __wbindgen_cast_0000000000000003(arg0, arg1) {
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("Event")], shim_idx: 1753, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+    const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true__2);
+    return ret;
+}
+export function __wbindgen_cast_0000000000000004(arg0, arg1) {
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("Event")], shim_idx: 2300, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+    const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_Event__Event______true_);
+    return ret;
+}
+export function __wbindgen_cast_0000000000000005(arg0, arg1) {
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("IDBVersionChangeEvent")], shim_idx: 219, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+    const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_IdbVersionChangeEvent__IdbVersionChangeEvent______true_);
+    return ret;
+}
+export function __wbindgen_cast_0000000000000006(arg0, arg1) {
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("MessageEvent")], shim_idx: 1753, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+    const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true__5);
+    return ret;
+}
+export function __wbindgen_cast_0000000000000007(arg0, arg1) {
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("MessageEvent")], shim_idx: 218, ret: Unit, inner_ret: Some(Unit) }, mutable: false }) -> Externref`.
+    const ret = makeClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_MessageEvent__MessageEvent______true_);
+    return ret;
+}
+export function __wbindgen_cast_0000000000000008(arg0, arg1) {
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [], shim_idx: 2190, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+    const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke_______true_);
+    return ret;
+}
+export function __wbindgen_cast_0000000000000009(arg0, arg1) {
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [], shim_idx: 2237, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+    const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke_______true__1_);
+    return ret;
+}
+export function __wbindgen_cast_000000000000000a(arg0) {
+    // Cast intrinsic for `F64 -> Externref`.
     const ret = arg0;
     return ret;
-};
-
-export function __wbindgen_bigint_from_u64(arg0) {
+}
+export function __wbindgen_cast_000000000000000b(arg0) {
+    // Cast intrinsic for `I64 -> Externref`.
+    const ret = arg0;
+    return ret;
+}
+export function __wbindgen_cast_000000000000000c(arg0, arg1) {
+    // Cast intrinsic for `Ref(Slice(U8)) -> NamedExternref("Uint8Array")`.
+    const ret = getArrayU8FromWasm0(arg0, arg1);
+    return ret;
+}
+export function __wbindgen_cast_000000000000000d(arg0, arg1) {
+    // Cast intrinsic for `Ref(String) -> Externref`.
+    const ret = getStringFromWasm0(arg0, arg1);
+    return ret;
+}
+export function __wbindgen_cast_000000000000000e(arg0) {
+    // Cast intrinsic for `U64 -> Externref`.
     const ret = BigInt.asUintN(64, arg0);
     return ret;
-};
-
-export function __wbindgen_bigint_get_as_i64(arg0, arg1) {
-    const v = arg1;
-    const ret = typeof(v) === 'bigint' ? v : undefined;
-    getDataViewMemory0().setBigInt64(arg0 + 8 * 1, isLikeNone(ret) ? BigInt(0) : ret, true);
-    getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
-};
-
-export function __wbindgen_boolean_get(arg0) {
-    const v = arg0;
-    const ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
-    return ret;
-};
-
-export function __wbindgen_cb_drop(arg0) {
-    const obj = arg0.original;
-    if (obj.cnt-- == 1) {
-        obj.a = 0;
-        return true;
-    }
-    const ret = false;
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper10019(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 2269, __wbg_adapter_70);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper10703(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 2370, __wbg_adapter_73);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper13614(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 2693, __wbg_adapter_76);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper3766(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 862, __wbg_adapter_54);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper3768(arg0, arg1, arg2) {
-    const ret = makeClosure(arg0, arg1, 862, __wbg_adapter_57);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper7683(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 1731, __wbg_adapter_60);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper7685(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 1731, __wbg_adapter_60);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper7689(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 1731, __wbg_adapter_60);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper9865(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 2236, __wbg_adapter_67);
-    return ret;
-};
-
-export function __wbindgen_debug_string(arg0, arg1) {
-    const ret = debugString(arg1);
-    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len1 = WASM_VECTOR_LEN;
-    getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
-    getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
-};
-
-export function __wbindgen_error_new(arg0, arg1) {
-    const ret = new Error(getStringFromWasm0(arg0, arg1));
-    return ret;
-};
-
-export function __wbindgen_in(arg0, arg1) {
-    const ret = arg0 in arg1;
-    return ret;
-};
-
+}
 export function __wbindgen_init_externref_table() {
-    const table = wasm.__wbindgen_export_4;
+    const table = wasm.__wbindgen_externrefs;
     const offset = table.grow(4);
     table.set(0, undefined);
     table.set(offset + 0, undefined);
     table.set(offset + 1, null);
     table.set(offset + 2, true);
     table.set(offset + 3, false);
-    ;
-};
+}
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke_______true_(arg0, arg1) {
+    wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke_______true_(arg0, arg1);
+}
 
-export function __wbindgen_is_bigint(arg0) {
-    const ret = typeof(arg0) === 'bigint';
-    return ret;
-};
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke_______true__1_(arg0, arg1) {
+    wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke_______true__1_(arg0, arg1);
+}
 
-export function __wbindgen_is_function(arg0) {
-    const ret = typeof(arg0) === 'function';
-    return ret;
-};
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true_(arg0, arg1, arg2) {
+    wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true_(arg0, arg1, arg2);
+}
 
-export function __wbindgen_is_null(arg0) {
-    const ret = arg0 === null;
-    return ret;
-};
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true__2(arg0, arg1, arg2) {
+    wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true__2(arg0, arg1, arg2);
+}
 
-export function __wbindgen_is_object(arg0) {
-    const val = arg0;
-    const ret = typeof(val) === 'object' && val !== null;
-    return ret;
-};
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_Event__Event______true_(arg0, arg1, arg2) {
+    wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_Event__Event______true_(arg0, arg1, arg2);
+}
 
-export function __wbindgen_is_string(arg0) {
-    const ret = typeof(arg0) === 'string';
-    return ret;
-};
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_IdbVersionChangeEvent__IdbVersionChangeEvent______true_(arg0, arg1, arg2) {
+    wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_IdbVersionChangeEvent__IdbVersionChangeEvent______true_(arg0, arg1, arg2);
+}
 
-export function __wbindgen_is_undefined(arg0) {
-    const ret = arg0 === undefined;
-    return ret;
-};
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true__5(arg0, arg1, arg2) {
+    wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true__5(arg0, arg1, arg2);
+}
 
-export function __wbindgen_jsval_eq(arg0, arg1) {
-    const ret = arg0 === arg1;
-    return ret;
-};
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_MessageEvent__MessageEvent______true_(arg0, arg1, arg2) {
+    wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_MessageEvent__MessageEvent______true_(arg0, arg1, arg2);
+}
 
-export function __wbindgen_jsval_loose_eq(arg0, arg1) {
-    const ret = arg0 == arg1;
-    return ret;
-};
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___wasm_bindgen_8e56df5fa3736b7e___JsValue__core_9b3796e30d99ddb7___result__Result_____wasm_bindgen_8e56df5fa3736b7e___JsError___true_(arg0, arg1, arg2) {
+    const ret = wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___wasm_bindgen_8e56df5fa3736b7e___JsValue__core_9b3796e30d99ddb7___result__Result_____wasm_bindgen_8e56df5fa3736b7e___JsError___true_(arg0, arg1, arg2);
+    if (ret[1]) {
+        throw takeFromExternrefTable0(ret[0]);
+    }
+}
 
-export function __wbindgen_memory() {
-    const ret = wasm.memory;
-    return ret;
-};
+function wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___js_sys_7ff7cdb33730fe00___Function_fn_wasm_bindgen_8e56df5fa3736b7e___JsValue_____wasm_bindgen_8e56df5fa3736b7e___sys__Undefined___js_sys_7ff7cdb33730fe00___Function_fn_wasm_bindgen_8e56df5fa3736b7e___JsValue_____wasm_bindgen_8e56df5fa3736b7e___sys__Undefined_______true_(arg0, arg1, arg2, arg3) {
+    wasm.wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___js_sys_7ff7cdb33730fe00___Function_fn_wasm_bindgen_8e56df5fa3736b7e___JsValue_____wasm_bindgen_8e56df5fa3736b7e___sys__Undefined___js_sys_7ff7cdb33730fe00___Function_fn_wasm_bindgen_8e56df5fa3736b7e___JsValue_____wasm_bindgen_8e56df5fa3736b7e___sys__Undefined_______true_(arg0, arg1, arg2, arg3);
+}
 
-export function __wbindgen_number_get(arg0, arg1) {
-    const obj = arg1;
-    const ret = typeof(obj) === 'number' ? obj : undefined;
-    getDataViewMemory0().setFloat64(arg0 + 8 * 1, isLikeNone(ret) ? 0 : ret, true);
-    getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
-};
 
-export function __wbindgen_number_new(arg0) {
-    const ret = arg0;
-    return ret;
-};
+const __wbindgen_enum_BinaryType = ["blob", "arraybuffer"];
 
-export function __wbindgen_string_get(arg0, arg1) {
-    const obj = arg1;
-    const ret = typeof(obj) === 'string' ? obj : undefined;
-    var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len1 = WASM_VECTOR_LEN;
-    getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
-    getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
-};
 
-export function __wbindgen_string_new(arg0, arg1) {
-    const ret = getStringFromWasm0(arg0, arg1);
-    return ret;
-};
+const __wbindgen_enum_IdbTransactionMode = ["readonly", "readwrite", "versionchange", "readwriteflush", "cleanup"];
+const AddressFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_address_free(ptr >>> 0, 1));
+const ClientFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_client_free(ptr >>> 0, 1));
+const ClientConfigurationFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_clientconfiguration_free(ptr >>> 0, 1));
+const HashedTimeLockedContractFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_hashedtimelockedcontract_free(ptr >>> 0, 1));
+const MerklePathFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_merklepath_free(ptr >>> 0, 1));
+const PolicyFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_policy_free(ptr >>> 0, 1));
+const SignatureProofFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_signatureproof_free(ptr >>> 0, 1));
+const StakingContractFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_stakingcontract_free(ptr >>> 0, 1));
+const TransactionFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_transaction_free(ptr >>> 0, 1));
+const VestingContractFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_vestingcontract_free(ptr >>> 0, 1));
 
-export function __wbindgen_throw(arg0, arg1) {
-    throw new Error(getStringFromWasm0(arg0, arg1));
-};
+function addToExternrefTable0(obj) {
+    const idx = wasm.__externref_table_alloc();
+    wasm.__wbindgen_externrefs.set(idx, obj);
+    return idx;
+}
 
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+}
+
+const CLOSURE_DTORS = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(state => wasm.__wbindgen_destroy_closure(state.a, state.b));
+
+function debugString(val) {
+    // primitive types
+    const type = typeof val;
+    if (type == 'number' || type == 'boolean' || val == null) {
+        return  `${val}`;
+    }
+    if (type == 'string') {
+        return `"${val}"`;
+    }
+    if (type == 'symbol') {
+        const description = val.description;
+        if (description == null) {
+            return 'Symbol';
+        } else {
+            return `Symbol(${description})`;
+        }
+    }
+    if (type == 'function') {
+        const name = val.name;
+        if (typeof name == 'string' && name.length > 0) {
+            return `Function(${name})`;
+        } else {
+            return 'Function';
+        }
+    }
+    // objects
+    if (Array.isArray(val)) {
+        const length = val.length;
+        let debug = '[';
+        if (length > 0) {
+            debug += debugString(val[0]);
+        }
+        for(let i = 1; i < length; i++) {
+            debug += ', ' + debugString(val[i]);
+        }
+        debug += ']';
+        return debug;
+    }
+    // Test for built-in
+    const builtInMatches = /\[object ([^\]]+)\]/.exec(toString.call(val));
+    let className;
+    if (builtInMatches && builtInMatches.length > 1) {
+        className = builtInMatches[1];
+    } else {
+        // Failed to match the standard '[object ClassName]'
+        return toString.call(val);
+    }
+    if (className == 'Object') {
+        // we're a user defined class or Object
+        // JSON.stringify avoids problems with cycles, and is generally much
+        // easier than looping through ownProperties of `val`.
+        try {
+            return 'Object(' + JSON.stringify(val) + ')';
+        } catch (_) {
+            return 'Object';
+        }
+    }
+    // errors
+    if (val instanceof Error) {
+        return `${val.name}: ${val.message}\n${val.stack}`;
+    }
+    // TODO we could test for more things here, like `Set`s and `Map`s.
+    return className;
+}
+
+function getArrayJsValueFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    const mem = getDataViewMemory0();
+    const result = [];
+    for (let i = ptr; i < ptr + 4 * len; i += 4) {
+        result.push(wasm.__wbindgen_externrefs.get(mem.getUint32(i, true)));
+    }
+    wasm.__externref_drop_slice(ptr, len);
+    return result;
+}
+
+function getArrayU8FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
+}
+
+let cachedDataViewMemory0 = null;
+function getDataViewMemory0() {
+    if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer.detached === true || (cachedDataViewMemory0.buffer.detached === undefined && cachedDataViewMemory0.buffer !== wasm.memory.buffer)) {
+        cachedDataViewMemory0 = new DataView(wasm.memory.buffer);
+    }
+    return cachedDataViewMemory0;
+}
+
+function getStringFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return decodeText(ptr, len);
+}
+
+let cachedUint8ArrayMemory0 = null;
+function getUint8ArrayMemory0() {
+    if (cachedUint8ArrayMemory0 === null || cachedUint8ArrayMemory0.byteLength === 0) {
+        cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
+    }
+    return cachedUint8ArrayMemory0;
+}
+
+function handleError(f, args) {
+    try {
+        return f.apply(this, args);
+    } catch (e) {
+        const idx = addToExternrefTable0(e);
+        wasm.__wbindgen_exn_store(idx);
+    }
+}
+
+function isLikeNone(x) {
+    return x === undefined || x === null;
+}
+
+function makeClosure(arg0, arg1, f) {
+    const state = { a: arg0, b: arg1, cnt: 1 };
+    const real = (...args) => {
+
+        // First up with a closure we increment the internal reference
+        // count. This ensures that the Rust closure environment won't
+        // be deallocated while we're invoking it.
+        state.cnt++;
+        try {
+            return f(state.a, state.b, ...args);
+        } finally {
+            real._wbg_cb_unref();
+        }
+    };
+    real._wbg_cb_unref = () => {
+        if (--state.cnt === 0) {
+            wasm.__wbindgen_destroy_closure(state.a, state.b);
+            state.a = 0;
+            CLOSURE_DTORS.unregister(state);
+        }
+    };
+    CLOSURE_DTORS.register(real, state, state);
+    return real;
+}
+
+function makeMutClosure(arg0, arg1, f) {
+    const state = { a: arg0, b: arg1, cnt: 1 };
+    const real = (...args) => {
+
+        // First up with a closure we increment the internal reference
+        // count. This ensures that the Rust closure environment won't
+        // be deallocated while we're invoking it.
+        state.cnt++;
+        const a = state.a;
+        state.a = 0;
+        try {
+            return f(a, state.b, ...args);
+        } finally {
+            state.a = a;
+            real._wbg_cb_unref();
+        }
+    };
+    real._wbg_cb_unref = () => {
+        if (--state.cnt === 0) {
+            wasm.__wbindgen_destroy_closure(state.a, state.b);
+            state.a = 0;
+            CLOSURE_DTORS.unregister(state);
+        }
+    };
+    CLOSURE_DTORS.register(real, state, state);
+    return real;
+}
+
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
+function passStringToWasm0(arg, malloc, realloc) {
+    if (realloc === undefined) {
+        const buf = cachedTextEncoder.encode(arg);
+        const ptr = malloc(buf.length, 1) >>> 0;
+        getUint8ArrayMemory0().subarray(ptr, ptr + buf.length).set(buf);
+        WASM_VECTOR_LEN = buf.length;
+        return ptr;
+    }
+
+    let len = arg.length;
+    let ptr = malloc(len, 1) >>> 0;
+
+    const mem = getUint8ArrayMemory0();
+
+    let offset = 0;
+
+    for (; offset < len; offset++) {
+        const code = arg.charCodeAt(offset);
+        if (code > 0x7F) break;
+        mem[ptr + offset] = code;
+    }
+    if (offset !== len) {
+        if (offset !== 0) {
+            arg = arg.slice(offset);
+        }
+        ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
+        const view = getUint8ArrayMemory0().subarray(ptr + offset, ptr + len);
+        const ret = cachedTextEncoder.encodeInto(arg, view);
+
+        offset += ret.written;
+        ptr = realloc(ptr, len, offset, 1) >>> 0;
+    }
+
+    WASM_VECTOR_LEN = offset;
+    return ptr;
+}
+
+function takeFromExternrefTable0(idx) {
+    const value = wasm.__wbindgen_externrefs.get(idx);
+    wasm.__externref_table_dealloc(idx);
+    return value;
+}
+
+let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+cachedTextDecoder.decode();
+const MAX_SAFARI_DECODE_BYTES = 2146435072;
+let numBytesDecoded = 0;
+function decodeText(ptr, len) {
+    numBytesDecoded += len;
+    if (numBytesDecoded >= MAX_SAFARI_DECODE_BYTES) {
+        cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+        cachedTextDecoder.decode();
+        numBytesDecoded = len;
+    }
+    return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
+}
+
+const cachedTextEncoder = new TextEncoder();
+
+if (!('encodeInto' in cachedTextEncoder)) {
+    cachedTextEncoder.encodeInto = function (arg, view) {
+        const buf = cachedTextEncoder.encode(arg);
+        view.set(buf);
+        return {
+            read: arg.length,
+            written: buf.length
+        };
+    };
+}
+
+let WASM_VECTOR_LEN = 0;
+
+
+let wasm;
+export function __wbg_set_wasm(val) {
+    wasm = val;
+}
