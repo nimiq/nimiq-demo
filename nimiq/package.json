@@ -4,7 +4,7 @@
     "The Nimiq Core Development Team <info@nimiq.com>"
   ],
   "description": "Nimiq's Rust-to-WASM web client",
-  "version": "2.7.2",
+  "version": "2.20.0",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -26,6 +26,11 @@
       "browser": "./web/index.js",
       "import": "./web/index.js",
       "types": "./types/web.d.ts"
+    },
+    "./vite": {
+      "import": "./vite.js",
+      "require": "./vite.js",
+      "types": "./types/vite.d.ts"
     }
   },
   "homepage": "https://nimiq.com",

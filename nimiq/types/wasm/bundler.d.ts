@@ -23,7 +23,7 @@ export type PlainTransactionProof = ({ type: "raw" } & PlainRawProof) | ({ type:
 /**
  * Enum over all possible meanings of a transaction\'s recipient data.
  */
-export type PlainTransactionRecipientData = ({ type: "raw" } & PlainRawData) | ({ type: "vesting" } & PlainVestingData) | ({ type: "htlc" } & PlainHtlcData) | ({ type: "create-validator" } & PlainCreateValidatorData) | ({ type: "update-validator" } & PlainUpdateValidatorData) | ({ type: "deactivate-validator" } & PlainValidatorData) | ({ type: "reactivate-validator" } & PlainValidatorData) | ({ type: "retire-validator" } & PlainRawData) | ({ type: "create-staker" } & PlainCreateStakerData) | ({ type: "add-stake" } & PlainAddStakeData) | ({ type: "update-staker" } & PlainUpdateStakerData) | ({ type: "set-active-stake" } & PlainSetActiveStakeData) | ({ type: "retire-stake" } & PlainRetireStakeData);
+export type PlainTransactionRecipientData = ({ type: "raw" } & PlainRawData) | ({ type: "vesting" } & PlainVestingData) | ({ type: "htlc" } & PlainHtlcData) | ({ type: "create-validator" } & PlainCreateValidatorData) | ({ type: "update-validator" } & PlainUpdateValidatorData) | ({ type: "deactivate-validator" } & PlainValidatorData) | ({ type: "reactivate-validator" } & PlainValidatorData) | ({ type: "retire-validator" } & PlainRawData) | ({ type: "create-staker" } & PlainCreateStakerData) | ({ type: "add-stake" } & PlainAddStakeData) | ({ type: "update-staker" } & PlainUpdateStakerData) | ({ type: "set-active-stake" } & PlainSetActiveStakeData) | ({ type: "retire-stake" } & PlainRetireStakeData) | ({ type: "set-signal-data" } & PlainSetSignalDataData);
 
 /**
  * Enum over all possible meanings of a transaction\'s sender data.
@@ -339,6 +339,28 @@ export interface PlainSetActiveStakeData {
 }
 
 /**
+ * JSON-compatible and human-readable format of set signal data (warm-key) data.
+ */
+export interface PlainSetSignalDataData {
+    raw: string;
+    validator: string;
+    /**
+     * Whether this transaction replaces the entire signal data (`full`) or only updates the
+     * protocol-version bytes (`version`).
+     */
+    mode: PlainSignalDataUpdateMode;
+    /**
+     * For `full` mode: the new signal data as a hex string, or `null` to clear it. Always `null`
+     * in `version` mode.
+     */
+    newSignalData: string | undefined;
+    /**
+     * For `version` mode: the signaled protocol version; `null` in `full` mode.
+     */
+    version: number | undefined;
+}
+
+/**
  * JSON-compatible and human-readable format of staker creation data.
  */
 export interface PlainCreateStakerData {
@@ -552,6 +574,12 @@ export interface PlainSlot {
      */
     publicKey: string;
 }
+
+/**
+ * Whether a set signal data (warm-key) transaction replaces the entire `signalData` field or
+ * only updates the protocol-version bytes (preserving the rest).
+ */
+export type PlainSignalDataUpdateMode = "full" | "version";
 
 export interface PlainBasicAccount {
     balance: number;
@@ -1619,11 +1647,16 @@ export class Policy {
      */
     static batchIndexAt(block_number: number): number;
     /**
+     * Returns the first block after the collateral lock-up window of a given block number has ended.
+     */
+    static blockAfterCollateralLockup(block_number: number): number;
+    /**
      * Returns the first block after the jail period of a given block number has ended.
      */
     static blockAfterJail(block_number: number): number;
     /**
-     * Returns the first block after the reporting window of a given block number has ended.
+     * @deprecated Renamed to `blockAfterCollateralLockup`. Kept for API backwards compatibility;
+     * see `lastBlockOfCollateralLockup`.
      */
     static blockAfterReportingWindow(block_number: number): number;
     /**
@@ -1677,8 +1710,32 @@ export class Policy {
      */
     static isMicroBlockAt(block_number: number): boolean;
     /**
-     * Returns the block height for the last block of the reporting window of a given block number.
-     * Note: This window is meant for reporting malicious behaviour (aka `jailable` behaviour).
+     * Returns the last block height of the collateral lock-up window of a given block number.
+     *
+     * This governs the collateral lock-up: a deactivated validator's funds (and its stakers')
+     * stay locked until this block so they remain slashable while offenses could still be reported.
+     * It is kept at one epoch and must always be `>=` the equivocation reporting window
+     * (`last_block_of_equivocation_reporting_window`), so collateral is always present while an
+     * offense is still reportable.
+     */
+    static lastBlockOfCollateralLockup(block_number: number): number;
+    /**
+     * Returns the last block height at which an equivocation that happened at `block_number` can
+     * still be reported (i.e. included in a block via an equivocation proof).
+     *
+     * This is intentionally bounded by the transaction validity window so it stays within the
+     * validity-store dedup retention (`transaction_validity_window_blocks + blocks_per_batch`).
+     * Equivocation proofs are deduplicated against the validity store; if this window were longer,
+     * a genuine proof could be re-included after the dedup forgot it, re-jailing the validator and
+     * re-burning rewards. The collateral lock-up (`last_block_of_collateral_lockup`) is kept
+     * longer (one epoch) and must always be `>=` this window. See the invariant test
+     * `reporting_window_stays_within_dedup_retention`.
+     */
+    static lastBlockOfEquivocationReportingWindow(block_number: number): number;
+    /**
+     * @deprecated Renamed to `lastBlockOfCollateralLockup`. This window never governed
+     * equivocation *reporting* (that is `lastBlockOfEquivocationReportingWindow`); it has always
+     * been the collateral lock-up window. Kept for API backwards compatibility.
      */
     static lastBlockOfReportingWindow(block_number: number): number;
     /**
@@ -2473,6 +2530,28 @@ export class TransactionBuilder {
      * Throws when the numbers given for fee and `new_active_balance` do not fit within a u64 or the networkId is unknown.
      */
     static newSetActiveStake(sender: Address, new_active_balance: bigint, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
+    /**
+     * Sets the signal data of a validator in the staking contract. In contrast to
+     * `newUpdateValidator`, this transaction is signed with the validator's *signing (warm) key*,
+     * so the cold key is not required to signal protocol upgrades. Pass `undefined` as
+     * `signalData` to clear the signal.
+     *
+     * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
+     *
+     * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
+     */
+    static newSetSignalData(sender: Address, validator: Address, signal_data: string | null | undefined, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
+    /**
+     * Signals support for the given protocol `version` with the validator's *signing (warm) key*
+     * by updating the validator's signal data in the staking contract. In contrast to
+     * `newSetSignalData`, this only updates the protocol-version bytes of the signal data and
+     * preserves the rest. To clear the signal data entirely, use `newSetSignalData` with `null`.
+     *
+     * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
+     *
+     * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
+     */
+    static newSignalVersion(sender: Address, validator: Address, version: number, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
     /**
      * Updates a staker in the staking contract to stake for a different validator. This is a
      * signaling transaction and as such does not transfer any value.

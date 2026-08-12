@@ -668,6 +668,15 @@ export class Policy {
         return ret;
     }
     /**
+     * Returns the first block after the collateral lock-up window of a given block number has ended.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static blockAfterCollateralLockup(block_number) {
+        const ret = wasm.policy_blockAfterCollateralLockup(block_number);
+        return ret >>> 0;
+    }
+    /**
      * Returns the first block after the jail period of a given block number has ended.
      * @param {number} block_number
      * @returns {number}
@@ -677,7 +686,8 @@ export class Policy {
         return ret >>> 0;
     }
     /**
-     * Returns the first block after the reporting window of a given block number has ended.
+     * @deprecated Renamed to `blockAfterCollateralLockup`. Kept for API backwards compatibility;
+     * see `lastBlockOfCollateralLockup`.
      * @param {number} block_number
      * @returns {number}
      */
@@ -815,8 +825,42 @@ export class Policy {
         return ret !== 0;
     }
     /**
-     * Returns the block height for the last block of the reporting window of a given block number.
-     * Note: This window is meant for reporting malicious behaviour (aka `jailable` behaviour).
+     * Returns the last block height of the collateral lock-up window of a given block number.
+     *
+     * This governs the collateral lock-up: a deactivated validator's funds (and its stakers')
+     * stay locked until this block so they remain slashable while offenses could still be reported.
+     * It is kept at one epoch and must always be `>=` the equivocation reporting window
+     * (`last_block_of_equivocation_reporting_window`), so collateral is always present while an
+     * offense is still reportable.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static lastBlockOfCollateralLockup(block_number) {
+        const ret = wasm.policy_lastBlockOfCollateralLockup(block_number);
+        return ret >>> 0;
+    }
+    /**
+     * Returns the last block height at which an equivocation that happened at `block_number` can
+     * still be reported (i.e. included in a block via an equivocation proof).
+     *
+     * This is intentionally bounded by the transaction validity window so it stays within the
+     * validity-store dedup retention (`transaction_validity_window_blocks + blocks_per_batch`).
+     * Equivocation proofs are deduplicated against the validity store; if this window were longer,
+     * a genuine proof could be re-included after the dedup forgot it, re-jailing the validator and
+     * re-burning rewards. The collateral lock-up (`last_block_of_collateral_lockup`) is kept
+     * longer (one epoch) and must always be `>=` this window. See the invariant test
+     * `reporting_window_stays_within_dedup_retention`.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static lastBlockOfEquivocationReportingWindow(block_number) {
+        const ret = wasm.policy_lastBlockOfEquivocationReportingWindow(block_number);
+        return ret >>> 0;
+    }
+    /**
+     * @deprecated Renamed to `lastBlockOfCollateralLockup`. This window never governed
+     * equivocation *reporting* (that is `lastBlockOfEquivocationReportingWindow`); it has always
+     * been the collateral lock-up window. Kept for API backwards compatibility.
      * @param {number} block_number
      * @returns {number}
      */
@@ -1648,7 +1692,7 @@ export function __wbg___wbindgen_throw_6b64449b9b9ed33c(arg0, arg1) {
 export function __wbg__wbg_cb_unref_b46c9b5a9f08ec37(arg0) {
     arg0._wbg_cb_unref();
 }
-export function __wbg_addEventListener_6288145a3c991a96() { return handleError(function (arg0, arg1, arg2, arg3) {
+export function __wbg_addEventListener_7a2daa1702b5c78b() { return handleError(function (arg0, arg1, arg2, arg3) {
     arg0.addEventListener(getStringFromWasm0(arg1, arg2), arg3);
 }, arguments); }
 export function __wbg_apply_4c35bd236dda9c14() { return handleError(function (arg0, arg1, arg2) {
@@ -2223,7 +2267,7 @@ export function __wbg_warn_ad997e36628bd23a(arg0, arg1, arg2, arg3) {
     console.warn(arg0, arg1, arg2, arg3);
 }
 export function __wbindgen_cast_0000000000000001(arg0, arg1) {
-    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 2802, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 2805, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
     const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___wasm_bindgen_8e56df5fa3736b7e___JsValue__core_9b3796e30d99ddb7___result__Result_____wasm_bindgen_8e56df5fa3736b7e___JsError___true_);
     return ret;
 }
@@ -2243,7 +2287,7 @@ export function __wbindgen_cast_0000000000000004(arg0, arg1) {
     return ret;
 }
 export function __wbindgen_cast_0000000000000005(arg0, arg1) {
-    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("IDBVersionChangeEvent")], shim_idx: 219, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("IDBVersionChangeEvent")], shim_idx: 250, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
     const ret = makeMutClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_IdbVersionChangeEvent__IdbVersionChangeEvent______true_);
     return ret;
 }
@@ -2253,7 +2297,7 @@ export function __wbindgen_cast_0000000000000006(arg0, arg1) {
     return ret;
 }
 export function __wbindgen_cast_0000000000000007(arg0, arg1) {
-    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("MessageEvent")], shim_idx: 218, ret: Unit, inner_ret: Some(Unit) }, mutable: false }) -> Externref`.
+    // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("MessageEvent")], shim_idx: 249, ret: Unit, inner_ret: Some(Unit) }, mutable: false }) -> Externref`.
     const ret = makeClosure(arg0, arg1, wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_MessageEvent__MessageEvent______true_);
     return ret;
 }

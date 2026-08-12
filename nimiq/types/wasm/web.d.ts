@@ -23,7 +23,7 @@ export type PlainTransactionProof = ({ type: "raw" } & PlainRawProof) | ({ type:
 /**
  * Enum over all possible meanings of a transaction\'s recipient data.
  */
-export type PlainTransactionRecipientData = ({ type: "raw" } & PlainRawData) | ({ type: "vesting" } & PlainVestingData) | ({ type: "htlc" } & PlainHtlcData) | ({ type: "create-validator" } & PlainCreateValidatorData) | ({ type: "update-validator" } & PlainUpdateValidatorData) | ({ type: "deactivate-validator" } & PlainValidatorData) | ({ type: "reactivate-validator" } & PlainValidatorData) | ({ type: "retire-validator" } & PlainRawData) | ({ type: "create-staker" } & PlainCreateStakerData) | ({ type: "add-stake" } & PlainAddStakeData) | ({ type: "update-staker" } & PlainUpdateStakerData) | ({ type: "set-active-stake" } & PlainSetActiveStakeData) | ({ type: "retire-stake" } & PlainRetireStakeData);
+export type PlainTransactionRecipientData = ({ type: "raw" } & PlainRawData) | ({ type: "vesting" } & PlainVestingData) | ({ type: "htlc" } & PlainHtlcData) | ({ type: "create-validator" } & PlainCreateValidatorData) | ({ type: "update-validator" } & PlainUpdateValidatorData) | ({ type: "deactivate-validator" } & PlainValidatorData) | ({ type: "reactivate-validator" } & PlainValidatorData) | ({ type: "retire-validator" } & PlainRawData) | ({ type: "create-staker" } & PlainCreateStakerData) | ({ type: "add-stake" } & PlainAddStakeData) | ({ type: "update-staker" } & PlainUpdateStakerData) | ({ type: "set-active-stake" } & PlainSetActiveStakeData) | ({ type: "retire-stake" } & PlainRetireStakeData) | ({ type: "set-signal-data" } & PlainSetSignalDataData);
 
 /**
  * Enum over all possible meanings of a transaction\'s sender data.
@@ -339,6 +339,28 @@ export interface PlainSetActiveStakeData {
 }
 
 /**
+ * JSON-compatible and human-readable format of set signal data (warm-key) data.
+ */
+export interface PlainSetSignalDataData {
+    raw: string;
+    validator: string;
+    /**
+     * Whether this transaction replaces the entire signal data (`full`) or only updates the
+     * protocol-version bytes (`version`).
+     */
+    mode: PlainSignalDataUpdateMode;
+    /**
+     * For `full` mode: the new signal data as a hex string, or `null` to clear it. Always `null`
+     * in `version` mode.
+     */
+    newSignalData: string | undefined;
+    /**
+     * For `version` mode: the signaled protocol version; `null` in `full` mode.
+     */
+    version: number | undefined;
+}
+
+/**
  * JSON-compatible and human-readable format of staker creation data.
  */
 export interface PlainCreateStakerData {
@@ -552,6 +574,12 @@ export interface PlainSlot {
      */
     publicKey: string;
 }
+
+/**
+ * Whether a set signal data (warm-key) transaction replaces the entire `signalData` field or
+ * only updates the protocol-version bytes (preserving the rest).
+ */
+export type PlainSignalDataUpdateMode = "full" | "version";
 
 export interface PlainBasicAccount {
     balance: number;
@@ -1619,11 +1647,16 @@ export class Policy {
      */
     static batchIndexAt(block_number: number): number;
     /**
+     * Returns the first block after the collateral lock-up window of a given block number has ended.
+     */
+    static blockAfterCollateralLockup(block_number: number): number;
+    /**
      * Returns the first block after the jail period of a given block number has ended.
      */
     static blockAfterJail(block_number: number): number;
     /**
-     * Returns the first block after the reporting window of a given block number has ended.
+     * @deprecated Renamed to `blockAfterCollateralLockup`. Kept for API backwards compatibility;
+     * see `lastBlockOfCollateralLockup`.
      */
     static blockAfterReportingWindow(block_number: number): number;
     /**
@@ -1677,8 +1710,32 @@ export class Policy {
      */
     static isMicroBlockAt(block_number: number): boolean;
     /**
-     * Returns the block height for the last block of the reporting window of a given block number.
-     * Note: This window is meant for reporting malicious behaviour (aka `jailable` behaviour).
+     * Returns the last block height of the collateral lock-up window of a given block number.
+     *
+     * This governs the collateral lock-up: a deactivated validator's funds (and its stakers')
+     * stay locked until this block so they remain slashable while offenses could still be reported.
+     * It is kept at one epoch and must always be `>=` the equivocation reporting window
+     * (`last_block_of_equivocation_reporting_window`), so collateral is always present while an
+     * offense is still reportable.
+     */
+    static lastBlockOfCollateralLockup(block_number: number): number;
+    /**
+     * Returns the last block height at which an equivocation that happened at `block_number` can
+     * still be reported (i.e. included in a block via an equivocation proof).
+     *
+     * This is intentionally bounded by the transaction validity window so it stays within the
+     * validity-store dedup retention (`transaction_validity_window_blocks + blocks_per_batch`).
+     * Equivocation proofs are deduplicated against the validity store; if this window were longer,
+     * a genuine proof could be re-included after the dedup forgot it, re-jailing the validator and
+     * re-burning rewards. The collateral lock-up (`last_block_of_collateral_lockup`) is kept
+     * longer (one epoch) and must always be `>=` this window. See the invariant test
+     * `reporting_window_stays_within_dedup_retention`.
+     */
+    static lastBlockOfEquivocationReportingWindow(block_number: number): number;
+    /**
+     * @deprecated Renamed to `lastBlockOfCollateralLockup`. This window never governed
+     * equivocation *reporting* (that is `lastBlockOfEquivocationReportingWindow`); it has always
+     * been the collateral lock-up window. Kept for API backwards compatibility.
      */
     static lastBlockOfReportingWindow(block_number: number): number;
     /**
@@ -2474,6 +2531,28 @@ export class TransactionBuilder {
      */
     static newSetActiveStake(sender: Address, new_active_balance: bigint, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
     /**
+     * Sets the signal data of a validator in the staking contract. In contrast to
+     * `newUpdateValidator`, this transaction is signed with the validator's *signing (warm) key*,
+     * so the cold key is not required to signal protocol upgrades. Pass `undefined` as
+     * `signalData` to clear the signal.
+     *
+     * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
+     *
+     * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
+     */
+    static newSetSignalData(sender: Address, validator: Address, signal_data: string | null | undefined, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
+    /**
+     * Signals support for the given protocol `version` with the validator's *signing (warm) key*
+     * by updating the validator's signal data in the staking contract. In contrast to
+     * `newSetSignalData`, this only updates the protocol-version bytes of the signal data and
+     * preserves the rest. To clear the signal data entirely, use `newSetSignalData` with `null`.
+     *
+     * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
+     *
+     * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
+     */
+    static newSignalVersion(sender: Address, validator: Address, version: number, fee: bigint | null | undefined, validity_start_height: number, network_id: number): Transaction;
+    /**
      * Updates a staker in the staking contract to stake for a different validator. This is a
      * signaling transaction and as such does not transfer any value.
      *
@@ -2529,6 +2608,146 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly __wbg_address_free: (a: number, b: number) => void;
+    readonly __wbg_blskeypair_free: (a: number, b: number) => void;
+    readonly __wbg_blspublickey_free: (a: number, b: number) => void;
+    readonly __wbg_blssecretkey_free: (a: number, b: number) => void;
+    readonly __wbg_commitment_free: (a: number, b: number) => void;
+    readonly __wbg_es256publickey_free: (a: number, b: number) => void;
+    readonly __wbg_merklepath_free: (a: number, b: number) => void;
+    readonly __wbg_privatekey_free: (a: number, b: number) => void;
+    readonly __wbg_publickey_free: (a: number, b: number) => void;
+    readonly __wbg_signature_free: (a: number, b: number) => void;
+    readonly address___getClassname: (a: number) => [number, number];
+    readonly address_compare: (a: number, b: number) => number;
+    readonly address_deserialize: (a: number, b: number) => [number, number, number];
+    readonly address_equals: (a: number, b: number) => number;
+    readonly address_fromAny: (a: any) => [number, number, number];
+    readonly address_fromPublicKeys: (a: any, b: number) => [number, number, number];
+    readonly address_fromString: (a: number, b: number) => [number, number, number];
+    readonly address_fromUserFriendlyAddress: (a: number, b: number) => [number, number, number];
+    readonly address_new: (a: number, b: number) => [number, number, number];
+    readonly address_null: () => number;
+    readonly address_serialize: (a: number) => [number, number];
+    readonly address_toHex: (a: number) => [number, number];
+    readonly address_toPlain: (a: number) => [number, number];
+    readonly blskeypair_derive: (a: number) => number;
+    readonly blskeypair_deserialize: (a: number, b: number) => [number, number, number];
+    readonly blskeypair_generate: () => number;
+    readonly blskeypair_new: (a: number, b: number) => number;
+    readonly blskeypair_publicKey: (a: number) => number;
+    readonly blskeypair_secretKey: (a: number) => number;
+    readonly blskeypair_serialize: (a: number) => [number, number];
+    readonly blskeypair_toHex: (a: number) => [number, number];
+    readonly blspublickey_derive: (a: number) => number;
+    readonly blspublickey_deserialize: (a: number, b: number) => [number, number, number];
+    readonly blspublickey_fromHex: (a: number, b: number) => [number, number, number];
+    readonly blspublickey_new: (a: number, b: number) => [number, number, number];
+    readonly blspublickey_serialize: (a: number) => [number, number];
+    readonly blspublickey_toHex: (a: number) => [number, number];
+    readonly blssecretkey_deserialize: (a: number, b: number) => [number, number, number];
+    readonly blssecretkey_fromHex: (a: number, b: number) => [number, number, number];
+    readonly blssecretkey_generate: () => number;
+    readonly blssecretkey_new: (a: number, b: number) => [number, number, number];
+    readonly blssecretkey_serialize: (a: number) => [number, number];
+    readonly blssecretkey_toHex: (a: number) => [number, number];
+    readonly commitment___getClassname: (a: number) => [number, number];
+    readonly commitment_derive: (a: number) => number;
+    readonly commitment_deserialize: (a: number, b: number) => [number, number, number];
+    readonly commitment_equals: (a: number, b: number) => number;
+    readonly commitment_fromAny: (a: any) => [number, number, number];
+    readonly commitment_fromHex: (a: number, b: number) => [number, number, number];
+    readonly commitment_new: (a: number, b: number) => [number, number, number];
+    readonly commitment_serialize: (a: number) => [number, number];
+    readonly commitment_serialized_size: (a: number) => number;
+    readonly commitment_size: () => number;
+    readonly commitment_sum: (a: any) => [number, number, number];
+    readonly commitment_sumMuSig2: (a: any, b: any, c: number, d: number) => [number, number, number];
+    readonly commitment_toHex: (a: number) => [number, number];
+    readonly es256publickey___getClassname: (a: number) => [number, number];
+    readonly es256publickey_compare: (a: number, b: number) => number;
+    readonly es256publickey_deserialize: (a: number, b: number) => [number, number, number];
+    readonly es256publickey_equals: (a: number, b: number) => number;
+    readonly es256publickey_fromHex: (a: number, b: number) => [number, number, number];
+    readonly es256publickey_fromRaw: (a: number, b: number) => [number, number, number];
+    readonly es256publickey_fromSpki: (a: number, b: number) => [number, number, number];
+    readonly es256publickey_new: (a: number, b: number) => [number, number, number];
+    readonly es256publickey_serialize: (a: number) => [number, number];
+    readonly es256publickey_toAddress: (a: number) => number;
+    readonly es256publickey_toHex: (a: number) => [number, number];
+    readonly es256publickey_verify: (a: number, b: number, c: number, d: number) => number;
+    readonly merklepath_computeRoot: (a: number, b: number, c: number) => [number, number, number, number];
+    readonly merklepath_deserialize: (a: number, b: number) => [number, number, number];
+    readonly merklepath_hashes: (a: number) => [number, number];
+    readonly merklepath_length: (a: number) => number;
+    readonly merklepath_serialize: (a: number) => [number, number];
+    readonly privatekey_deserialize: (a: number, b: number) => [number, number, number];
+    readonly privatekey_equals: (a: number, b: number) => number;
+    readonly privatekey_fromHex: (a: number, b: number) => [number, number, number];
+    readonly privatekey_generate: () => number;
+    readonly privatekey_new: (a: number, b: number) => [number, number, number];
+    readonly privatekey_purpose_id: () => number;
+    readonly privatekey_serialize: (a: number) => [number, number];
+    readonly privatekey_serialized_size: (a: number) => number;
+    readonly privatekey_toHex: (a: number) => [number, number];
+    readonly publickey___getClassname: (a: number) => [number, number];
+    readonly publickey_combinations: (a: any, b: number) => [number, number, number, number];
+    readonly publickey_compare: (a: number, b: number) => number;
+    readonly publickey_derive: (a: number) => number;
+    readonly publickey_deserialize: (a: number, b: number) => [number, number, number];
+    readonly publickey_equals: (a: number, b: number) => number;
+    readonly publickey_fromAny: (a: any) => [number, number, number];
+    readonly publickey_fromHex: (a: number, b: number) => [number, number, number];
+    readonly publickey_fromRaw: (a: number, b: number) => [number, number, number];
+    readonly publickey_fromSpki: (a: number, b: number) => [number, number, number];
+    readonly publickey_new: (a: number, b: number) => [number, number, number];
+    readonly publickey_serialize: (a: number) => [number, number];
+    readonly publickey_serialized_size: (a: number) => number;
+    readonly publickey_sum: (a: any) => [number, number, number];
+    readonly publickey_toAddress: (a: number) => number;
+    readonly publickey_toHex: (a: number) => [number, number];
+    readonly publickey_verify: (a: number, b: number, c: number, d: number) => number;
+    readonly signature___getClassname: (a: number) => [number, number];
+    readonly signature_create: (a: number, b: number, c: number, d: number) => number;
+    readonly signature_deserialize: (a: number, b: number) => [number, number, number];
+    readonly signature_fromAsn1: (a: number, b: number) => [number, number, number];
+    readonly signature_fromHex: (a: number, b: number) => [number, number, number];
+    readonly signature_serialize: (a: number) => [number, number];
+    readonly signature_toHex: (a: number) => [number, number];
+    readonly address_toUserFriendlyAddress: (a: number) => [number, number];
+    readonly privatekey_size: () => number;
+    readonly publickey_size: () => number;
+    readonly __wbg_client_free: (a: number, b: number) => void;
+    readonly client_addConsensusChangedListener: (a: number, b: any) => any;
+    readonly client_addHeadChangedListener: (a: number, b: any) => any;
+    readonly client_addPeerChangedListener: (a: number, b: any) => any;
+    readonly client_addTransactionListener: (a: number, b: any, c: any) => any;
+    readonly client_connectNetwork: (a: number) => any;
+    readonly client_create: (a: any) => any;
+    readonly client_disconnectNetwork: (a: number) => any;
+    readonly client_getAccount: (a: number, b: any) => any;
+    readonly client_getAccounts: (a: number, b: any) => any;
+    readonly client_getAddressBook: (a: number) => any;
+    readonly client_getBlock: (a: number, b: number, c: number) => any;
+    readonly client_getBlockAt: (a: number, b: number) => any;
+    readonly client_getElectedValidators: (a: number) => any;
+    readonly client_getHeadBlock: (a: number) => any;
+    readonly client_getHeadHash: (a: number) => any;
+    readonly client_getHeadHeight: (a: number) => any;
+    readonly client_getNetworkId: (a: number) => any;
+    readonly client_getProtocolVersion: (a: number) => any;
+    readonly client_getStaker: (a: number, b: any) => any;
+    readonly client_getStakers: (a: number, b: any) => any;
+    readonly client_getTransaction: (a: number, b: number, c: number) => any;
+    readonly client_getTransactionReceiptsByAddress: (a: number, b: any, c: number, d: number, e: number, f: number) => any;
+    readonly client_getTransactionsByAddress: (a: number, b: any, c: number, d: number, e: number, f: number, g: number, h: number) => any;
+    readonly client_getValidator: (a: number, b: any) => any;
+    readonly client_getValidators: (a: number, b: any) => any;
+    readonly client_getVersion: (a: number) => any;
+    readonly client_isConsensusEstablished: (a: number) => any;
+    readonly client_removeListener: (a: number, b: number) => any;
+    readonly client_sendTransaction: (a: number, b: any) => any;
+    readonly client_waitForConsensusEstablished: (a: number) => any;
     readonly __wbg_clientconfiguration_free: (a: number, b: number) => void;
     readonly __wbg_commitmentpair_free: (a: number, b: number) => void;
     readonly __wbg_cryptoutils_free: (a: number, b: number) => void;
@@ -2654,115 +2873,22 @@ export interface InitOutput {
     readonly transaction_value: (a: number) => bigint;
     readonly transaction_verify: (a: number, b: number, c: number) => [number, number];
     readonly randomsecret_size: () => number;
-    readonly __wbg_address_free: (a: number, b: number) => void;
-    readonly __wbg_blskeypair_free: (a: number, b: number) => void;
-    readonly __wbg_blspublickey_free: (a: number, b: number) => void;
-    readonly __wbg_blssecretkey_free: (a: number, b: number) => void;
-    readonly __wbg_commitment_free: (a: number, b: number) => void;
-    readonly __wbg_es256publickey_free: (a: number, b: number) => void;
-    readonly __wbg_merklepath_free: (a: number, b: number) => void;
-    readonly __wbg_privatekey_free: (a: number, b: number) => void;
-    readonly __wbg_publickey_free: (a: number, b: number) => void;
-    readonly __wbg_signature_free: (a: number, b: number) => void;
-    readonly address___getClassname: (a: number) => [number, number];
-    readonly address_compare: (a: number, b: number) => number;
-    readonly address_deserialize: (a: number, b: number) => [number, number, number];
-    readonly address_equals: (a: number, b: number) => number;
-    readonly address_fromAny: (a: any) => [number, number, number];
-    readonly address_fromPublicKeys: (a: any, b: number) => [number, number, number];
-    readonly address_fromString: (a: number, b: number) => [number, number, number];
-    readonly address_fromUserFriendlyAddress: (a: number, b: number) => [number, number, number];
-    readonly address_new: (a: number, b: number) => [number, number, number];
-    readonly address_null: () => number;
-    readonly address_serialize: (a: number) => [number, number];
-    readonly address_toHex: (a: number) => [number, number];
-    readonly address_toPlain: (a: number) => [number, number];
-    readonly blskeypair_derive: (a: number) => number;
-    readonly blskeypair_deserialize: (a: number, b: number) => [number, number, number];
-    readonly blskeypair_generate: () => number;
-    readonly blskeypair_new: (a: number, b: number) => number;
-    readonly blskeypair_publicKey: (a: number) => number;
-    readonly blskeypair_secretKey: (a: number) => number;
-    readonly blskeypair_serialize: (a: number) => [number, number];
-    readonly blskeypair_toHex: (a: number) => [number, number];
-    readonly blspublickey_derive: (a: number) => number;
-    readonly blspublickey_deserialize: (a: number, b: number) => [number, number, number];
-    readonly blspublickey_fromHex: (a: number, b: number) => [number, number, number];
-    readonly blspublickey_new: (a: number, b: number) => [number, number, number];
-    readonly blspublickey_serialize: (a: number) => [number, number];
-    readonly blspublickey_toHex: (a: number) => [number, number];
-    readonly blssecretkey_deserialize: (a: number, b: number) => [number, number, number];
-    readonly blssecretkey_fromHex: (a: number, b: number) => [number, number, number];
-    readonly blssecretkey_generate: () => number;
-    readonly blssecretkey_new: (a: number, b: number) => [number, number, number];
-    readonly blssecretkey_serialize: (a: number) => [number, number];
-    readonly blssecretkey_toHex: (a: number) => [number, number];
-    readonly commitment___getClassname: (a: number) => [number, number];
-    readonly commitment_derive: (a: number) => number;
-    readonly commitment_deserialize: (a: number, b: number) => [number, number, number];
-    readonly commitment_equals: (a: number, b: number) => number;
-    readonly commitment_fromAny: (a: any) => [number, number, number];
-    readonly commitment_fromHex: (a: number, b: number) => [number, number, number];
-    readonly commitment_new: (a: number, b: number) => [number, number, number];
-    readonly commitment_serialize: (a: number) => [number, number];
-    readonly commitment_serialized_size: (a: number) => number;
-    readonly commitment_size: () => number;
-    readonly commitment_sum: (a: any) => [number, number, number];
-    readonly commitment_sumMuSig2: (a: any, b: any, c: number, d: number) => [number, number, number];
-    readonly commitment_toHex: (a: number) => [number, number];
-    readonly es256publickey___getClassname: (a: number) => [number, number];
-    readonly es256publickey_compare: (a: number, b: number) => number;
-    readonly es256publickey_deserialize: (a: number, b: number) => [number, number, number];
-    readonly es256publickey_equals: (a: number, b: number) => number;
-    readonly es256publickey_fromHex: (a: number, b: number) => [number, number, number];
-    readonly es256publickey_fromRaw: (a: number, b: number) => [number, number, number];
-    readonly es256publickey_fromSpki: (a: number, b: number) => [number, number, number];
-    readonly es256publickey_new: (a: number, b: number) => [number, number, number];
-    readonly es256publickey_serialize: (a: number) => [number, number];
-    readonly es256publickey_toAddress: (a: number) => number;
-    readonly es256publickey_toHex: (a: number) => [number, number];
-    readonly es256publickey_verify: (a: number, b: number, c: number, d: number) => number;
-    readonly merklepath_computeRoot: (a: number, b: number, c: number) => [number, number, number, number];
-    readonly merklepath_deserialize: (a: number, b: number) => [number, number, number];
-    readonly merklepath_hashes: (a: number) => [number, number];
-    readonly merklepath_length: (a: number) => number;
-    readonly merklepath_serialize: (a: number) => [number, number];
-    readonly privatekey_deserialize: (a: number, b: number) => [number, number, number];
-    readonly privatekey_equals: (a: number, b: number) => number;
-    readonly privatekey_fromHex: (a: number, b: number) => [number, number, number];
-    readonly privatekey_generate: () => number;
-    readonly privatekey_new: (a: number, b: number) => [number, number, number];
-    readonly privatekey_purpose_id: () => number;
-    readonly privatekey_serialize: (a: number) => [number, number];
-    readonly privatekey_serialized_size: (a: number) => number;
-    readonly privatekey_toHex: (a: number) => [number, number];
-    readonly publickey___getClassname: (a: number) => [number, number];
-    readonly publickey_combinations: (a: any, b: number) => [number, number, number, number];
-    readonly publickey_compare: (a: number, b: number) => number;
-    readonly publickey_derive: (a: number) => number;
-    readonly publickey_deserialize: (a: number, b: number) => [number, number, number];
-    readonly publickey_equals: (a: number, b: number) => number;
-    readonly publickey_fromAny: (a: any) => [number, number, number];
-    readonly publickey_fromHex: (a: number, b: number) => [number, number, number];
-    readonly publickey_fromRaw: (a: number, b: number) => [number, number, number];
-    readonly publickey_fromSpki: (a: number, b: number) => [number, number, number];
-    readonly publickey_new: (a: number, b: number) => [number, number, number];
-    readonly publickey_serialize: (a: number) => [number, number];
-    readonly publickey_serialized_size: (a: number) => number;
-    readonly publickey_sum: (a: any) => [number, number, number];
-    readonly publickey_toAddress: (a: number) => number;
-    readonly publickey_toHex: (a: number) => [number, number];
-    readonly publickey_verify: (a: number, b: number, c: number, d: number) => number;
-    readonly signature___getClassname: (a: number) => [number, number];
-    readonly signature_create: (a: number, b: number, c: number, d: number) => number;
-    readonly signature_deserialize: (a: number, b: number) => [number, number, number];
-    readonly signature_fromAsn1: (a: number, b: number) => [number, number, number];
-    readonly signature_fromHex: (a: number, b: number) => [number, number, number];
-    readonly signature_serialize: (a: number) => [number, number];
-    readonly signature_toHex: (a: number) => [number, number];
-    readonly address_toUserFriendlyAddress: (a: number) => [number, number];
-    readonly privatekey_size: () => number;
-    readonly publickey_size: () => number;
+    readonly __wbg_transactionbuilder_free: (a: number, b: number) => void;
+    readonly transactionbuilder_newAddStake: (a: number, b: number, c: bigint, d: number, e: bigint, f: number, g: number) => [number, number, number];
+    readonly transactionbuilder_newBasic: (a: number, b: number, c: bigint, d: number, e: bigint, f: number, g: number) => [number, number, number];
+    readonly transactionbuilder_newBasicWithData: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: bigint, h: number, i: number) => [number, number, number];
+    readonly transactionbuilder_newCreateStaker: (a: number, b: any, c: bigint, d: number, e: bigint, f: number, g: number) => [number, number, number];
+    readonly transactionbuilder_newCreateValidator: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: bigint, i: number, j: number) => [number, number, number];
+    readonly transactionbuilder_newDeactivateValidator: (a: number, b: number, c: number, d: bigint, e: number, f: number) => [number, number, number];
+    readonly transactionbuilder_newDeleteValidator: (a: number, b: number, c: bigint, d: number, e: number) => [number, number, number];
+    readonly transactionbuilder_newRemoveStake: (a: number, b: bigint, c: number, d: bigint, e: number, f: number) => [number, number, number];
+    readonly transactionbuilder_newRetireStake: (a: number, b: bigint, c: number, d: bigint, e: number, f: number) => [number, number, number];
+    readonly transactionbuilder_newRetireValidator: (a: number, b: number, c: bigint, d: number, e: number) => [number, number, number];
+    readonly transactionbuilder_newSetActiveStake: (a: number, b: bigint, c: number, d: bigint, e: number, f: number) => [number, number, number];
+    readonly transactionbuilder_newSetSignalData: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: number, h: number) => [number, number, number];
+    readonly transactionbuilder_newSignalVersion: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: number) => [number, number, number];
+    readonly transactionbuilder_newUpdateStaker: (a: number, b: any, c: number, d: number, e: bigint, f: number, g: number) => [number, number, number];
+    readonly transactionbuilder_newUpdateValidator: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: bigint, i: number, j: number) => [number, number, number];
     readonly __wbg_hashedtimelockedcontract_free: (a: number, b: number) => void;
     readonly __wbg_merkletree_free: (a: number, b: number) => void;
     readonly __wbg_signatureproof_free: (a: number, b: number) => void;
@@ -2789,57 +2915,12 @@ export interface InitOutput {
     readonly stakingcontract_proofToPlain: (a: number, b: number) => [number, number, number];
     readonly vestingcontract_dataToPlain: (a: number, b: number, c: bigint) => [number, number, number];
     readonly vestingcontract_proofToPlain: (a: number, b: number) => [number, number, number];
-    readonly __wbg_client_free: (a: number, b: number) => void;
-    readonly client_addConsensusChangedListener: (a: number, b: any) => any;
-    readonly client_addHeadChangedListener: (a: number, b: any) => any;
-    readonly client_addPeerChangedListener: (a: number, b: any) => any;
-    readonly client_addTransactionListener: (a: number, b: any, c: any) => any;
-    readonly client_connectNetwork: (a: number) => any;
-    readonly client_create: (a: any) => any;
-    readonly client_disconnectNetwork: (a: number) => any;
-    readonly client_getAccount: (a: number, b: any) => any;
-    readonly client_getAccounts: (a: number, b: any) => any;
-    readonly client_getAddressBook: (a: number) => any;
-    readonly client_getBlock: (a: number, b: number, c: number) => any;
-    readonly client_getBlockAt: (a: number, b: number) => any;
-    readonly client_getElectedValidators: (a: number) => any;
-    readonly client_getHeadBlock: (a: number) => any;
-    readonly client_getHeadHash: (a: number) => any;
-    readonly client_getHeadHeight: (a: number) => any;
-    readonly client_getNetworkId: (a: number) => any;
-    readonly client_getProtocolVersion: (a: number) => any;
-    readonly client_getStaker: (a: number, b: any) => any;
-    readonly client_getStakers: (a: number, b: any) => any;
-    readonly client_getTransaction: (a: number, b: number, c: number) => any;
-    readonly client_getTransactionReceiptsByAddress: (a: number, b: any, c: number, d: number, e: number, f: number) => any;
-    readonly client_getTransactionsByAddress: (a: number, b: any, c: number, d: number, e: number, f: number, g: number, h: number) => any;
-    readonly client_getValidator: (a: number, b: any) => any;
-    readonly client_getValidators: (a: number, b: any) => any;
-    readonly client_getVersion: (a: number) => any;
-    readonly client_isConsensusEstablished: (a: number) => any;
-    readonly client_removeListener: (a: number, b: number) => any;
-    readonly client_sendTransaction: (a: number, b: any) => any;
-    readonly client_waitForConsensusEstablished: (a: number) => any;
-    readonly __wbg_transactionbuilder_free: (a: number, b: number) => void;
-    readonly transactionbuilder_newAddStake: (a: number, b: number, c: bigint, d: number, e: bigint, f: number, g: number) => [number, number, number];
-    readonly transactionbuilder_newBasic: (a: number, b: number, c: bigint, d: number, e: bigint, f: number, g: number) => [number, number, number];
-    readonly transactionbuilder_newBasicWithData: (a: number, b: number, c: number, d: number, e: bigint, f: number, g: bigint, h: number, i: number) => [number, number, number];
-    readonly transactionbuilder_newCreateStaker: (a: number, b: any, c: bigint, d: number, e: bigint, f: number, g: number) => [number, number, number];
-    readonly transactionbuilder_newCreateValidator: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: bigint, i: number, j: number) => [number, number, number];
-    readonly transactionbuilder_newDeactivateValidator: (a: number, b: number, c: number, d: bigint, e: number, f: number) => [number, number, number];
-    readonly transactionbuilder_newDeleteValidator: (a: number, b: number, c: bigint, d: number, e: number) => [number, number, number];
-    readonly transactionbuilder_newRemoveStake: (a: number, b: bigint, c: number, d: bigint, e: number, f: number) => [number, number, number];
-    readonly transactionbuilder_newRetireStake: (a: number, b: bigint, c: number, d: bigint, e: number, f: number) => [number, number, number];
-    readonly transactionbuilder_newRetireValidator: (a: number, b: number, c: bigint, d: number, e: number) => [number, number, number];
-    readonly transactionbuilder_newSetActiveStake: (a: number, b: bigint, c: number, d: bigint, e: number, f: number) => [number, number, number];
-    readonly transactionbuilder_newUpdateStaker: (a: number, b: any, c: number, d: number, e: bigint, f: number, g: number) => [number, number, number];
-    readonly transactionbuilder_newUpdateValidator: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: bigint, i: number, j: number) => [number, number, number];
     readonly __wbg_policy_free: (a: number, b: number) => void;
     readonly policy_batchAt: (a: number) => number;
     readonly policy_batchIndexAt: (a: number) => number;
     readonly policy_batches_per_epoch: () => number;
+    readonly policy_blockAfterCollateralLockup: (a: number) => number;
     readonly policy_blockAfterJail: (a: number) => number;
-    readonly policy_blockAfterReportingWindow: (a: number) => number;
     readonly policy_blocks_per_batch: () => number;
     readonly policy_blocks_per_epoch: () => number;
     readonly policy_electionBlockAfter: (a: number) => number;
@@ -2854,7 +2935,8 @@ export interface InitOutput {
     readonly policy_isElectionBlockAt: (a: number) => number;
     readonly policy_isMacroBlockAt: (a: number) => number;
     readonly policy_isMicroBlockAt: (a: number) => number;
-    readonly policy_lastBlockOfReportingWindow: (a: number) => number;
+    readonly policy_lastBlockOfCollateralLockup: (a: number) => number;
+    readonly policy_lastBlockOfEquivocationReportingWindow: (a: number) => number;
     readonly policy_lastElectionBlock: (a: number) => number;
     readonly policy_lastMacroBlock: (a: number) => number;
     readonly policy_macroBlockAfter: (a: number) => number;
@@ -2881,7 +2963,9 @@ export interface InitOutput {
     readonly policy_wasm_total_supply: () => bigint;
     readonly policy_wasm_two_f_plus_one: () => number;
     readonly policy_wasm_validator_deposit: () => bigint;
+    readonly policy_lastBlockOfReportingWindow: (a: number) => number;
     readonly policy_batchDelayPenalty: (a: bigint) => number;
+    readonly policy_blockAfterReportingWindow: (a: number) => number;
     readonly wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___wasm_bindgen_8e56df5fa3736b7e___JsValue__core_9b3796e30d99ddb7___result__Result_____wasm_bindgen_8e56df5fa3736b7e___JsError___true_: (a: number, b: number, c: any) => [number, number];
     readonly wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___js_sys_7ff7cdb33730fe00___Function_fn_wasm_bindgen_8e56df5fa3736b7e___JsValue_____wasm_bindgen_8e56df5fa3736b7e___sys__Undefined___js_sys_7ff7cdb33730fe00___Function_fn_wasm_bindgen_8e56df5fa3736b7e___JsValue_____wasm_bindgen_8e56df5fa3736b7e___sys__Undefined_______true_: (a: number, b: number, c: any, d: any) => void;
     readonly wasm_bindgen_8e56df5fa3736b7e___convert__closures_____invoke___web_sys_2af8cd294dd713b7___features__gen_CloseEvent__CloseEvent______true_: (a: number, b: number, c: any) => void;

@@ -2154,6 +2154,15 @@ export class Policy {
         return ret;
     }
     /**
+     * Returns the first block after the collateral lock-up window of a given block number has ended.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static blockAfterCollateralLockup(block_number) {
+        const ret = wasm.policy_blockAfterCollateralLockup(block_number);
+        return ret >>> 0;
+    }
+    /**
      * Returns the first block after the jail period of a given block number has ended.
      * @param {number} block_number
      * @returns {number}
@@ -2163,7 +2172,8 @@ export class Policy {
         return ret >>> 0;
     }
     /**
-     * Returns the first block after the reporting window of a given block number has ended.
+     * @deprecated Renamed to `blockAfterCollateralLockup`. Kept for API backwards compatibility;
+     * see `lastBlockOfCollateralLockup`.
      * @param {number} block_number
      * @returns {number}
      */
@@ -2301,8 +2311,42 @@ export class Policy {
         return ret !== 0;
     }
     /**
-     * Returns the block height for the last block of the reporting window of a given block number.
-     * Note: This window is meant for reporting malicious behaviour (aka `jailable` behaviour).
+     * Returns the last block height of the collateral lock-up window of a given block number.
+     *
+     * This governs the collateral lock-up: a deactivated validator's funds (and its stakers')
+     * stay locked until this block so they remain slashable while offenses could still be reported.
+     * It is kept at one epoch and must always be `>=` the equivocation reporting window
+     * (`last_block_of_equivocation_reporting_window`), so collateral is always present while an
+     * offense is still reportable.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static lastBlockOfCollateralLockup(block_number) {
+        const ret = wasm.policy_lastBlockOfCollateralLockup(block_number);
+        return ret >>> 0;
+    }
+    /**
+     * Returns the last block height at which an equivocation that happened at `block_number` can
+     * still be reported (i.e. included in a block via an equivocation proof).
+     *
+     * This is intentionally bounded by the transaction validity window so it stays within the
+     * validity-store dedup retention (`transaction_validity_window_blocks + blocks_per_batch`).
+     * Equivocation proofs are deduplicated against the validity store; if this window were longer,
+     * a genuine proof could be re-included after the dedup forgot it, re-jailing the validator and
+     * re-burning rewards. The collateral lock-up (`last_block_of_collateral_lockup`) is kept
+     * longer (one epoch) and must always be `>=` this window. See the invariant test
+     * `reporting_window_stays_within_dedup_retention`.
+     * @param {number} block_number
+     * @returns {number}
+     */
+    static lastBlockOfEquivocationReportingWindow(block_number) {
+        const ret = wasm.policy_lastBlockOfEquivocationReportingWindow(block_number);
+        return ret >>> 0;
+    }
+    /**
+     * @deprecated Renamed to `lastBlockOfCollateralLockup`. This window never governed
+     * equivocation *reporting* (that is `lastBlockOfEquivocationReportingWindow`); it has always
+     * been the collateral lock-up window. Kept for API backwards compatibility.
      * @param {number} block_number
      * @returns {number}
      */
@@ -4297,6 +4341,60 @@ export class TransactionBuilder {
     static newSetActiveStake(sender, new_active_balance, fee, validity_start_height, network_id) {
         _assertClass(sender, Address);
         const ret = wasm.transactionbuilder_newSetActiveStake(sender.__wbg_ptr, new_active_balance, !isLikeNone(fee), isLikeNone(fee) ? BigInt(0) : fee, validity_start_height, network_id);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return Transaction.__wrap(ret[0]);
+    }
+    /**
+     * Sets the signal data of a validator in the staking contract. In contrast to
+     * `newUpdateValidator`, this transaction is signed with the validator's *signing (warm) key*,
+     * so the cold key is not required to signal protocol upgrades. Pass `undefined` as
+     * `signalData` to clear the signal.
+     *
+     * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
+     *
+     * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
+     * @param {Address} sender
+     * @param {Address} validator
+     * @param {string | null | undefined} signal_data
+     * @param {bigint | null | undefined} fee
+     * @param {number} validity_start_height
+     * @param {number} network_id
+     * @returns {Transaction}
+     */
+    static newSetSignalData(sender, validator, signal_data, fee, validity_start_height, network_id) {
+        _assertClass(sender, Address);
+        _assertClass(validator, Address);
+        var ptr0 = isLikeNone(signal_data) ? 0 : passStringToWasm0(signal_data, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        const ret = wasm.transactionbuilder_newSetSignalData(sender.__wbg_ptr, validator.__wbg_ptr, ptr0, len0, !isLikeNone(fee), isLikeNone(fee) ? BigInt(0) : fee, validity_start_height, network_id);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return Transaction.__wrap(ret[0]);
+    }
+    /**
+     * Signals support for the given protocol `version` with the validator's *signing (warm) key*
+     * by updating the validator's signal data in the staking contract. In contrast to
+     * `newSetSignalData`, this only updates the protocol-version bytes of the signal data and
+     * preserves the rest. To clear the signal data entirely, use `newSetSignalData` with `null`.
+     *
+     * The returned transaction is not yet signed. You can sign it e.g. with `tx.sign(keyPair)`.
+     *
+     * Throws when the fee does not fit within a u64 or the `networkId` is unknown.
+     * @param {Address} sender
+     * @param {Address} validator
+     * @param {number} version
+     * @param {bigint | null | undefined} fee
+     * @param {number} validity_start_height
+     * @param {number} network_id
+     * @returns {Transaction}
+     */
+    static newSignalVersion(sender, validator, version, fee, validity_start_height, network_id) {
+        _assertClass(sender, Address);
+        _assertClass(validator, Address);
+        const ret = wasm.transactionbuilder_newSignalVersion(sender.__wbg_ptr, validator.__wbg_ptr, version, !isLikeNone(fee), isLikeNone(fee) ? BigInt(0) : fee, validity_start_height, network_id);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
